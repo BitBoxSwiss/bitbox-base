@@ -1,0 +1,8 @@
+remote_theme: pmarsceill/just-the-docs
+search_enabled: true
+aux_links:
+    "Issues / Knowledge Base":
+      - "https://github.com/digitalbitbox/bitbox-base/issues"
+    "Contribute! Source on GitHub":
+      - "https://github.com/digitalbitbox/bitbox-base"
+theme: jekyll-theme-minimal

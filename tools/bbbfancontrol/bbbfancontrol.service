@@ -1,0 +1,12 @@
+[Unit]
+Description=BitBox Base fancontrol
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/bbbfancontrol
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

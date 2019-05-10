@@ -1,0 +1,4 @@
+armbian/armbian-build
+armbian/base/build/build-local.conf
+tools/fancontrol/bbbfancontrol
+*.sw?
