@@ -6,7 +6,7 @@ All details outlined here reflect the current progress of the project and are su
 
 ## Project goals
 
-We believe that storing Bitcoin private keys on a hardware wallet like the [BitBox](https://shiftcrypto.ch) is only one part of the equation to gain financial sovereignty. While hardware wallets provide security, they do not provide privacy. Your entire financial history can be read by the company, such as the hardware wallet provider, who querries the blockchain for you. Because we respect an individual's right to privacy, we decided to build the BitBox Base. The currently missing part of the equation is a personal appliance that syncs directly with the Bitcoin peer-to-peer network and is able to send and validate transactions in a private manner. Trusting a third party to check your current Bitcoin balance is to be avoided.
+We believe that storing Bitcoin private keys on a hardware wallet like the [BitBox](https://shiftcrypto.ch) is only one part of the equation to gain financial sovereignty. While hardware wallets provide security, they do not provide privacy. Your entire financial history can be read by the company, such as the hardware wallet provider, who queries the blockchain for you. Because we respect an individual's right to privacy, we decided to build the BitBox Base. The currently missing part of the equation is a personal appliance that syncs directly with the Bitcoin peer-to-peer network and is able to send and validate transactions in a private manner. Trusting a third party to check your current Bitcoin balance is to be avoided.
 
 The goals of BitBox Base:
 
@@ -81,7 +81,7 @@ As the BitBox Base is designed as a networked appliance, it's important that the
 
 The Debian-based Linux distribution Armbian also features a reliable build environment that allows to build the operating system from source, configure the resulting kernel in minute detail and customize the resulting disk image using regular bash scripts within a chroot environment.
 
-More detail on how to build the base operating image yourself will be detailed in the [Armbian build](docs/armbian-build.md) docs.
+More detail on how to build the base operating image yourself will be detailed in the [Armbian build](https://digitalbitbox.github.io/bitbox-base/os/armbian-build.html) docs.
 
 ### Integrated HSM
 
