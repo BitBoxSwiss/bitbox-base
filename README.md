@@ -46,7 +46,7 @@ The following services are exposed:
 
 Additional noteworthy components on the BitBox Base:
 
-* [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network
+* [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network with Tor Relay option
 * [Prometheus](https://prometheus.io/): monitoring of system and software components
 * [Grafana](https://grafana.com/): visualization of system and network performance metrics
 * [RAUC](https://rauc.readthedocs.io/): atomic update controller
@@ -102,6 +102,8 @@ The BitBox Base plans to solve this issue comprehensively, by providing three co
    Once initialized, the BitBox Base automatically creates a Tor Hidden Service with an onion address. This service is announced to the Tor network and connections can then be established from the public internet. As the initial service connection is established from within the local network to the outside world and that connection is then kept alive, there is no need for any router configuration. Again, additional end-to-end encryption is used to secure all communication.
 
    One drawback of this method is that the computer running the BitBox App must have Tor installed, so that the BitBox App can route all traffic through the available Tor proxy. That might not be possible on every device.
+   
+Tor Relay (non-exit) option to support the Tor network back. The more latency is across the routing path the less hops will be made. If (when) LN grows and nodes will use the network it might not end up good for LN and Tor too. BitBox users should know that supporting Tor network back is important and can't work one-way only and have the option to do that if they decide to.
 
 3. **Shift Connect**  
    For maximum flexibility, BitBox Base users will be able to connect through the Shift Connect proxy that provides a regular HTTPS endpoint for each registered node, configured automatically on pairing. This service is purely opt-in and can not gather any information as the BitBox Base connects with Tor to the Shift Connect proxy, without revealing its identity, ip address or location. 
