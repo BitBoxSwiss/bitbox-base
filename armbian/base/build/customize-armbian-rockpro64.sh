@@ -34,6 +34,7 @@ source /tmp/overlay/build/build-local.conf || true
 
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
+BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -44,9 +45,6 @@ fi
 rm -f /root/.not_logged_in_yet
 ROOTPW=$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)
 echo root:${ROOTPW} | chpasswd
-echo "================================================================================"
-echo "==> Password for user 'root' randomly set to: ${ROOTPW}"
-echo "================================================================================"
 export HOME=/root
 
 set -ex
@@ -765,6 +763,10 @@ if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
   /opt/shift/scripts/set-bitcoin-network.sh mainnet
 fi
 
+if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
+  touch /opt/shift/config/.autosetup_ssd
+fi
+
 set +x
 echo
 echo "================================================================================"
@@ -773,5 +775,6 @@ echo "==========================================================================
 echo "    USER / PASSWORD: root / ${ROOTPW}"
 echo "    HOSTNAME:        ${BASE_HOSTNAME}"
 echo "    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}"
+echo "    AUTOSETUP SSD:   ${BASE_AUTOSETUP_SSD}"
 echo "================================================================================"
 echo
