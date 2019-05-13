@@ -700,6 +700,8 @@ Cache=yes
 EOF
 
 # mDNS services
+sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
+
 cat << EOF > /etc/avahi/services/bitcoind.service
 <?xml version="1.0" standalone='no'?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
