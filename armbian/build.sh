@@ -16,11 +16,11 @@ VIRTUALBOX_MEMORY="8192"
 
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
-	echo "Usage: $0 [update]"
+	echo "Usage: ${0} [update]"
 }
 
 function cleanup() {
-	if [[ "$ACTION" != "clean" ]]; then 
+	if [[ "${ACTION}" != "clean" ]]; then
 		echo "Cleaning up by halting any running vagrant VMs.."
 		vagrant halt
 	fi
@@ -28,14 +28,14 @@ function cleanup() {
 
 ACTION=${1:-"build"}
 
-if ! [[ "$ACTION" =~ ^(build|update|clean)$ ]]; then
+if ! [[ "${ACTION}" =~ ^(build|update|clean)$ ]]; then
 	usage
 	exit 1
 fi
 
 trap cleanup EXIT
 
-case $ACTION in
+case ${ACTION} in
 	build|update)
 		if ! which git >/dev/null 2>&1 && ! which vagrant >/dev/null 2>&1; then
 			echo
@@ -47,8 +47,8 @@ case $ACTION in
 
 		if [ ! -d "armbian-build" ]; then 
 			git clone https://github.com/armbian/build armbian-build
-			sed -i "s/#vb.memory = \"8192\"/vb.memory = \"$VIRTUALBOX_MEMORY\"/g" armbian-build/Vagrantfile
-                        sed -i "s/#vb.cpus = \"4\"/vb.cpus = \"$VIRTUALBOX_CPU\"/g" armbian-build/Vagrantfile
+			sed -i "s/#vb.memory = \"8192\"/vb.memory = \"${VIRTUALBOX_MEMORY}\"/g" armbian-build/Vagrantfile
+			sed -i "s/#vb.cpus = \"4\"/vb.cpus = \"${VIRTUALBOX_CPU}\"/g" armbian-build/Vagrantfile
 			cd armbian-build
 		else 
 			cd armbian-build
@@ -62,7 +62,7 @@ case $ACTION in
 		cp -aR ../../tools userpatches/overlay/					# copy additional software packages to overlay
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
-		if [ "$ACTION" == "build" ]; then
+		if [ "${ACTION}" == "build" ]; then
 			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no PROGRESS_LOG_TO_FILE=yes'
 		else
 			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no CLEAN_LEVEL="oldcache" PROGRESS_LOG_TO_FILE=yes'
@@ -72,8 +72,8 @@ case $ACTION in
 		;;
 
 	clean)
-	    set +e
-		if [ -d "armbian-build" ]; then 
+		set +e
+		if [ -d "armbian-build" ]; then
 			cd armbian-build
 			vagrant halt 
 			vagrant destroy -f
