@@ -7,6 +7,13 @@
 #
 set -eu
 
+# Settings
+#
+# VirtualBox Number of CPU cores
+VIRTUALBOX_CPU="4"
+# VirtualBox Memory in MB
+VIRTUALBOX_MEMORY="8192"
+
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
 	echo "Usage: $0 [update]"
@@ -40,8 +47,8 @@ case $ACTION in
 
 		if [ ! -d "armbian-build" ]; then 
 			git clone https://github.com/armbian/build armbian-build
-			sed -i 's/#vb.memory = "8192"/vb.memory = "8192"/g' armbian-build/Vagrantfile
-			sed -i 's/#vb.cpus = "4"/vb.cpus = "4"/g' armbian-build/Vagrantfile
+			sed -i "s/#vb.memory = \"8192\"/vb.memory = \"$VIRTUALBOX_MEMORY\"/g" armbian-build/Vagrantfile
+                        sed -i "s/#vb.cpus = \"4\"/vb.cpus = \"$VIRTUALBOX_CPU\"/g" armbian-build/Vagrantfile
 			cd armbian-build
 		else 
 			cd armbian-build
