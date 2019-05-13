@@ -542,8 +542,8 @@ EOF
 ## Prometheus plugin for c-lightning
 pip3 install pylightning
 cd /opt/shift/scripts/
-curl --retry 5 -SL https://raw.githubusercontent.com/lightningd/plugins/96f617da75e4b9f1a3aa52f380eee946ef6dce65/prometheus/prometheus.py -o prometheus-lightningd.py
-if ! echo "225570e7106738ede3142f10f98219b6251a21b5608d696fe05b82148bfeb9a3  prometheus-lightningd.py" | sha256sum -c -; then exit 1; fi
+curl --retry 5 -SL https://raw.githubusercontent.com/lightningd/plugins/3f48b475cfe4c186ae52ac4c889dfa6e757d1829/prometheus/prometheus.py -o prometheus-lightningd.py
+if ! echo "70a0a242206715d887274274c843d0610ee0e6ade0bfb12d663866255d4f54ea  prometheus-lightningd.py" | sha256sum -c -; then exit 1; fi
 chmod +x prometheus-lightningd.py
 
 # GRAFANA ----------------------------------------------------------------------
