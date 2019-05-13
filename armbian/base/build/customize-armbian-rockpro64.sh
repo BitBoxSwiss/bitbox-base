@@ -378,7 +378,7 @@ EOF
 cat << 'EOF' > /etc/systemd/system/electrs.service
 [Unit]
 Description=Electrs server daemon
-Wants=bitcoind.service
+Requires=bitcoind.service
 After=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
