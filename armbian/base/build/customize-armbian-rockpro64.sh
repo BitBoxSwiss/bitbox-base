@@ -165,6 +165,7 @@ alias llog='journalctl -f -u lightningd'
 alias elog='journalctl -n 100 -f -u electrs'
 
 export PATH=$PATH:/usr/local/go/bin:/opt/shift/scripts
+export GOPATH=$HOME/go
 EOF
 
 echo "source /root/.bashrc-custom" >> /root/.bashrc
@@ -177,6 +178,7 @@ electrum-tls    50002/tcp
 bitcoin         8333/tcp
 bitcoin-rpc     8332/tcp
 lightning       9735/tcp
+middleware      8845/tcp
 EOF
 
 # retain journal logs between reboots 
@@ -260,9 +262,10 @@ Requires=startup-checks.service
 [Service]
 ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
 # Note: we need this ExecStartPost command to prepare an .env file
-# in expected format for electrs to have the RPCPASSWORD in its
-# environment. If we contributed a --cookie-file flag to upstream
-# electrs that could parse the .cookie file, we would not need this.
+# in expected format for electrs and the base-middleware to have
+# the RPCPASSWORD in its environment. If we contributed a --cookie-file 
+# flag to upstream electrs and btcsuite/rpcclient that could parse 
+# the .cookie file, we would not need this.
 ExecStartPost=/bin/bash -c " \
   sleep 30 && \
   echo -n "RPCPASSWORD=" > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
@@ -422,6 +425,31 @@ cd /opt/shift/tools/bbbfancontrol
 cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
 
+## base-middleware
+mkdir -p $GOPATH/src/github.com/shiftdevices && cd "$_"
+#cd $GOPATH/src/github.com/shiftdevices
+git clone https://github.com/shiftdevices/base-middleware
+cd base-middleware
+make native
+cp base-middleware /usr/local/sbin/
+
+cat << 'EOF' > /etc/systemd/system/base-middleware.service
+[Unit]
+Description=BitBox Base Middleware
+Requires=bitcoind.service
+Requires=lightningd.service
+Requires=electrs.service
+After=lightningd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/base-middleware -rpcuser=__cookie__ -rpcpassword=${RPCPASSWORD} -rpcport=18332 -lightning-rpc-path=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # PROMETHEUS -------------------------------------------------------------------
 PROMETHEUS_VERSION="2.9.2"
@@ -746,6 +774,17 @@ cat << 'EOF' > /etc/avahi/services/lightning.service
 </service-group>
 EOF
 
+cat << 'EOF' > /etc/avahi/services/bitboxbase.service
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name>bitbox base middleware</name>
+  <service>
+    <type>_bitboxbase._tcp</type>
+    <port>8845</port>
+  </service>
+</service-group>
+EOF
 
 # FINALIZE ---------------------------------------------------------------------
 
@@ -769,6 +808,7 @@ systemctl enable prometheus-node-exporter.service
 systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
+systemctl enable base-middleware.service
 
 # Set to mainnet if configured
 if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
