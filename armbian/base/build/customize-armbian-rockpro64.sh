@@ -311,9 +311,10 @@ EOF
 cat << 'EOF' >/etc/systemd/system/lightningd.service
 [Unit]
 Description=c-lightning daemon
-Requires=bitcoind.service
+Wants=bitcoind.service
 After=bitcoind.service
 [Service]
+ExecStartPre=/bin/systemctl is-active bitcoind.service
 ExecStart=/usr/local/bin/lightningd --daemon --conf=/etc/lightningd/lightningd.conf
 RuntimeDirectory=lightningd
 User=bitcoin
@@ -379,11 +380,12 @@ EOF
 cat << 'EOF' > /etc/systemd/system/electrs.service
 [Unit]
 Description=Electrs server daemon
-Requires=bitcoind.service
+Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+ExecStartPre=/bin/systemctl is-active bitcoind.service
 ExecStart=/bin/bash -c "electrs --network ${NETWORK} -${VERBOSITY} --index-batch-size=10 --jsonrpc-import --db-dir ${DB_DIR} --daemon-rpc-addr ${RPCCONNECT}:${RPCPORT} --cookie __cookie__:${RPCPASSWORD}"
 RuntimeDirectory=electrs
 User=electrs
