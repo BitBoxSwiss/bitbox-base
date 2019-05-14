@@ -93,8 +93,10 @@ adduser --system --group --disabled-login --no-create-home              promethe
 adduser --system --group --disabled-login --no-create-home              node_exporter
 
 # remove bitcoin user home on rootfs (must be on SSD)
+# also revoke direct write access for service users to local directory
 if ! mountpoint /mnt/ssd -q; then 
   rm -rf /mnt/ssd/bitcoin/
+  chmod 700 /mnt/ssd
 fi
 
 apt remove -y ntp network-manager
