@@ -87,10 +87,11 @@ mkdir -p /mnt/ssd/
 
 # Add service users
 adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-adduser --system --ingroup bitcoin --disabled-login --no-create-home    electrs
+adduser --system --group --disabled-login --no-create-home              electrs
 adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --group --disabled-login --no-create-home              prometheus
 adduser --system --group --disabled-login --no-create-home              node_exporter
+usermod -a -G bitcoin electrs
 
 # remove bitcoin user home on rootfs (must be on SSD)
 if ! mountpoint /mnt/ssd -q; then 
