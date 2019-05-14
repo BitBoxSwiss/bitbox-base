@@ -91,6 +91,7 @@ adduser --system --group --disabled-login --no-create-home              electrs
 adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --group --disabled-login --no-create-home              prometheus
 adduser --system --group --disabled-login --no-create-home              node_exporter
+usermod -a -G bitcoin electrs
 
 # remove bitcoin user home on rootfs (must be on SSD)
 # also revoke direct write access for service users to local directory
@@ -233,10 +234,9 @@ txindex=0
 prune=0
 disablewallet=1
 pid=/run/bitcoind/bitcoind.pid
+rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie
 
 # rpc
-rpcuser=bitcoinrpc
-rpcpassword=JemeeWaiChooroo4uepi
 rpcconnect=127.0.0.1
 
 # performance
@@ -255,17 +255,25 @@ EOF
 cat << 'EOF' > /etc/systemd/system/bitcoind.service
 [Unit]
 Description=Bitcoin daemon
-After=network.target startup-checks.service
+After=network.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
 ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
+# Note: we need this ExecStartPost command to prepare an .env file
+# in expected format for electrs to have the RPCPASSWORD in its
+# environment. If we contributed a --cookie-file flag to upstream
+# electrs that could parse the .cookie file, we would not need this.
+ExecStartPost=/bin/bash -c " \
+  sleep 30 && \
+  echo -n "RPCPASSWORD=" > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
+  tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env"
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
 Type=forking
 PIDFile=/run/bitcoind/bitcoind.pid
 Restart=always
-RestartSec=10
+RestartSec=60
 TimeoutSec=300
 PrivateTmp=true
 ProtectSystem=full
@@ -291,8 +299,6 @@ make install
 mkdir -p /etc/lightningd/
 cat << EOF > /etc/lightningd/lightningd.conf
 bitcoin-cli=/usr/bin/bitcoin-cli
-bitcoin-rpcuser=bitcoinrpc
-bitcoin-rpcpassword=JemeeWaiChooroo4uepi
 bitcoin-rpcconnect=127.0.0.1
 bitcoin-rpcport=18332
 network=testnet
@@ -307,9 +313,10 @@ EOF
 cat << 'EOF' >/etc/systemd/system/lightningd.service
 [Unit]
 Description=c-lightning daemon
-Requires=bitcoind.service
+Wants=bitcoind.service
 After=bitcoind.service
 [Service]
+ExecStartPre=/bin/systemctl is-active bitcoind.service
 ExecStart=/usr/local/bin/lightningd --daemon --conf=/etc/lightningd/lightningd.conf
 RuntimeDirectory=lightningd
 User=bitcoin
@@ -365,9 +372,6 @@ chmod +x /usr/bin/electrs
 mkdir -p /etc/electrs/
 cat << EOF > /etc/electrs/electrs.conf
 NETWORK=testnet
-RPCUSER=bitcoinrpc
-RPCPASSWORD=JemeeWaiChooroo4uepi
-#COOKIE=/mnt/ssd/bitcoin/.bitcoin/.cookie
 RPCCONNECT=127.0.0.1
 RPCPORT=18332
 DB_DIR=/mnt/ssd/electrs/db
@@ -382,10 +386,12 @@ Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
-ExecStart=/usr/bin/electrs --network ${NETWORK} -${VERBOSITY} --index-batch-size=10 --jsonrpc-import --db-dir ${DB_DIR} --cookie="${RPCUSER}:${RPCPASSWORD}" --daemon-rpc-addr ${RPCCONNECT}:${RPCPORT}
+EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+ExecStartPre=/bin/systemctl is-active bitcoind.service
+ExecStart=/bin/bash -c "electrs --network ${NETWORK} -${VERBOSITY} --index-batch-size=10 --jsonrpc-import --db-dir ${DB_DIR} --daemon-rpc-addr ${RPCCONNECT}:${RPCPORT} --cookie __cookie__:${RPCPASSWORD}"
 RuntimeDirectory=electrs
 User=electrs
-Group=electrs
+Group=bitcoin
 Type=simple
 KillMode=process
 Restart=always
