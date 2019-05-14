@@ -253,7 +253,7 @@ EOF
 cat << 'EOF' > /etc/systemd/system/bitcoind.service
 [Unit]
 Description=Bitcoin daemon
-After=network.target startup-checks.service
+After=network.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
 ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
