@@ -14,7 +14,7 @@ if ! grep -q '/mnt/ssd' /etc/fstab ; then
 
   # image configured for autosetup of SSD?
   if ! mountpoint /mnt/ssd -q && [ -f /opt/shift/config/.autosetup_ssd ]; then
-    /opt/shift/scripts/autosetup-ssd.sh apply auto --force
+    /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
     if [ $? -eq 0 ]; then
       rm /opt/shift/config/.autosetup_ssd
     fi
