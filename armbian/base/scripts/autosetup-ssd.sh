@@ -160,11 +160,20 @@ case ${ACTION} in
                 echo   # Last sector (Accept default: varies)
                 echo w # Write changes
             ) | fdisk $DEVICE
-            mkfs.ext4 -F ${DEVICE}1
+
+            case $DEVICE in
+                /dev/nvme*)
+                    echo "${DEVICE}p1"
+                    ;;
+                /dev/sd*)
+                    echo "${DEVICE}1"
+                ;;
+            esac
+            
             echo 
             echo "Device $DEVICE prepared:"
             echo 
-            lsblk /dev/sda
+            lsblk 
             echo
         fi
         ;;
