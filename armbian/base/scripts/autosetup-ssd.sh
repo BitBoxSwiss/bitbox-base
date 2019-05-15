@@ -163,10 +163,10 @@ case ${ACTION} in
 
             case $DEVICE in
                 /dev/nvme*)
-                    echo "${DEVICE}p1"
+                    mkfs.ext4 -F "${DEVICE}p1"
                     ;;
                 /dev/sd*)
-                    echo "${DEVICE}1"
+                    mkfs.ext4 -F "${DEVICE}1"
                 ;;
             esac
             
