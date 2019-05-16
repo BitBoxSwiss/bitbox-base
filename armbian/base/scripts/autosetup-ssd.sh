@@ -41,7 +41,7 @@ function list_targets() {
         # check for existing filesystem
         if [[ ${#type} -gt 0 ]]; then
             blockdev_target="NO: has file system"
-        
+
         # check if at least 200GB
         elif [[ ${size} -lt 200000000000 ]]; then
             blockdev_target="NO: too small (min 200GB)"
@@ -64,7 +64,7 @@ function list_targets() {
             fi
 
             # check if specified device is found
-            if [[ "${name}" == "${DEVICE}" ]]; then 
+            if [[ "${name}" == "${DEVICE}" ]]; then
                 device_found=1
             fi
 
@@ -75,7 +75,7 @@ function list_targets() {
     # `lsblk` returns only top-level devices (-d) and excludes device-types by major number
     # (see http://www.lanana.org/docs/device-list/devices-2.6+.txt)
     done <<< "$(lsblk -o NAME,FSTYPE,PARTTYPE,SIZE,TYPE,MAJ:MIN -abrnp -e 1,7,31,179,252 -d)"
-    
+
     printf "%-16s %-7s %16s   %-20s\n" "---------------" "------" "-----------------" "------------------------------"
     printf "TOTAL %s potential target blockdevices found\n\n" "${targets_total}"
 }
@@ -96,16 +96,19 @@ function format() {
     case ${DEVICE} in
         # internal drive (e.g. PCIe)
         /dev/nvme*)
-            mkfs.ext4 -F "${DEVICE}p1"
+            PARTITION="${DEVICE}p1"
             ;;
         # external drive (e.g. USB)
         /dev/sd*)
-            mkfs.ext4 -F "${DEVICE}1"
+            PARTITION="${DEVICE}1"
             ;;
     esac
-    
-    printf "\nDevice ${DEVICE} prepared:\n\n"
-    lsblk 
+
+    partprobe ${PARTITION}
+    mkfs.ext4 ${PARTITION}
+
+    printf "\nDevice ${DEVICE} prepared, partition ${PARTITION} formatted:\n\n"
+    lsblk
     echo
 }
 
@@ -135,8 +138,8 @@ case ${ACTION} in
             printf "Please specify a DEVICE, e.g. /dev/sda\n\n"
             exit 1
         fi
-        
-        format_target=0        
+
+        format_target=0
 
         # print and check for potential targets)
         list_targets
@@ -150,7 +153,7 @@ case ${ACTION} in
         # auto-detect successful?
         if [[ "${DEVICE}" == "auto" ]]; then
             if [[ ${targets_total} -gt 0 ]]; then
-                if [[ ${targets_total} -eq 1 ]]; then 
+                if [[ ${targets_total} -eq 1 ]]; then
                     DEVICE="${blockdev_target_path}"
                     printf "Target selected due to AUTO option: ${DEVICE}\n"
                 else
@@ -160,9 +163,9 @@ case ${ACTION} in
             else
                 printf "No suitable blockdevice found.\n\n"
                 exit 1
-            fi                
+            fi
         fi
-        
+
         # check for 2 slashes & min length
         device_dashes=$(echo "${DEVICE}" | awk -F"/" '{print NF-1}')
         if [[ device_dashes -lt 2 ]] || [[ ${#DEVICE} -lt 8 ]]; then
