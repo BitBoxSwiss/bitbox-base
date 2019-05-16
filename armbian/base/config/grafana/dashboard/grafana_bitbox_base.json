@@ -18,7 +18,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1557759789909,
+  "iteration": 1557987509047,
   "links": [],
   "panels": [
     {
@@ -39,7 +39,7 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -125,7 +125,7 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -211,7 +211,7 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -297,7 +297,7 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -720,7 +720,7 @@
       "colorValue": false,
       "colors": [
         "#d44a3a",
-        "#299c46",
+        "rgb(34, 61, 34)",
         "#5794F2"
       ],
       "format": "none",
@@ -816,7 +816,7 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -1479,7 +1479,7 @@
       "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "rgb(34, 61, 34)"
       ],
       "decimals": 1,
       "format": "percentunit",
@@ -1569,7 +1569,7 @@
       "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "rgb(34, 61, 34)"
       ],
       "format": "none",
       "gauge": {
@@ -1646,83 +1646,73 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
-      "cacheTimeout": null,
+      "bars": false,
       "dashLength": 10,
       "dashes": false,
       "fill": 1,
       "gridPos": {
         "h": 6,
-        "w": 4,
+        "w": 9,
         "x": 6,
         "y": 7
       },
-      "id": 42,
+      "id": 85,
       "legend": {
-        "alignAsTable": true,
+        "alignAsTable": false,
         "avg": false,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": false,
         "show": true,
-        "total": true,
-        "values": true
+        "total": false,
+        "values": false
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
       "percentage": false,
-      "pluginVersion": "6.1.4",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "stack": true,
+      "steppedLine": true,
       "targets": [
         {
-          "expr": "bitcoin_total_bytes_recv / 1000000000",
+          "expr": "electrs_mempool_vsize",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "received",
+          "legendFormat": "{{fee_rate}}",
           "refId": "A"
-        },
-        {
-          "expr": "bitcoin_total_bytes_sent  / 1000000000",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "sent",
-          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Network usage",
+      "title": "Total vsize of transactions per fee rate",
       "tooltip": {
-        "shared": false,
+        "shared": true,
         "sort": 0,
         "value_type": "individual"
       },
       "type": "graph",
       "xaxis": {
         "buckets": null,
-        "mode": "series",
+        "mode": "time",
         "name": null,
         "show": true,
-        "values": [
-          "total"
-        ]
+        "values": []
       },
       "yaxes": [
         {
           "decimals": null,
-          "format": "short",
-          "label": "GB",
+          "format": "bytes",
+          "label": " sat / vsize",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -1750,8 +1740,8 @@
       "fill": 1,
       "gridPos": {
         "h": 6,
-        "w": 14,
-        "x": 10,
+        "w": 9,
+        "x": 15,
         "y": 7
       },
       "id": 39,
@@ -1859,7 +1849,7 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -1943,7 +1933,7 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -2031,11 +2021,194 @@
       "id": 56,
       "panels": [
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 8,
+            "w": 10,
+            "x": 0,
+            "y": 15
+          },
+          "id": 84,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "rate(electrs_index_duration_sum[9m])",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{step}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Electrs: average index duration per second",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
+          "cacheTimeout": null,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 8,
+            "w": 4,
+            "x": 10,
+            "y": 15
+          },
+          "id": 42,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": true,
+            "values": true
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pluginVersion": "6.1.4",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "bitcoin_total_bytes_recv / 1000000000",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "received",
+              "refId": "A"
+            },
+            {
+              "expr": "bitcoin_total_bytes_sent  / 1000000000",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "sent",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Network usage",
+          "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "series",
+            "name": null,
+            "show": true,
+            "values": [
+              "total"
+            ]
+          },
+          "yaxes": [
+            {
+              "decimals": null,
+              "format": "short",
+              "label": "GB",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
           "content": "# Fees: Todo\n\n* estimatesmartfee from Bitcoin Core\n* mempool tx\n* getpeerinfo: inbound / outbound",
           "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
+            "h": 8,
+            "w": 4,
+            "x": 20,
             "y": 15
           },
           "id": 54,
@@ -2070,7 +2243,7 @@
       "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "rgb(34, 61, 34)"
       ],
       "decimals": 1,
       "format": "percentunit",
@@ -2267,7 +2440,7 @@
       "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "rgb(34, 61, 34)"
       ],
       "decimals": null,
       "format": "none",
@@ -2359,7 +2532,7 @@
       "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "rgb(34, 61, 34)"
       ],
       "decimals": null,
       "format": "none",
@@ -2450,7 +2623,7 @@
       "dashes": false,
       "fill": 1,
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 9,
         "x": 6,
         "y": 17
@@ -2551,7 +2724,7 @@
       "dashes": false,
       "fill": 1,
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 9,
         "x": 15,
         "y": 17
@@ -2642,7 +2815,7 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -2734,7 +2907,7 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "rgb(34, 61, 34)",
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
@@ -2815,188 +2988,16 @@
       "valueName": "current"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": false,
-      "colorValue": false,
-      "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
-      ],
-      "decimals": null,
-      "format": "short",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 0,
-        "y": 23
-      },
-      "id": 74,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": " sat",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "sum(lightning_funds_output)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Funds on-chain",
-      "type": "singlestat",
-      "valueFontSize": "70%",
-      "valueMaps": [],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": false,
-      "colorValue": false,
-      "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
-      ],
-      "decimals": null,
-      "format": "short",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 3,
-        "y": 23
-      },
-      "id": 78,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": " sat",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "sum(lightning_funds_channel)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "expr": "",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "B"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Funds LN total",
-      "type": "singlestat",
-      "valueFontSize": "70%",
-      "valueMaps": [],
-      "valueName": "current"
-    },
-    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "fill": 1,
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 9,
         "x": 6,
-        "y": 23
+        "y": 22
       },
       "id": 64,
       "legend": {
@@ -3101,10 +3102,10 @@
       "description": "",
       "fill": 0,
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 9,
         "x": 15,
-        "y": 23
+        "y": 22
       },
       "id": 65,
       "legend": {
@@ -3213,10 +3214,182 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 3,
         "x": 0,
-        "y": 26
+        "y": 23
+      },
+      "id": 74,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": " sat",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(lightning_funds_output)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Funds on-chain",
+      "type": "singlestat",
+      "valueFontSize": "70%",
+      "valueMaps": [],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPostfix": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "decimals": null,
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 3,
+        "x": 3,
+        "y": 23
+      },
+      "id": 78,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": " sat",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "sum(lightning_funds_channel)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Funds LN total",
+      "type": "singlestat",
+      "valueFontSize": "70%",
+      "valueMaps": [],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPostfix": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "decimals": null,
+      "format": "short",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 3,
+        "x": 0,
+        "y": 25
       },
       "id": 77,
       "interval": null,
@@ -3299,10 +3472,10 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 3,
         "x": 3,
-        "y": 26
+        "y": 25
       },
       "id": 79,
       "interval": null,
@@ -3371,7 +3544,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 27
       },
       "id": 82,
       "panels": [
@@ -3606,5 +3779,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 14
+  "version": 15
 }
