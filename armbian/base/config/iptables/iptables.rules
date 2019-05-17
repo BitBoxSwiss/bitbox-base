@@ -1,0 +1,130 @@
+*filter
+# Default policy is DROP; we need to explicitly allow any packets we
+# do want.
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:inputdrop - [0:0]
+:forwarddrop - [0:0]
+:outputdrop - [0:0]
+
+########################
+### INPUT CHAIN      ###
+########################
+
+# Accept loopback packets.
+-A INPUT -i lo -j ACCEPT
+
+# Allow inbound TCP traffic to sshd port.
+-A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Allow inbound HTTP traffic.
+-A INPUT -p tcp --dport 80 -j ACCEPT
+
+# Allow inbound HTTPS traffic.
+-A INPUT -p tcp --dport 443 -j ACCEPT
+
+# Allow DHCP discovery.
+-A INPUT -p udp --sport 67 --dport 68 -j ACCEPT
+-A INPUT -p udp --sport 68 --dport 67 -j ACCEPT
+
+# Allow mDNS.
+-A INPUT -p udp --sport 5353 --dport 5353 -j ACCEPT
+
+# Allow inbound TCP traffic to bitcoin port.
+-A INPUT -p tcp --dport 8333 -j ACCEPT
+-A INPUT -p tcp --dport 18333 -j ACCEPT
+
+# Allow inbound TCP traffic to Tor port.
+-A INPUT -p tcp --dport 9001 -j ACCEPT
+-A INPUT -p tcp --sport 9001 -j ACCEPT
+
+# Allow inbound ICMP type 0, 3 and 8 ("Echo Reply", "Destination
+# Unreachable" and "Echo", i.e. ping).
+# -A INPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
+# -A INPUT -p icmp -m icmp --icmp-type 3 -j ACCEPT
+# -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+
+# Explicitly whitelist established / related connections. This is a
+# last-ditch safeguard to avoid locking yourself out if a too-restrictive
+# rule would be applied - your current SSH connections will remain,
+# giving you one last chance so you can fix the issue.
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Anything making it here is not allowed; send it to logging chain.
+# Dropped packets can be checked with `journalctl -k | grep "IN=.*OUT=.*"`
+-A INPUT -j inputdrop
+
+########################
+### OUTPUT CHAIN     ###
+########################
+
+# Allow local connections.
+-A OUTPUT -m tcp -p tcp -o lo -j ACCEPT
+-A OUTPUT -m udp -p udp -o lo -j ACCEPT
+
+# Allow outbound HTTP / HTTPS.
+-A OUTPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT
+
+# Allow DHCP lookups.
+-A OUTPUT -p udp --sport 67 --dport 68 -j ACCEPT
+-A OUTPUT -p udp --sport 68 --dport 67 -j ACCEPT
+
+# Allow DNS lookups.
+-A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 53 -j ACCEPT
+
+# Allow mDNS.
+-A OUTPUT -p udp --sport 5353 --dport 5353 -j ACCEPT
+
+# Allow outbound LLMNR.
+-A OUTPUT -p udp -d 224.0.0.252 --sport 5355 --dport 5355 -j ACCEPT
+
+# Allow IGMP multicast: http://en.wikipedia.org/wiki/Multicast_address
+-A OUTPUT -p igmp -d 224.0.0.22 -j ACCEPT
+
+# Allow NTP lookups.
+-A OUTPUT -p udp -m udp --dport 123 -j ACCEPT
+
+# Allow ICMP type 0 and 8 ("Echo Reply" and "Echo", i.e. ping).
+-A OUTPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
+-A OUTPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+
+# Allow outbound TCP traffic to sshd port.
+-A OUTPUT -p tcp --dport 22 -j ACCEPT
+# Allow outbound TCP traffic from sshd port.
+-A OUTPUT -p tcp --sport 22 -j ACCEPT
+
+# Allow outbound lightningd traffic.
+-A OUTPUT -p tcp --dport 9735 -j ACCEPT
+
+# Allow outbound TCP traffic to Tor port.
+-A OUTPUT -p tcp --dport 9001 -j ACCEPT
+
+# Explicitly whitelist established / related connections. This is a
+# last-ditch safeguard to avoid locking yourself out if a too-restrictive
+# rule would be applied - your current SSH connections will remain,
+# giving you one last chance so you can fix the issue.
+-A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Anything making it here is not allowed; send it to logging chain.
+# Dropped packets can be checked with `journalctl -k | grep "IN=.*OUT=.*"`
+-A OUTPUT -j outputdrop
+
+
+# Configure 'drop' chains, which just jump to LOG -> DROP.
+-A forwarddrop -m limit --limit 2/min -j LOG --log-prefix "[FORWARD] IPTables-Dropped: "
+-A forwarddrop -j DROP
+-A inputdrop -m limit --limit 2/min -j LOG --log-prefix "[INPUT] IPTables-Dropped: "
+-A inputdrop -j DROP
+-A outputdrop -m limit --limit 2/min -j LOG --log-prefix "[OUTPUT] IPTables-Dropped: "
+-A outputdrop -j DROP
+COMMIT
+
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT
