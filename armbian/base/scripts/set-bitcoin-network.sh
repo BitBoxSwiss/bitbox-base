@@ -32,6 +32,8 @@ if [ "$NETWORK" == "mainnet" ]; then
     sed -i '/LIGHTNING-DIR=/Ic\lightning-dir=/mnt/ssd/bitcoin/.lightning' /etc/lightningd/lightningd.conf
     sed -i '/NETWORK=/Ic\NETWORK=mainnet' /etc/electrs/electrs.conf
     sed -i '/RPCPORT=/Ic\RPCPORT=8332' /etc/electrs/electrs.conf
+    sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
+    sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
     sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
 else
     sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin TESTNET"; echo' /etc/update-motd.d/20-shift
@@ -44,6 +46,8 @@ else
     sed -i '/BITCOIN-RPCPORT=/Ic\bitcoin-rpcport=18332' /etc/lightningd/lightningd.conf
     sed -i '/NETWORK=/Ic\NETWORK=testnet' /etc/electrs/electrs.conf
     sed -i '/RPCPORT=/Ic\RPCPORT=18332' /etc/electrs/electrs.conf
+    sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
+    sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
     sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
 fi
 source /root/.bashrc-custom
