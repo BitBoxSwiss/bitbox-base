@@ -40,12 +40,14 @@ if [[ ${UID} -ne 0 ]]; then
   exit 1
 fi
 
-# Disable Armbian script on first boot, configure root
+# Disable Armbian script on first boot
 rm -f /root/.not_logged_in_yet
-ROOTPW=$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)
-echo root:${ROOTPW} | chpasswd
+
+# Set root password (either from configuration or random)
+BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
+echo root:${BASE_ROOTPW} | chpasswd
 echo "================================================================================"
-echo "==> Password for user 'root' randomly set to: ${ROOTPW}"
+echo "==> Password for user 'root' set to: ${BASE_ROOTPW}"
 echo "================================================================================"
 export HOME=/root
 
@@ -780,7 +782,7 @@ echo
 echo "================================================================================"
 echo "==> Armbian build process finished. Login using SSH Keys or root password."
 echo "================================================================================"
-echo "    USER / PASSWORD: root / ${ROOTPW}"
+echo "    USER / PASSWORD: root / ${BASE_ROOTPW}"
 echo "    HOSTNAME:        ${BASE_HOSTNAME}"
 echo "    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}"
 echo "================================================================================"
