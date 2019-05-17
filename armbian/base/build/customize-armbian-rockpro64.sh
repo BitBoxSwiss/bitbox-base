@@ -433,17 +433,24 @@ cd base-middleware
 make native
 cp base-middleware /usr/local/sbin/
 
+mkdir -p /etc/base-middleware/
+cat << EOF > /etc/base-middleware/base-middleware.conf
+BITCOIN_RPCUSER=__cookie__
+BITCOIN_RPCPORT=18332
+LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
+EOF
+
 cat << 'EOF' > /etc/systemd/system/base-middleware.service
 [Unit]
 Description=BitBox Base Middleware
-Requires=bitcoind.service
-Requires=lightningd.service
-Requires=electrs.service
+Wants=bitcoind.service lightningd.service electrs.service
 After=lightningd.service
 
 [Service]
 Type=simple
-ExecStart=/usr/local/sbin/base-middleware -rpcuser=__cookie__ -rpcpassword=${RPCPASSWORD} -rpcport=18332 -lightning-rpc-path=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
+EnvironmentFile=/etc/base-middleware/base-middleware.conf
+EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+ExecStart=/usr/local/sbin/base-middleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH}
 Restart=always
 RestartSec=10
 
