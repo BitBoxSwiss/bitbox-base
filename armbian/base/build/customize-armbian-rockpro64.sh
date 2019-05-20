@@ -28,12 +28,26 @@
 
 set -e
 
+function echoArguments {
+  echo "
+================================================================================
+==> $1
+================================================================================
+    USER / PASSWORD: root / ${BASE_ROOTPW}
+    HOSTNAME:        ${BASE_HOSTNAME}
+    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
+    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PASS}
+================================================================================
+"
+}
 # Load build configuration, set defaults
 source /tmp/overlay/build/build.conf || true
 source /tmp/overlay/build/build-local.conf || true
 
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
+BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
+BASE_WIFI_PASS=${BASE_WIFI_PASS:-""}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -46,10 +60,9 @@ rm -f /root/.not_logged_in_yet
 # Set root password (either from configuration or random)
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo root:${BASE_ROOTPW} | chpasswd
-echo "================================================================================"
-echo "==> Password for user 'root' set to: ${BASE_ROOTPW}"
-echo "================================================================================"
 export HOME=/root
+
+echoArguments "Starting build process."
 
 set -ex
 
@@ -709,6 +722,22 @@ DNSSEC=yes
 Cache=yes
 EOF
 
+cat << EOF > /etc/network/interfaces
+auto lo
+iface lo inet loopback
+source /etc/network/interfaces.d/*
+EOF
+
+# include Wifi credentials, if specified
+if [[ -n "${BASE_WIFI_SSID}" ]]; then
+  cat << EOF > /etc/network/interfaces.d/wlan0.conf
+auto wlan0
+iface wlan0 inet dhcp
+  wpa-ssid ${BASE_WIFI_SSID}
+  wpa-psk ${BASE_WIFI_PW}
+EOF
+fi
+
 # mDNS services
 sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
 
@@ -778,12 +807,4 @@ if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
 fi
 
 set +x
-echo
-echo "================================================================================"
-echo "==> Armbian build process finished. Login using SSH Keys or root password."
-echo "================================================================================"
-echo "    USER / PASSWORD: root / ${BASE_ROOTPW}"
-echo "    HOSTNAME:        ${BASE_HOSTNAME}"
-echo "    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}"
-echo "================================================================================"
-echo
+echoArguments "Armbian build process finished. Login using SSH Keys or root password."
