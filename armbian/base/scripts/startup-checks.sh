@@ -11,6 +11,15 @@ echo "255" > /sys/class/hwmon/hwmon0/pwm1
 
 # check if SSD mount is configured in /etc/fstab
 if ! grep -q '/mnt/ssd' /etc/fstab ; then
+
+  # image configured for autosetup of SSD?
+  if ! mountpoint /mnt/ssd -q && [ -f /opt/shift/config/.autosetup_ssd ]; then
+    /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
+    if [ $? -eq 0 ]; then
+      rm /opt/shift/config/.autosetup_ssd
+    fi
+  fi
+
   if lsblk | grep -q 'nvme0n1p1'; then
     echo "/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
   elif lsblk | grep -q 'sda1'; then
