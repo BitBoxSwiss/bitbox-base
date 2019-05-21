@@ -104,9 +104,9 @@ function format() {
             ;;
     esac
 
-    partprobe ${PARTITION}
+    partprobe ${DEVICE}
     sleep 10
-    mkfs.ext4 ${PARTITION}
+    mkfs.ext4 -F ${PARTITION}
 
     printf "\nDevice ${DEVICE} prepared, partition ${PARTITION} formatted:\n\n"
     lsblk
