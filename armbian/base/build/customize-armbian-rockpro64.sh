@@ -136,7 +136,7 @@ apt install -y  openssl tor net-tools fio \
 cat << 'EOF' > /etc/systemd/system/startup-checks.service
 [Unit]
 Description=BitBox Base startup checks
-After=local-fs.target
+After=network-online.target
 [Service]
 ExecStart=/opt/shift/scripts/startup-checks.sh
 Type=simple
@@ -255,19 +255,18 @@ EOF
 cat << 'EOF' > /etc/systemd/system/bitcoind.service
 [Unit]
 Description=Bitcoin daemon
-After=network.target startup-checks.service tor.service
+After=network-online.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
+# give Tor some time to provide the SOCKS proxy
+ExecStartPre=/bin/bash -c "sleep 10"
 ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
-# Note: we need this ExecStartPost command to prepare an .env file
-# in expected format for electrs and the base-middleware to have
-# the RPCPASSWORD in its environment. If we contributed a --cookie-file 
-# flag to upstream electrs and btcsuite/rpcclient that could parse 
-# the .cookie file, we would not need this.
+# provide cookie authentication as .env file for electrs and base-middleware 
 ExecStartPost=/bin/bash -c " \
-  sleep 30 && \
-  echo -n "RPCPASSWORD=" > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
-  tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env"
+  sleep 10 && \
+  echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
+  tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
+  sleep 10"
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
@@ -498,7 +497,7 @@ EOF
 cat << 'EOF' > /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus
-After=network.target
+After=network-online.target
 
 [Service]
 User=prometheus
@@ -526,7 +525,7 @@ cp node_exporter /usr/local/bin
 cat << 'EOF' > /etc/systemd/system/prometheus-node-exporter.service
 [Unit]
 Description=Prometheus Node Exporter
-After=network.target
+After=network-online.target
 
 [Service]
 User=node_exporter
@@ -548,7 +547,7 @@ pip3 install prometheus_client
 cat << 'EOF' > /etc/systemd/system/prometheus-base.service
 [Unit]
 Description=Prometheus base exporter
-After=network.target
+After=network-online.target
 
 [Service]
 ExecStart=/opt/shift/scripts/prometheus-base.py
@@ -566,7 +565,7 @@ EOF
 cat << 'EOF' > /etc/systemd/system/prometheus-bitcoind.service
 [Unit]
 Description=Prometheus bitcoind exporter
-After=network.target bitcoind.service
+After=network-online.target bitcoind.service
 
 [Service]
 ExecStart=/opt/shift/scripts/prometheus-bitcoind.py
