@@ -758,12 +758,6 @@ DNSSEC=yes
 Cache=yes
 EOF
 
-cat << EOF > /etc/network/interfaces
-auto lo
-iface lo inet loopback
-source /etc/network/interfaces.d/*
-EOF
-
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
   cat << EOF > /etc/network/interfaces.d/wlan0.conf
