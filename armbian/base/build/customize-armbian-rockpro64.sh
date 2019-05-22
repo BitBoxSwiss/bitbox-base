@@ -763,7 +763,7 @@ if [[ -n "${BASE_WIFI_SSID}" ]]; then
 auto wlan0
 iface wlan0 inet dhcp
   wpa-ssid ${BASE_WIFI_SSID}
-  wpa-psk ${BASE_WIFI_PW}
+  wpa-psk ${BASE_WIFI_PASS}
 EOF
 fi
 
