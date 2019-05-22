@@ -18,7 +18,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1557759789909,
+  "iteration": 1558525909790,
   "links": [],
   "panels": [
     {
@@ -39,9 +39,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#76997f",
+        "#cc914e",
+        "#e63963"
       ],
       "format": "none",
       "gauge": {
@@ -125,9 +125,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "format": "none",
       "gauge": {
@@ -211,9 +211,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "format": "none",
       "gauge": {
@@ -297,9 +297,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "format": "none",
       "gauge": {
@@ -384,9 +384,9 @@
       "colorPostfix": false,
       "colorValue": true,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "description": "",
@@ -468,9 +468,9 @@
       "colorPostfix": false,
       "colorValue": true,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "description": "",
@@ -552,9 +552,9 @@
       "colorPostfix": false,
       "colorValue": true,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": 0,
       "description": "",
@@ -636,9 +636,9 @@
       "colorPostfix": false,
       "colorValue": true,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "description": "",
@@ -719,9 +719,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "#299c46",
-        "#5794F2"
+        "#e63963",
+        "#74997e",
+        "#638aa6"
       ],
       "format": "none",
       "gauge": {
@@ -816,9 +816,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": 0,
       "format": "none",
@@ -1022,7 +1022,7 @@
           "seriesOverrides": [
             {
               "alias": "fan speed %",
-              "color": "#5794F2",
+              "color": "#638aa6",
               "dashes": true,
               "fill": 0,
               "linewidth": 2,
@@ -1031,7 +1031,7 @@
             },
             {
               "alias": "temperature °C",
-              "color": "#F2495C",
+              "color": "#cc914e",
               "dashes": true,
               "fill": 0,
               "linewidth": 2,
@@ -1148,7 +1148,7 @@
           "seriesOverrides": [
             {
               "alias": "4x Cortex A53",
-              "color": "#5794F2"
+              "color": "#638aa6"
             },
             {
               "alias": "2 Cortex A72"
@@ -1383,12 +1383,12 @@
           "seriesOverrides": [
             {
               "alias": "/.*send.*/",
-              "color": "#FF9830",
+              "color": "#cc914e",
               "transform": "negative-Y"
             },
             {
               "alias": "/.*recv.*/",
-              "color": "#73BF69"
+              "color": "#74997e"
             }
           ],
           "spaceLength": 10,
@@ -1477,9 +1477,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": 1,
       "format": "percentunit",
@@ -1492,7 +1492,7 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 3,
+        "w": 2,
         "x": 0,
         "y": 7
       },
@@ -1567,9 +1567,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "format": "none",
       "gauge": {
@@ -1581,8 +1581,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 3,
-        "x": 3,
+        "w": 2,
+        "x": 2,
         "y": 7
       },
       "id": 37,
@@ -1646,112 +1646,14 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "gridPos": {
-        "h": 6,
-        "w": 4,
-        "x": 6,
-        "y": 7
-      },
-      "id": 42,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": true,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pluginVersion": "6.1.4",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "bitcoin_total_bytes_recv / 1000000000",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "received",
-          "refId": "A"
-        },
-        {
-          "expr": "bitcoin_total_bytes_sent  / 1000000000",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "sent",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Network usage",
-      "tooltip": {
-        "shared": false,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "series",
-        "name": null,
-        "show": true,
-        "values": [
-          "total"
-        ]
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "short",
-          "label": "GB",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
       "fill": 1,
       "gridPos": {
         "h": 6,
-        "w": 14,
-        "x": 10,
+        "w": 10,
+        "x": 4,
         "y": 7
       },
       "id": 39,
@@ -1776,11 +1678,16 @@
       "seriesOverrides": [
         {
           "alias": "blocksize KiB",
+          "color": "#cc914e",
           "fill": 0,
           "lines": false,
           "pointradius": 1,
           "points": true,
           "yaxis": 2
+        },
+        {
+          "alias": "blockheight",
+          "color": "#74997e"
         }
       ],
       "spaceLength": 10,
@@ -1854,14 +1761,100 @@
       }
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "description": "",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 14,
+        "y": 7
+      },
+      "id": 84,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "electrs_mempool_vsize",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{fee_rate}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Mempool size by fee (sat/vbyte)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "cacheTimeout": null,
       "colorBackground": true,
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "format": "none",
@@ -1874,7 +1867,7 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 3,
+        "w": 2,
         "x": 0,
         "y": 10
       },
@@ -1925,7 +1918,7 @@
       "thresholds": "3,4",
       "timeFrom": null,
       "timeShift": null,
-      "title": "Number of chaintips",
+      "title": "Chaintips",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -1943,9 +1936,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "format": "none",
       "gauge": {
@@ -1957,8 +1950,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 3,
-        "x": 3,
+        "w": 2,
+        "x": 2,
         "y": 10
       },
       "id": 43,
@@ -2031,12 +2024,119 @@
       "id": 56,
       "panels": [
         {
+          "aliasColors": {},
+          "bars": true,
+          "cacheTimeout": null,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 0,
+            "y": 18
+          },
+          "id": 42,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": true,
+            "values": true
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pluginVersion": "6.1.4",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "received",
+              "color": "#74997e"
+            },
+            {
+              "alias": "sent",
+              "color": "#cc914e"
+            }
+          ],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "bitcoin_total_bytes_recv / 1000000000",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "received",
+              "refId": "A"
+            },
+            {
+              "expr": "bitcoin_total_bytes_sent  / 1000000000",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "sent",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Network usage",
+          "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "series",
+            "name": null,
+            "show": true,
+            "values": [
+              "total"
+            ]
+          },
+          "yaxes": [
+            {
+              "decimals": null,
+              "format": "short",
+              "label": "GB",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
           "content": "# Fees: Todo\n\n* estimatesmartfee from Bitcoin Core\n* mempool tx\n* getpeerinfo: inbound / outbound",
           "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
-            "y": 15
+            "h": 6,
+            "w": 5,
+            "x": 4,
+            "y": 18
           },
           "id": 54,
           "mode": "markdown",
@@ -2068,9 +2168,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": 1,
       "format": "percentunit",
@@ -2265,9 +2365,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "none",
@@ -2357,9 +2457,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "none",
@@ -2476,12 +2576,12 @@
       "seriesOverrides": [
         {
           "alias": "Total",
-          "color": "#FADE2A",
+          "color": "#cc914e",
           "fill": 0
         },
         {
           "alias": "connected",
-          "color": "#73BF69"
+          "color": "#74997e"
         }
       ],
       "spaceLength": 10,
@@ -2531,6 +2631,7 @@
           "show": true
         },
         {
+          "decimals": null,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -2574,7 +2675,12 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "seriesOverrides": [],
+      "seriesOverrides": [
+        {
+          "alias": "in channels",
+          "color": "#cc914e"
+        }
+      ],
       "spaceLength": 10,
       "stack": true,
       "steppedLine": false,
@@ -2642,9 +2748,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "format": "percentunit",
@@ -2734,9 +2840,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#74997e",
+        "#cc914e",
+        "#e63963"
       ],
       "decimals": null,
       "format": "percentunit",
@@ -2820,9 +2926,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "short",
@@ -2906,9 +3012,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "short",
@@ -3199,9 +3305,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "short",
@@ -3285,9 +3391,9 @@
       "colorPostfix": false,
       "colorValue": false,
       "colors": [
-        "#d44a3a",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#e63963",
+        "#cc914e",
+        "#74997e"
       ],
       "decimals": null,
       "format": "short",
@@ -3395,7 +3501,7 @@
       "type": "row"
     }
   ],
-  "refresh": "10s",
+  "refresh": false,
   "schemaVersion": 18,
   "style": "dark",
   "tags": [],
@@ -3479,8 +3585,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "VIOLENTARK",
-          "value": "VIOLENTARK"
+          "text": "HAPPYGLEE",
+          "value": "HAPPYGLEE"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -3504,8 +3610,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "02281c99e9329f57481bf00357d0574d55f23427ca88c51fca6ccb276874026994",
-          "value": "02281c99e9329f57481bf00357d0574d55f23427ca88c51fca6ccb276874026994"
+          "text": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1",
+          "value": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -3606,5 +3712,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 14
+  "version": 16
 }
