@@ -5,7 +5,7 @@ set -e
 # 
 
 function usage() {
-  echo "BitBox Base: set Bitcoin network"
+  echo "BitBox Base: set Bitcoin network (DEPRECATED)"
   echo "Usage: $0 <testnet|mainnet>"
 }
 
@@ -20,6 +20,7 @@ if [[ ${UID} -ne 0 ]]; then
 fi
 
 NETWORK="$1"
+SYSCONFIG_PATH="/opt/shift/sysconfig"
 
 if [ "$NETWORK" == "mainnet" ]; then 
     sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin MAINNET"; echo' /etc/update-motd.d/20-shift
@@ -35,6 +36,7 @@ if [ "$NETWORK" == "mainnet" ]; then
     sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
     sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
     sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
+    echo "BITCOIN_NETWORK=mainnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 else
     sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin TESTNET"; echo' /etc/update-motd.d/20-shift
     sed -i "/ALIAS BLOG=/Ic\alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'" /root/.bashrc-custom
@@ -49,5 +51,6 @@ else
     sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
     sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
     sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
+    echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 fi
 source /root/.bashrc-custom

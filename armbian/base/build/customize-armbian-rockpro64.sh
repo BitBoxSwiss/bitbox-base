@@ -36,7 +36,7 @@ function echoArguments {
     USER / PASSWORD: root / ${BASE_ROOTPW}
     HOSTNAME:        ${BASE_HOSTNAME}
     BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PASS}
+    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
 ================================================================================
 "
 }
@@ -48,7 +48,7 @@ BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
-BASE_WIFI_PASS=${BASE_WIFI_PASS:-""}
+BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -107,6 +107,7 @@ adduser --system --group --disabled-login --no-create-home              electrs
 adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --group --disabled-login --no-create-home              prometheus
 adduser --system --group --disabled-login --no-create-home              node_exporter
+adduser --disabled-password --gecos "" hdmi
 usermod -a -G bitcoin electrs
 
 # remove bitcoin user home on rootfs (must be on SSD)
@@ -168,6 +169,8 @@ cat << EOF > /root/.bashrc-custom
 export LS_OPTIONS='--color=auto'
 alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -la'
+alias bbbconfig='bbb-config.sh'
+alias bbbsystemctl='bbb-systemctl.sh'
 
 # Bitcoin
 alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
@@ -200,6 +203,10 @@ EOF
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
+# SYSTEM CONFIGURATION ---------------------------------------------------------
+SYSCONFIG_PATH="/opt/shift/sysconfig/"
+mkdir -p $SYSCONFIG_PATH
+echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}BITCOIN_NETWORK
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
@@ -661,6 +668,7 @@ EOF
 
 # NGINX ------------------------------------------------------------------------
 apt install -y nginx
+rm /etc/nginx/sites-enabled/default || true
 
 cat << 'EOF' > /etc/nginx/nginx.conf
 user www-data;
@@ -702,7 +710,7 @@ http {
   default_type application/octet-stream;
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
-  include /etc/nginx/sites-enabled/*;
+  include /etc/nginx/sites-enabled/*.conf;
 }
 EOF
 
@@ -718,7 +726,7 @@ server {
 }
 EOF
 
-rm /etc/nginx/sites-enabled/default || true
+echo "DASHBOARD_WEB=true" > ${SYSCONFIG_PATH}DASHBOARD_WEB
 ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
 
 mkdir -p /etc/systemd/system/nginx.service.d/
@@ -730,6 +738,34 @@ After=grafana-server.service startup-checks.service
 Restart=always
 RestartSec=10
 PrivateTmp=true
+EOF
+
+# DASHBOARD OVER HDMI ----------------------------------------------------------
+echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}DASHBOARD_HDMI
+sudo apt-get install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+
+cat << 'EOF' > /etc/xdg/openbox/autostart
+# Disable any form of screen saver / screen blanking / power management
+xset s off
+xset s noblank
+xset -dpms
+
+# Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
+chromium --disable-infobars --incognito --kiosk 'http://localhost'
+EOF
+
+# autologin user 'hdmi'
+cat << 'EOF' > /etc/systemd/system/getty@tty1.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=-/usr/bin/agetty --autologin hdmi --noclear %I $TERM
+EOF
+
+# start x-server on login
+cat << 'EOF' > /home/hdmi/.bashrc
+startx -- -nocursor && exit
 EOF
 
 
@@ -759,12 +795,10 @@ EOF
 
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  cat << EOF > /etc/network/interfaces.d/wlan0.conf
-auto wlan0
-iface wlan0 inet dhcp
-  wpa-ssid ${BASE_WIFI_SSID}
-  wpa-psk ${BASE_WIFI_PASS}
-EOF
+  sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
+  sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+  cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
+  echo "WIFI=1" > ${SYSCONFIG_PATH}WIFI
 fi
 
 # mDNS services
@@ -844,11 +878,11 @@ systemctl enable base-middleware.service
 
 # Set to mainnet if configured
 if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
-  /opt/shift/scripts/set-bitcoin-network.sh mainnet
+  /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
 fi
 
 if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
-  touch /opt/shift/config/.autosetup_ssd
+  echo "AUTOSETUP_SSD=1" > ${SYSCONFIG_PATH}AUTOSETUP_SSD
 fi
 
 set +x
