@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eu
 
 # BitBox Base: system configuration utility
 #
@@ -25,10 +25,10 @@ possible commands:
 "
 }
 
-if [[ "$#" -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
   usage
   exit 0
-elif [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
+elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
   echo "bbb-config version 0.1"
   exit 0
 fi
@@ -52,7 +52,7 @@ case "${COMMAND}" in
         case "${SETTING}" in
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
-                if [[ $ENABLE -eq 1 ]]; then
+                if [[ ${ENABLE} -eq 1 ]]; then
                     # todo
                     echo "enable ${SETTING}"
                 else
@@ -65,7 +65,7 @@ case "${COMMAND}" in
 
             DASHBOARD_WEB)
                 # create / delete symlink to enable NGINX block
-                if [[ $ENABLE -eq 1 ]]; then
+                if [[ ${ENABLE} -eq 1 ]]; then
                     ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
                 else
                     rm -f /etc/nginx/sites-enabled/grafana.conf
@@ -76,7 +76,7 @@ case "${COMMAND}" in
 
             WIFI)
                 # copy / delete wlan0 config to include directory
-                if [[ $ENABLE -eq 1 ]]; then
+                if [[ ${ENABLE} -eq 1 ]]; then
                     cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
                 else
                     rm -f /etc/network/interfaces.d/wlan0.conf

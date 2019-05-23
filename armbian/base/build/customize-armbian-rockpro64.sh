@@ -666,7 +666,7 @@ EOF
 
 # NGINX ------------------------------------------------------------------------
 apt install -y nginx
-rm /etc/nginx/sites-enabled/default || true
+rm -f /etc/nginx/sites-enabled/default
 
 cat << 'EOF' > /etc/nginx/nginx.conf
 user www-data;

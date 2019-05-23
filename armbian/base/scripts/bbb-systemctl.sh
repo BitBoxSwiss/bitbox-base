@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eu
 
 # BitBox Base: batch control system units
 # 
