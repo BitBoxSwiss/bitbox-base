@@ -742,7 +742,7 @@ EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
 echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}DASHBOARD_HDMI
-sudo apt-get install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
 cat << 'EOF' > /etc/xdg/openbox/autostart
 # Disable any form of screen saver / screen blanking / power management
@@ -757,6 +757,7 @@ chromium --disable-infobars --incognito --kiosk 'http://localhost'
 EOF
 
 # autologin user 'hdmi'
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
 cat << 'EOF' > /etc/systemd/system/getty@tty1.service.d/override.conf
 [Service]
 ExecStart=
