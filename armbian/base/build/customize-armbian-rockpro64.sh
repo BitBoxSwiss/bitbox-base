@@ -733,7 +733,7 @@ mkdir -p /etc/systemd/system/nginx.service.d/
 cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
 [Unit]
 After=grafana-server.service startup-checks.service
-
+ 
 [Service]
 Restart=always
 RestartSec=10
@@ -753,7 +753,7 @@ xset -dpms
 # Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
-chromium --disable-infobars --incognito --kiosk 'http://localhost'
+chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
 EOF
 
 # autologin user 'hdmi'
