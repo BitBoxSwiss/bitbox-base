@@ -13,7 +13,8 @@ usage: bbb-config [--version] [--help]
                   <command> [<args>]
 
 possible commands:
-  enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd>
+  enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
+             tor_ssh|tor_electrum>
 
   disable   any 'enable' argument
 
@@ -21,7 +22,9 @@ possible commands:
             bitcoin_network     <mainnet|testnet>
             other arguments     string
 
-  get       any 'enable' or 'set' argument, or <all>
+  get       any 'enable' or 'set' argument, or
+            <all|tor_ssh_onion|tor_electrum_onion>
+            
 "
 }
 
@@ -192,6 +195,14 @@ case "${COMMAND}" in
 
             ALL)
                 cat ${SYSCONFIG_PATH}/*
+                ;;
+
+            TOR_SSH_ONION)
+                echo "${SETTING}=$(cat /var/lib/tor/hidden_service_ssh/hostname)"
+                ;;
+            
+            TOR_ELECTRUM_ONION)
+                echo "${SETTING}=$(cat /var/lib/tor/hidden_service_electrum/hostname)"
                 ;;
 
             ROOT_PW)
