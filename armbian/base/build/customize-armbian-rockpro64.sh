@@ -33,10 +33,13 @@ function echoArguments {
 ================================================================================
 ==> $1
 ================================================================================
-    USER / PASSWORD: root / ${BASE_ROOTPW}
-    HOSTNAME:        ${BASE_HOSTNAME}
-    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+    USER / PASSWORD:    base / ${BASE_ROOTPW}
+    HOSTNAME:           ${BASE_HOSTNAME}
+    BITCOIN NETWORK:    ${BASE_BITCOIN_NETWORK}
+    WIFI SSID / PWD:    ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+    SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
+    SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
+    AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
 ================================================================================
 "
 }
@@ -48,7 +51,9 @@ BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
-BASE_WIFI_PW=${BASE_WIFI_PW:-""}
+BASE_WIFI_PW=${BASE_WIFI_PASS:-""}
+BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
+BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -58,11 +63,6 @@ fi
 # Disable Armbian script on first boot
 rm -f /root/.not_logged_in_yet
 
-# Set root password (either from configuration or random)
-BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
-echo root:${BASE_ROOTPW} | chpasswd
-export HOME=/root
-
 echoArguments "Starting build process."
 
 set -ex
@@ -71,35 +71,42 @@ set -ex
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
 export LANG=C LC_ALL="en_US.UTF-8"
+export HOME=/root
 
-# Customize MOTD
-echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
-cat << EOF > /etc/update-motd.d/20-shift
-#!/bin/bash
-. /etc/os-release
-. /etc/armbian-release
-KERNELID=$(uname -r)
-TERM=linux toilet -f standard -F metal "BitBox Base"
-printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
-if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
-echo "Configured for Bitcoin TESTNET"; echo
-EOF
-chmod 755 /etc/update-motd.d/20-shift
 
-echo "$BASE_HOSTNAME" > /etc/hostname
-hostname -F /etc/hostname
+# USERS & LOGIN-----------------------------------------------------------------
+# Set root password (either from configuration or random) and lock account
+BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
+echo root:${BASE_ROOTPW} | chpasswd
+passwd -l root
+
+# add sudo user 'base' (with options for non-interactive cmd)
+adduser --disabled-password --gecos "" base
+usermod -a -G sudo base
+echo base:${BASE_ROOTPW} | chpasswd
 
 # Add trusted SSH keys for login
-mkdir -p /root/.ssh/
-if [ -f /tmp/overlay/build/build.conf ]; then
-  cp /tmp/overlay/build/authorized_keys /root/.ssh/
+mkdir -p /root/.ssh 
+mkdir -p /home/base/.ssh
+if [ -f /tmp/overlay/build/authorized_keys ]; then
+  cp -f /tmp/overlay/build/authorized_keys /root/.ssh/
+  cp -f /tmp/overlay/build/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/build/authorized_keys), password login only."
 fi
-chmod -R 700 /root/.ssh/
+chown -R base:base /home/base/
+chmod -R 700 /home/base/.ssh/
 
-# prepare SSD mount point
-mkdir -p /mnt/ssd/
+# disable password login for SSH (authorized ssh keys only)
+if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+  sed -i '/PASSWORDAUTHENTICATION/Ic\PasswordAuthentication no' /etc/ssh/sshd_config
+  sed -i '/CHALLENGERESPONSEAUTHENTICATION/Ic\ChallengeResponseAuthentication no' /etc/ssh/sshd_config
+fi
+
+# disable root login via SSH
+if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+  sed -i '/PERMITROOTLOGIN/Ic\PermitRootLogin no' /etc/ssh/sshd_config
+fi
 
 # Add service users
 adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
@@ -148,7 +155,7 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # apt install -y  clang cmake
 
 # networking
-apt install -y  openssl tor net-tools fio \
+apt install -y  openssl tor net-tools fio fail2ban \
                 avahi-daemon avahi-discover libnss-mdns \
                 avahi-utils avahi-daemon avahi-discover
 
@@ -167,7 +174,28 @@ EOF
 
 
 # OS CONFIG --------------------------------------------------------------------
-cat << EOF > /root/.bashrc-custom
+# customize MOTD
+echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
+cat << EOF > /etc/update-motd.d/20-shift
+#!/bin/bash
+. /etc/os-release
+. /etc/armbian-release
+KERNELID=$(uname -r)
+TERM=linux toilet -f standard -F metal "BitBox Base"
+printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
+if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
+echo "Configured for Bitcoin TESTNET"; echo
+EOF
+chmod 755 /etc/update-motd.d/20-shift
+
+echo "$BASE_HOSTNAME" > /etc/hostname
+hostname -F /etc/hostname
+
+# prepare SSD mount point
+mkdir -p /mnt/ssd/
+
+# add shortcuts
+cat << EOF > /home/base/.bashrc-custom
 export LS_OPTIONS='--color=auto'
 alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -la'
@@ -187,8 +215,8 @@ export PATH=$PATH:/usr/local/go/bin:/opt/shift/scripts
 export GOPATH=$HOME/go
 EOF
 
-echo "source /root/.bashrc-custom" >> /root/.bashrc
-source /root/.bashrc
+echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
+source /home/base/.bashrc
 
 cat << 'EOF' >> /etc/services
 electrum-rpc    50000/tcp
@@ -230,7 +258,7 @@ HiddenServiceVersion 3                                  #LN#
 HiddenServicePort 9375 127.0.0.1:9735                   #LN#
 EOF
 
-
+change dismiss basic tone latin shadow maze tobacco tray pretty myself silver
 # BITCOIN ----------------------------------------------------------------------
 BITCOIN_VERSION="0.18.0"
 
