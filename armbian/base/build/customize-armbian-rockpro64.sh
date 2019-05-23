@@ -77,13 +77,13 @@ export HOME=/root
 # USERS & LOGIN-----------------------------------------------------------------
 # Set root password (either from configuration or random) and lock account
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
-echo root:${BASE_ROOTPW} | chpasswd
+echo "root:${BASE_ROOTPW}" | chpasswd
 passwd -l root
 
 # add sudo user 'base' (with options for non-interactive cmd)
 adduser --disabled-password --gecos "" base
 usermod -a -G sudo base
-echo base:${BASE_ROOTPW} | chpasswd
+echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
 mkdir -p /root/.ssh 
@@ -413,10 +413,10 @@ ELECTRS_VERSION="0.6.1"
 
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
-# temporary storage of `electrs` until official binary releases are available
+# temporary storage of 'electrs' until official binary releases are available
 curl --retry 5 -SLO https://github.com/Stadicus/electrs-bin/raw/master/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
 if ! echo "1b1664afe338aa707660bc16b2d82919e5cb8f5fd35faa61c27a7fef24aad156  electrs-0.6.1-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
-  echo "sha256sum for precompiled `electrs` failed" >&2
+  echo "sha256sum for precompiled 'electrs' failed" >&2
   exit 1
 fi
 tar -xzf electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz -C /usr/bin
@@ -476,8 +476,7 @@ cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
-mkdir -p $GOPATH/src/github.com/shiftdevices && cd "$_"
-#cd $GOPATH/src/github.com/shiftdevices
+mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
 git clone https://github.com/shiftdevices/base-middleware
 cd base-middleware
 make native
