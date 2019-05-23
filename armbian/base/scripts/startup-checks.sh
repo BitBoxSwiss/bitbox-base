@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SYSCONFIG_PATH="/opt/shift/sysconfig/"
+SYSCONFIG_PATH="/opt/shift/sysconfig"
 
 # check for TLS certificate and create it if missing
 if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
@@ -23,12 +23,12 @@ if ! grep -q '/mnt/ssd' /etc/fstab ; then
 
   else
     # if no valid partition present, is image configured for autosetup of SSD?
-    [ -f "${SYSCONFIG_PATH}AUTOSETUP_SSD" ] && source "${SYSCONFIG_PATH}AUTOSETUP_SSD"
+    [ -f "${SYSCONFIG_PATH}/AUTOSETUP_SSD" ] && source "${SYSCONFIG_PATH}/AUTOSETUP_SSD"
 
     if ! mountpoint /mnt/ssd -q && [[ ${AUTOSETUP_SSD} -eq 1 ]]; then
       /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
       if [ $? -eq 0 ]; then
-        echo "AUTOSETUP_SSD=0" > "${SYSCONFIG_PATH}AUTOSETUP_SSD"
+        echo "AUTOSETUP_SSD=0" > "${SYSCONFIG_PATH}/AUTOSETUP_SSD"
       fi
     fi
 

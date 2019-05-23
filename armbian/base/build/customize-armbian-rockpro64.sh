@@ -169,8 +169,6 @@ cat << EOF > /root/.bashrc-custom
 export LS_OPTIONS='--color=auto'
 alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -la'
-alias bbbconfig='bbb-config.sh'
-alias bbbsystemctl='bbb-systemctl.sh'
 
 # Bitcoin
 alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
@@ -204,9 +202,9 @@ EOF
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/opt/shift/sysconfig/"
+SYSCONFIG_PATH="/opt/shift/sysconfig"
 mkdir -p $SYSCONFIG_PATH
-echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}BITCOIN_NETWORK
+echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
@@ -726,7 +724,7 @@ server {
 }
 EOF
 
-echo "DASHBOARD_WEB=true" > ${SYSCONFIG_PATH}DASHBOARD_WEB
+echo "DASHBOARD_WEB=true" > ${SYSCONFIG_PATH}/DASHBOARD_WEB
 ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
 
 mkdir -p /etc/systemd/system/nginx.service.d/
@@ -741,7 +739,7 @@ PrivateTmp=true
 EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
-echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}DASHBOARD_HDMI
+echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}/DASHBOARD_HDMI
 sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
 cat << 'EOF' > /etc/xdg/openbox/autostart
@@ -799,7 +797,7 @@ if [[ -n "${BASE_WIFI_SSID}" ]]; then
   sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
   sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
   cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
-  echo "WIFI=1" > ${SYSCONFIG_PATH}WIFI
+  echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi
 
 # mDNS services
@@ -883,7 +881,7 @@ if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
 fi
 
 if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
-  echo "AUTOSETUP_SSD=1" > ${SYSCONFIG_PATH}AUTOSETUP_SSD
+  echo "AUTOSETUP_SSD=1" > ${SYSCONFIG_PATH}/AUTOSETUP_SSD
 fi
 
 set +x

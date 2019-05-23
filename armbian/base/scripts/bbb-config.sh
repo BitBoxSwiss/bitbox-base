@@ -4,7 +4,7 @@ set -e
 # BitBox Base: system configuration utility
 #
 
-SYSCONFIG_PATH="/opt/shift/sysconfig/"
+SYSCONFIG_PATH="/opt/shift/sysconfig"
 mkdir -p "$SYSCONFIG_PATH"
 
 function usage() {
@@ -59,8 +59,8 @@ case "${COMMAND}" in
                     # todo
                     echo "disable ${SETTING}"
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}${SETTING}"
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             DASHBOARD_WEB)
@@ -70,8 +70,8 @@ case "${COMMAND}" in
                 else
                     rm -f /etc/nginx/sites-enabled/grafana.conf
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}${SETTING}"
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             WIFI)
@@ -81,13 +81,13 @@ case "${COMMAND}" in
                 else
                     rm -f /etc/network/interfaces.d/wlan0.conf
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}${SETTING}"
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             AUTOSETUP_SSD)
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}${SETTING}"
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             *)
@@ -119,7 +119,7 @@ case "${COMMAND}" in
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
                         sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
-                        echo "BITCOIN_NETWORK=mainnet" > ${SYSCONFIG_PATH}${SETTING}
+                        echo "BITCOIN_NETWORK=mainnet" > ${SYSCONFIG_PATH}/${SETTING}
                         ;;
 
                     testnet)
@@ -136,7 +136,7 @@ case "${COMMAND}" in
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
                         sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
-                        echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}${SETTING}
+                        echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/${SETTING}
                         ;;
 
                     *)
@@ -154,8 +154,8 @@ case "${COMMAND}" in
                         ;;
                     *)
                         echo "${3}" > /etc/hostname
-                        echo "${SETTING}=${3}" > ${SYSCONFIG_PATH}${SETTING}
-                        cat "${SYSCONFIG_PATH}${SETTING}"
+                        echo "${SETTING}=${3}" > ${SYSCONFIG_PATH}/${SETTING}
+                        cat "${SYSCONFIG_PATH}/${SETTING}"
                 esac
                 ;;
 
@@ -165,12 +165,12 @@ case "${COMMAND}" in
 
             WIFI_SSID)
                 sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             WIFI_PW)
                 sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
-                cat "${SYSCONFIG_PATH}${SETTING}"
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             *)
@@ -182,8 +182,8 @@ case "${COMMAND}" in
     get)
         case "${SETTING}" in
             BITCOIN_NETWORK|HOSTNAME|WIFI_SSID|WIFI_PW|DASHBOARD_HDMI|DASHBOARD_WEB|WIFI|AUTOSETUP_SSD)
-                if [[ -f "${SYSCONFIG_PATH}${SETTING}" ]] ; then
-                    cat "${SYSCONFIG_PATH}${SETTING}"
+                if [[ -f "${SYSCONFIG_PATH}/${SETTING}" ]] ; then
+                    cat "${SYSCONFIG_PATH}/${SETTING}"
                 else
                     echo "Missing setting, value not yet stored in configuration."
                     exit 1
@@ -191,7 +191,7 @@ case "${COMMAND}" in
                 ;;
 
             ALL)
-                cat ${SYSCONFIG_PATH}*
+                cat ${SYSCONFIG_PATH}/*
                 ;;
 
             ROOT_PW)
