@@ -210,24 +210,24 @@ echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
-HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/
-HiddenServiceVersion 3
-HiddenServicePort 18333 127.0.0.1:18333
+HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/  #BITCOIND#
+HiddenServiceVersion 3                                  #BITCOIND#
+HiddenServicePort 18333 127.0.0.1:18333                 #BITCOIND#
 
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/
-HiddenServiceVersion 3
-HiddenServicePort 22 127.0.0.1:22
+HiddenServiceDir /var/lib/tor/hidden_service_ssh/       #SSH#
+HiddenServiceVersion 3                                  #SSH#
+HiddenServicePort 22 127.0.0.1:22                       #SSH#
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/
-HiddenServiceVersion 3
-HiddenServicePort 50002 127.0.0.1:50002
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/  #ELECTRUM#
+HiddenServiceVersion 3                                  #ELECTRUM#
+HiddenServicePort 50002 127.0.0.1:50002                 #ELECTRUM#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v2/    #LN2#
+HiddenServicePort 9375 127.0.0.1:9735                   #LN2#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/
-HiddenServiceVersion 3
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v3/    #LN#
+HiddenServiceVersion 3                                  #LN#
+HiddenServicePort 9375 127.0.0.1:9735                   #LN#
 EOF
 
 
@@ -726,8 +726,8 @@ server {
 }
 EOF
 
-echo "DASHBOARD_WEB=true" > ${SYSCONFIG_PATH}/DASHBOARD_WEB
 ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
+echo "DASHBOARD_WEB=1" > ${SYSCONFIG_PATH}/DASHBOARD_WEB
 
 mkdir -p /etc/systemd/system/nginx.service.d/
 cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
@@ -741,7 +741,6 @@ PrivateTmp=true
 EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
-echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}/DASHBOARD_HDMI
 sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
 cat << 'EOF' > /etc/xdg/openbox/autostart
@@ -756,18 +755,15 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
 EOF
 
-# autologin user 'hdmi'
-mkdir -p /etc/systemd/system/getty@tty1.service.d/
-cat << 'EOF' > /etc/systemd/system/getty@tty1.service.d/override.conf
-[Service]
-ExecStart=
-ExecStart=-/usr/bin/agetty --autologin hdmi --noclear %I $TERM
-EOF
-
-# start x-server on login
+# start x-server on user 'hdmi' login
 cat << 'EOF' > /home/hdmi/.bashrc
 startx -- -nocursor && exit
 EOF
+
+# enable autologin for user 'hdmi'
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
+cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
+echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}/DASHBOARD_HDMI
 
 
 # NETWORK ----------------------------------------------------------------------

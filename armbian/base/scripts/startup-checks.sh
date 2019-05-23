@@ -9,7 +9,7 @@ if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
 fi
 
 timedatectl set-ntp true
-echo "255" > /sys/class/hwmon/hwmon0/pwm1
+echo "180" > /sys/class/hwmon/hwmon0/pwm1
 
 # check if SSD mount is configured in /etc/fstab
 if ! grep -q '/mnt/ssd' /etc/fstab ; then

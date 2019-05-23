@@ -24,7 +24,7 @@ possible commands:
 
   get       any 'enable' or 'set' argument, or
             <all|tor_ssh_onion|tor_electrum_onion>
-            
+
 "
 }
 
@@ -56,14 +56,14 @@ case "${COMMAND}" in
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 if [[ ${ENABLE} -eq 1 ]]; then
-                    # todo
-                    echo "enable ${SETTING}"
+                    cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
                 else
-                    # todo
-                    echo "disable ${SETTING}"
+                    rm -f /etc/systemd/system/getty@tty1.service.d/override.conf
                 fi
+                systemctl daemon-reload
+                systemctl restart getty@tty1.service
                 echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                echo "Changes take effect on next restart."
                 ;;
 
             DASHBOARD_WEB)
@@ -74,7 +74,7 @@ case "${COMMAND}" in
                     rm -f /etc/nginx/sites-enabled/grafana.conf
                 fi
                 echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                systemctl restart nginx.service
                 ;;
 
             WIFI)
@@ -85,18 +85,33 @@ case "${COMMAND}" in
                     rm -f /etc/network/interfaces.d/wlan0.conf
                 fi
                 echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                systemctl restart networking.service
                 ;;
 
             AUTOSETUP_SSD)
                 echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                ;;
+
+            TOR_SSH|TOR_ELECTRUM)
+                # get service name after '_'
+                SERVICE="${SETTING#*_}"
+
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    # uncomment line that contains #SSH#
+                    sed -i "/^#.*#${SERVICE}#/s/^#//" /etc/tor/torrc
+                else
+                    # comment line that contains #SERVICE# (if not commented out already)
+                    sed -i "/^[^#]/ s/\(^.*#${SERVICE}#.*$\)/#\1/" /etc/tor/torrc
+                fi
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                systemctl restart tor.service
                 ;;
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
                 exit 1
         esac
+        cat "${SYSCONFIG_PATH}/${SETTING}"
         ;;
 
     set)
@@ -122,7 +137,7 @@ case "${COMMAND}" in
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
                         sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
-                        echo "BITCOIN_NETWORK=mainnet" > ${SYSCONFIG_PATH}/${SETTING}
+                        echo "BITCOIN_NETWORK=mainnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
                     testnet)
@@ -139,7 +154,7 @@ case "${COMMAND}" in
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
                         sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
-                        echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/${SETTING}
+                        echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
                     *)
@@ -157,22 +172,22 @@ case "${COMMAND}" in
                         ;;
                     *)
                         echo "${3}" > /etc/hostname
-                        echo "${SETTING}=${3}" > ${SYSCONFIG_PATH}/${SETTING}
+                        echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
                         cat "${SYSCONFIG_PATH}/${SETTING}"
                 esac
                 ;;
 
             ROOT_PW)
-                echo root:${3} | chpasswd
+                echo "root:${3}" | chpasswd
                 ;;
 
             WIFI_SSID)
-                sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
+                sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
                 cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             WIFI_PW)
-                sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+                sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
                 cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
@@ -184,7 +199,7 @@ case "${COMMAND}" in
 
     get)
         case "${SETTING}" in
-            BITCOIN_NETWORK|HOSTNAME|WIFI_SSID|WIFI_PW|DASHBOARD_HDMI|DASHBOARD_WEB|WIFI|AUTOSETUP_SSD)
+            BITCOIN_NETWORK|HOSTNAME|WIFI_SSID|WIFI_PW|DASHBOARD_HDMI|DASHBOARD_WEB|WIFI|AUTOSETUP_SSD|TOR_SSH|TOR_ELECTRUM)
                 if [[ -f "${SYSCONFIG_PATH}/${SETTING}" ]] ; then
                     cat "${SYSCONFIG_PATH}/${SETTING}"
                 else
@@ -200,7 +215,7 @@ case "${COMMAND}" in
             TOR_SSH_ONION)
                 echo "${SETTING}=$(cat /var/lib/tor/hidden_service_ssh/hostname)"
                 ;;
-            
+
             TOR_ELECTRUM_ONION)
                 echo "${SETTING}=$(cat /var/lib/tor/hidden_service_electrum/hostname)"
                 ;;
