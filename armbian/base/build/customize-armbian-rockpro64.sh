@@ -103,12 +103,14 @@ mkdir -p /mnt/ssd/
 
 # Add service users
 adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-adduser --system --group --disabled-login --no-create-home              electrs
 adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --group --disabled-login --no-create-home              prometheus
 adduser --system --group --disabled-login --no-create-home              node_exporter
-adduser --disabled-password --gecos "" hdmi
+adduser --system --group --disabled-login --no-create-home              electrs
 usermod -a -G bitcoin electrs
+
+adduser --system hdmi
+chsh -s /bin/bash hdmi
 
 # remove bitcoin user home on rootfs (must be on SSD)
 # also revoke direct write access for service users to local directory
