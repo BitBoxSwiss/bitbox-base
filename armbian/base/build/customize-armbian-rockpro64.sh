@@ -75,14 +75,20 @@ export HOME=/root
 
 
 # USERS & LOGIN-----------------------------------------------------------------
+# - user 'root' should be disabled
+# - user 'base' has sudo rights and is used for low-level access
+# - user 'hdmi' has minimal access rights
+# - group 'bitcoin' covers sensitive information
+# - group 'system' is used for service users without sensitive privileges
+
 # Set root password (either from configuration or random) and lock account
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo "root:${BASE_ROOTPW}" | chpasswd
 passwd -l root
 
-# add sudo user 'base' (with options for non-interactive cmd)
-adduser --disabled-password --gecos "" base
-usermod -a -G sudo base
+# add user 'base' to sudo and other groups (with options for non-interactive cmd)
+adduser --ingroup system --disabled-password --gecos "" base
+usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
@@ -94,7 +100,7 @@ if [ -f /tmp/overlay/build/authorized_keys ]; then
 else
   echo "No SSH keys file found (base/build/authorized_keys), password login only."
 fi
-chown -R base:base /home/base/
+chown -R base:bitcoin /home/base/
 chmod -R 700 /home/base/.ssh/
 
 # disable password login for SSH (authorized ssh keys only)
@@ -108,14 +114,15 @@ if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
   sed -i '/PERMITROOTLOGIN/Ic\PermitRootLogin no' /etc/ssh/sshd_config
 fi
 
-# Add service users
-adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
-adduser --system --group --disabled-login --no-create-home              prometheus
-adduser --system --group --disabled-login --no-create-home              node_exporter
-adduser --system --group --disabled-login --no-create-home              electrs
+# add service users 
+addgroup --system system
+adduser --system --ingroup system --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
+usermod -a -G bitcoin bitcoin
+adduser --system --ingroup system --disabled-login --no-create-home              electrs
 usermod -a -G bitcoin electrs
-
+adduser --system --ingroup system --disabled-login --home /var/run/avahi-daemon  avahi
+adduser --system --ingroup system --disabled-login --no-create-home              prometheus
+adduser --system --ingroup system --disabled-login --no-create-home              node_exporter
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
