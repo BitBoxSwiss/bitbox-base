@@ -33,10 +33,16 @@ function echoArguments {
 ================================================================================
 ==> $1
 ================================================================================
+CONFIGURATION:
     USER / PASSWORD: root / ${BASE_ROOTPW}
-    HOSTNAME:        ${BASE_HOSTNAME}
-    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+    HOSTNAME:         ${BASE_HOSTNAME}
+    BITCOIN NETWORK:  ${BASE_BITCOIN_NETWORK}
+    WIFI SSID / PWD:  ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+    WEB DASHBOARD:    ${BASE_DASHBOARD_WEB_ENABLED}
+
+================================================================================
+BUILD OPTIONS:
+    HDMI OUTPUT:      ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
@@ -49,9 +55,12 @@ BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
-BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
-BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
+BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+
+# HDMI dashboard only enabled if image is built to support it
+if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then BASE_DASHBOARD_HDMI_ENABLED="false"; fi
+BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
