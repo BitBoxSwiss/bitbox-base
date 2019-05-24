@@ -60,7 +60,9 @@ BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
 
 # HDMI dashboard only enabled if image is built to support it
-if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then BASE_DASHBOARD_HDMI_ENABLED="false"; fi
+if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
+  BASE_DASHBOARD_HDMI_ENABLED="false"
+fi
 BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then

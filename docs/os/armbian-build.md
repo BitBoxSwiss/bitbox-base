@@ -38,7 +38,6 @@ In Linux you can directly run `make`, while in Windows PowerShell you need to ru
 ### Configure build options
 
 The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network or Wifi credentials) can be configured within the configuration file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/build.conf). 
-Options are described and set to default values.
 
 To preserve a local configuration, you can copy the file to `build-local.conf`. 
 This file is excluded from Git source control and overwrites options from `build.conf`.
