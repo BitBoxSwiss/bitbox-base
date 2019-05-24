@@ -271,6 +271,10 @@ HiddenServicePort 9375 127.0.0.1:9735                   #LN2#
 HiddenServiceDir /var/lib/tor/lightningd-service_v3/    #LN#
 HiddenServiceVersion 3                                  #LN#
 HiddenServicePort 9375 127.0.0.1:9735                   #LN#
+
+HiddenServiceDir /var/lib/tor/hidden_service_middleware/  #MIDDLEWARE#
+HiddenServiceVersion 3                                    #MIDDLEWARE#
+HiddenServicePort 9375 127.0.0.1:8845                     #MIDDLEWARE#
 EOF
 
 change dismiss basic tone latin shadow maze tobacco tray pretty myself silver
