@@ -58,6 +58,22 @@ Settings are stored in individual files named in `/opt/shift/sysconfig/` as key/
 For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`. 
 These files are always overwritten completely and can be sourced by any script so that the variable `BITCOIN_NETWORK` is available immediately.
 
+```
+$ ls -l /opt/shift/sysconfig/
+  ... AUTOSETUP_SSD
+  ... BITCOIN_NETWORK
+  ... DASHBOARD_HDMI
+  ... DASHBOARD_WEB
+  ... WIFI
+
+$ cat /opt/shift/sysconfig/BITCOIN_NETWORK 
+BITCOIN_NETWORK=mainnet
+
+$ source /opt/shift/sysconfig/BITCOIN_NETWORK 
+$ echo $BITCOIN_NETWORK
+mainnet
+```
+
 A backup/restore process simply copies all files within `/opt/shift/sysconfig/` to/from a different location. 
 To apply a restored configuration, the `bbb-config.sh apply` command is executed.
 
