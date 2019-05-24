@@ -9,8 +9,8 @@ mkdir -p "$SYSCONFIG_PATH"
 
 function usage() {
   echo "BitBox Base: system configuration utility
-usage: bbb-config [--version] [--help]
-                  <command> [<args>]
+usage: bbb-config.sh [--version] [--help]
+                     <command> [<args>]
 
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
@@ -56,6 +56,7 @@ case "${COMMAND}" in
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 if [[ ${ENABLE} -eq 1 ]]; then
+                    mkdir -p /etc/systemd/system/getty@tty1.service.d/
                     cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
                 else
                     rm -f /etc/systemd/system/getty@tty1.service.d/override.conf

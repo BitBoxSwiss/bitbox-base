@@ -49,6 +49,9 @@ BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
+BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
+BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -86,7 +89,7 @@ echo "Configured for Bitcoin TESTNET"; echo
 EOF
 chmod 755 /etc/update-motd.d/20-shift
 
-echo "$BASE_HOSTNAME" > /etc/hostname
+echo "${BASE_HOSTNAME}" > /etc/hostname
 hostname -F /etc/hostname
 
 # Add trusted SSH keys for login
@@ -205,8 +208,8 @@ ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
 SYSCONFIG_PATH="/opt/shift/sysconfig"
-mkdir -p $SYSCONFIG_PATH
-echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
+mkdir -p "${SYSCONFIG_PATH}"
+echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
@@ -448,7 +451,7 @@ cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
-mkdir -p $GOPATH/src/github.com/shiftdevices && cd "$_"
+mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
 #cd $GOPATH/src/github.com/shiftdevices
 git clone https://github.com/shiftdevices/base-middleware
 cd base-middleware
@@ -726,8 +729,9 @@ server {
 }
 EOF
 
-ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
-echo "DASHBOARD_WEB=1" > ${SYSCONFIG_PATH}/DASHBOARD_WEB
+if [[ "${BASE_DASHBOARD_WEB_ENABLED}" == "true" ]]; then
+  /opt/shift/scripts/bbb-config.sh enable dashboard_web
+fi
 
 mkdir -p /etc/systemd/system/nginx.service.d/
 cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
@@ -741,9 +745,11 @@ PrivateTmp=true
 EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
-sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
 
-cat << 'EOF' > /etc/xdg/openbox/autostart
+  sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+
+  cat << 'EOF' > /etc/xdg/openbox/autostart
 # Disable any form of screen saver / screen blanking / power management
 xset s off
 xset s noblank
@@ -755,16 +761,17 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
 EOF
 
-# start x-server on user 'hdmi' login
-cat << 'EOF' > /home/hdmi/.bashrc
+  # start x-server on user 'hdmi' login
+  cat << 'EOF' > /home/hdmi/.bashrc
 startx -- -nocursor && exit
 EOF
 
-# enable autologin for user 'hdmi'
-mkdir -p /etc/systemd/system/getty@tty1.service.d/
-cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
-echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}/DASHBOARD_HDMI
-
+  # enable autologin for user 'hdmi'
+  if [[ "${BASE_DASHBOARD_HDMI_ENABLED}" == "true" ]]; then
+    /opt/shift/scripts/bbb-config.sh enable dashboard_hdmi
+  fi
+  
+fi
 
 # NETWORK ----------------------------------------------------------------------
 cat << 'EOF' > /etc/NetworkManager/NetworkManager.conf
@@ -874,12 +881,12 @@ systemctl enable grafana-server.service
 systemctl enable base-middleware.service
 
 # Set to mainnet if configured
-if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
+if [ "${BASE_BITCOIN_NETWORK}" == "mainnet" ]; then
   /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
 fi
 
-if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
-  echo "AUTOSETUP_SSD=1" > ${SYSCONFIG_PATH}/AUTOSETUP_SSD
+if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
+  /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
 
 set +x
