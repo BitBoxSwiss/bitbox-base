@@ -25,6 +25,9 @@ possible commands:
   get       any 'enable' or 'set' argument, or
             <all|tor_ssh_onion|tor_electrum_onion>
 
+  apply     no argument, applies all configuration settings to the system 
+            [not yet implemented]
+
 "
 }
 
