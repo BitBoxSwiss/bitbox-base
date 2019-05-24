@@ -125,8 +125,8 @@ case "${COMMAND}" in
                 case "${3}" in
                     mainnet)
                         sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin MAINNET"; echo' /etc/update-motd.d/20-shift
-                        sed -i "/ALIAS BLOG=/Ic\alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/debug.log'" /root/.bashrc-custom
-                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning'" /root/.bashrc-custom
+                        sed -i "/ALIAS BLOG=/Ic\alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/debug.log'" /home/base/.bashrc-custom
+                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 18333/Ic\HiddenServicePort 8333 127.0.0.1:8333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\#testnet=1' /etc/bitcoin/bitcoin.conf
                         sed -i '/NETWORK=/Ic\network=bitcoin' /etc/lightningd/lightningd.conf
@@ -142,8 +142,8 @@ case "${COMMAND}" in
 
                     testnet)
                         sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin TESTNET"; echo' /etc/update-motd.d/20-shift
-                        sed -i "/ALIAS BLOG=/Ic\alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'" /root/.bashrc-custom
-                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'" /root/.bashrc-custom
+                        sed -i "/ALIAS BLOG=/Ic\alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'" /home/base/.bashrc-custom
+                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 8333/Ic\HiddenServicePort 18333 127.0.0.1:18333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\testnet=1' /etc/bitcoin/bitcoin.conf
                         sed -i '/NETWORK=/Ic\network=testnet' /etc/lightningd/lightningd.conf

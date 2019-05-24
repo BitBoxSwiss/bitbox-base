@@ -250,24 +250,24 @@ echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
-HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/  #BITCOIND#
-HiddenServiceVersion 3                                  #BITCOIND#
-HiddenServicePort 18333 127.0.0.1:18333                 #BITCOIND#
+HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
+HiddenServiceVersion 3                                    #BITCOIND#
+HiddenServicePort 18333 127.0.0.1:18333                   #BITCOIND#
 
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/       #SSH#
-HiddenServiceVersion 3                                  #SSH#
-HiddenServicePort 22 127.0.0.1:22                       #SSH#
+HiddenServiceDir /var/lib/tor/hidden_service_ssh/         #SSH#
+HiddenServiceVersion 3                                    #SSH#
+HiddenServicePort 22 127.0.0.1:22                         #SSH#
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/  #ELECTRUM#
-HiddenServiceVersion 3                                  #ELECTRUM#
-HiddenServicePort 50002 127.0.0.1:50002                 #ELECTRUM#
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/    #ELECTRUM#
+HiddenServiceVersion 3                                    #ELECTRUM#
+HiddenServicePort 50002 127.0.0.1:50002                   #ELECTRUM#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/    #LN2#
-HiddenServicePort 9375 127.0.0.1:9735                   #LN2#
+HiddenServiceDir /var/lib/tor/lightningd-service_v2/      #LN2#
+HiddenServicePort 9375 127.0.0.1:9735                     #LN2#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/    #LN#
-HiddenServiceVersion 3                                  #LN#
-HiddenServicePort 9375 127.0.0.1:9735                   #LN#
+HiddenServiceDir /var/lib/tor/lightningd-service_v3/      #LN#
+HiddenServiceVersion 3                                    #LN#
+HiddenServicePort 9375 127.0.0.1:9735                     #LN#
 
 HiddenServiceDir /var/lib/tor/hidden_service_middleware/  #MIDDLEWARE#
 HiddenServiceVersion 3                                    #MIDDLEWARE#
@@ -421,7 +421,7 @@ ELECTRS_VERSION="0.6.1"
 # ./install.sh
 #
 # apt install clang cmake
-# git clone https://github.com/romanz/electrs
+# git clone https://github.com/romanz/electrs || true
 # cd electrs
 # git checkout tags/v${ELECTRS_VERSION}
 # cargo build --release
@@ -493,7 +493,7 @@ cp bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
 mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
-git clone https://github.com/shiftdevices/base-middleware
+git clone https://github.com/shiftdevices/base-middleware || true
 cd base-middleware
 make native
 cp base-middleware /usr/local/sbin/
