@@ -36,7 +36,7 @@ function echoArguments {
     USER / PASSWORD: root / ${BASE_ROOTPW}
     HOSTNAME:        ${BASE_HOSTNAME}
     BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PASS}
+    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
 ================================================================================
 "
 }
@@ -48,7 +48,7 @@ BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
-BASE_WIFI_PASS=${BASE_WIFI_PASS:-""}
+BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -103,11 +103,14 @@ mkdir -p /mnt/ssd/
 
 # Add service users
 adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-adduser --system --group --disabled-login --no-create-home              electrs
 adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --group --disabled-login --no-create-home              prometheus
 adduser --system --group --disabled-login --no-create-home              node_exporter
+adduser --system --group --disabled-login --no-create-home              electrs
 usermod -a -G bitcoin electrs
+
+adduser --system hdmi
+chsh -s /bin/bash hdmi
 
 # remove bitcoin user home on rootfs (must be on SSD)
 # also revoke direct write access for service users to local directory
@@ -200,27 +203,31 @@ EOF
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
+# SYSTEM CONFIGURATION ---------------------------------------------------------
+SYSCONFIG_PATH="/opt/shift/sysconfig"
+mkdir -p $SYSCONFIG_PATH
+echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
-HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/
-HiddenServiceVersion 3
-HiddenServicePort 18333 127.0.0.1:18333
+HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/  #BITCOIND#
+HiddenServiceVersion 3                                  #BITCOIND#
+HiddenServicePort 18333 127.0.0.1:18333                 #BITCOIND#
 
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/
-HiddenServiceVersion 3
-HiddenServicePort 22 127.0.0.1:22
+HiddenServiceDir /var/lib/tor/hidden_service_ssh/       #SSH#
+HiddenServiceVersion 3                                  #SSH#
+HiddenServicePort 22 127.0.0.1:22                       #SSH#
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/
-HiddenServiceVersion 3
-HiddenServicePort 50002 127.0.0.1:50002
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/  #ELECTRUM#
+HiddenServiceVersion 3                                  #ELECTRUM#
+HiddenServicePort 50002 127.0.0.1:50002                 #ELECTRUM#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v2/    #LN2#
+HiddenServicePort 9375 127.0.0.1:9735                   #LN2#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/
-HiddenServiceVersion 3
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v3/    #LN#
+HiddenServiceVersion 3                                  #LN#
+HiddenServicePort 9375 127.0.0.1:9735                   #LN#
 EOF
 
 
@@ -661,6 +668,7 @@ EOF
 
 # NGINX ------------------------------------------------------------------------
 apt install -y nginx
+rm -f /etc/nginx/sites-enabled/default
 
 cat << 'EOF' > /etc/nginx/nginx.conf
 user www-data;
@@ -702,7 +710,7 @@ http {
   default_type application/octet-stream;
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
-  include /etc/nginx/sites-enabled/*;
+  include /etc/nginx/sites-enabled/*.conf;
 }
 EOF
 
@@ -718,19 +726,44 @@ server {
 }
 EOF
 
-rm /etc/nginx/sites-enabled/default || true
 ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
+echo "DASHBOARD_WEB=1" > ${SYSCONFIG_PATH}/DASHBOARD_WEB
 
 mkdir -p /etc/systemd/system/nginx.service.d/
 cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
 [Unit]
 After=grafana-server.service startup-checks.service
-
+ 
 [Service]
 Restart=always
 RestartSec=10
 PrivateTmp=true
 EOF
+
+# DASHBOARD OVER HDMI ----------------------------------------------------------
+sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+
+cat << 'EOF' > /etc/xdg/openbox/autostart
+# Disable any form of screen saver / screen blanking / power management
+xset s off
+xset s noblank
+xset -dpms
+
+# Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
+chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
+EOF
+
+# start x-server on user 'hdmi' login
+cat << 'EOF' > /home/hdmi/.bashrc
+startx -- -nocursor && exit
+EOF
+
+# enable autologin for user 'hdmi'
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
+cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
+echo "DASHBOARD_HDMI=1" > ${SYSCONFIG_PATH}/DASHBOARD_HDMI
 
 
 # NETWORK ----------------------------------------------------------------------
@@ -759,12 +792,10 @@ EOF
 
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  cat << EOF > /etc/network/interfaces.d/wlan0.conf
-auto wlan0
-iface wlan0 inet dhcp
-  wpa-ssid ${BASE_WIFI_SSID}
-  wpa-psk ${BASE_WIFI_PASS}
-EOF
+  sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
+  sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+  cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
+  echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi
 
 # mDNS services
@@ -844,11 +875,11 @@ systemctl enable base-middleware.service
 
 # Set to mainnet if configured
 if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
-  /opt/shift/scripts/set-bitcoin-network.sh mainnet
+  /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
 fi
 
 if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
-  touch /opt/shift/config/.autosetup_ssd
+  echo "AUTOSETUP_SSD=1" > ${SYSCONFIG_PATH}/AUTOSETUP_SSD
 fi
 
 set +x
