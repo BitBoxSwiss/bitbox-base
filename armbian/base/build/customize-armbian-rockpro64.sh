@@ -75,11 +75,15 @@ export HOME=/root
 
 
 # USERS & LOGIN-----------------------------------------------------------------
-# - user 'root' should be disabled
-# - user 'base' has sudo rights and is used for low-level access
-# - user 'hdmi' has minimal access rights
 # - group 'bitcoin' covers sensitive information
 # - group 'system' is used for service users without sensitive privileges
+# - user 'root' should be disabled
+# - user 'base' has sudo rights and is used for low-level user access
+# - user 'hdmi' has minimal access rights
+
+# add groups
+addgroup --system bitcoin
+addgroup --system system
 
 # Set root password (either from configuration or random) and lock account
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
@@ -115,7 +119,6 @@ if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
 fi
 
 # add service users 
-addgroup --system system
 adduser --system --ingroup system --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
 usermod -a -G bitcoin bitcoin
 adduser --system --ingroup system --disabled-login --no-create-home              electrs
@@ -238,10 +241,12 @@ EOF
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
+
 # SYSTEM CONFIGURATION ---------------------------------------------------------
 SYSCONFIG_PATH="/opt/shift/sysconfig"
 mkdir -p $SYSCONFIG_PATH
 echo "BITCOIN_NETWORK=testnet" > ${SYSCONFIG_PATH}/BITCOIN_NETWORK
+
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
@@ -269,7 +274,7 @@ HiddenServiceVersion 3                                    #MIDDLEWARE#
 HiddenServicePort 9375 127.0.0.1:8845                     #MIDDLEWARE#
 EOF
 
-change dismiss basic tone latin shadow maze tobacco tray pretty myself silver
+
 # BITCOIN ----------------------------------------------------------------------
 BITCOIN_VERSION="0.18.0"
 
