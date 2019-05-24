@@ -54,10 +54,11 @@ fi
 mkdir -p /mnt/ssd/bitcoin/
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 mkdir -p /mnt/ssd/electrs/
-chown -R electrs:electrs /mnt/ssd/electrs/
+chown -R electrs:bitcoin /mnt/ssd/electrs/
 mkdir -p /mnt/ssd/prometheus
-chown -R prometheus:prometheus /mnt/ssd/prometheus/
+chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
+chmod -R 750 /mnt/ssd
 
 # We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
 # no way to specify where to expect the bitcoin cookie for c-lightning, so let's
