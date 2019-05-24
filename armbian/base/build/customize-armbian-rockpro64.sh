@@ -39,6 +39,7 @@ CONFIGURATION:
     BITCOIN NETWORK:  ${BASE_BITCOIN_NETWORK}
     WIFI SSID / PWD:  ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
     WEB DASHBOARD:    ${BASE_DASHBOARD_WEB_ENABLED}
+    HDMI DASHBOARD:   ${BASE_DASHBOARD_HDMI_ENABLED}
 
 ================================================================================
 BUILD OPTIONS:
