@@ -35,8 +35,21 @@ In Linux you can directly run `make`, while in Windows PowerShell you need to ru
 
 * The virtual machine will be configured running on 4 cpu cores and 8GB memory. You can adjust these settings in the `build.sh` script.
 
+### Configure build options
+
+The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network or Wifi credentials) can be configured within the configuration file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/build.conf). 
+
+To preserve a local configuration, you can copy the file to `build-local.conf`. 
+This file is excluded from Git source control and overwrites options from `build.conf`.
+
+### Include SSH keys
+
+It is recommended to use SSH keys to access the Base image. 
+You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/authorized_keys). 
+Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/creating-ssh-keys-776639788.html) on how to create your own set of new keys.
 
 ### Compile Armbian from source
+
 Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
 * Start the initial build process.
