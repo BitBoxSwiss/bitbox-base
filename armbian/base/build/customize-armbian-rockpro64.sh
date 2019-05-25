@@ -478,6 +478,7 @@ EOF
 
 # MIDDLEWARE -------------------------------------------------------------------
 GO_VERSION="1.12.4"
+export GOPATH=/home/base/go
 
 mkdir -p /usr/local/src/go && cd "$_"
 curl --retry 5 -SLO https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz
