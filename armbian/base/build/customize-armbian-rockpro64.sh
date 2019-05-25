@@ -165,7 +165,7 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # networking
 apt install -y  openssl tor net-tools fio \
                 avahi-daemon avahi-discover libnss-mdns \
-                avahi-utils avahi-daemon avahi-discover
+                avahi-utils
 
 
 # STARTUP CHECKS ---------------------------------------------------------------
