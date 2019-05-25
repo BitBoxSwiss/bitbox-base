@@ -79,6 +79,7 @@ fi
 rm -f /root/.not_logged_in_yet
 
 echoArguments "Starting build process."
+echoArguments "Starting build process." > /opt/shift/config/buildargs.log
 
 set -ex
 
@@ -92,7 +93,7 @@ export HOME=/root
 # USERS & LOGIN-----------------------------------------------------------------
 # - group 'bitcoin' covers sensitive information
 # - group 'system' is used for service users without sensitive privileges
-# - user 'root' should be disabled
+# - user 'root' is locked for login
 # - user 'base' has sudo rights and is used for low-level user access
 # - user 'hdmi' has minimal access rights
 
@@ -138,7 +139,7 @@ adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/    
 usermod -a -G system bitcoin
 adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
 usermod -a -G system electrs
-adduser --system --ingroup avahi  --disabled-login --home /var/run/avahi-daemon   avahi
+adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi
 adduser --system --ingroup system --disabled-login --no-create-home               prometheus
 adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
 adduser --system hdmi
