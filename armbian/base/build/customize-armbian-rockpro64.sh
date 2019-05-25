@@ -267,6 +267,7 @@ mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
 
+
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
