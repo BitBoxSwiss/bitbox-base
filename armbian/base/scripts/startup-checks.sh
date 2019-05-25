@@ -51,6 +51,7 @@ if ! mountpoint /mnt/ssd -q; then
 fi
 
 # create missing directories & always set correct owner
+chown bitcoin:system /mnt/ssd 
 mkdir -p /mnt/ssd/bitcoin/
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 mkdir -p /mnt/ssd/electrs/

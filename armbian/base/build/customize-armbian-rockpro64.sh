@@ -134,10 +134,10 @@ if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
 fi
 
 # add service users 
-adduser --system --ingroup system --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-usermod -a -G bitcoin bitcoin
+adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
+usermod -a -G system bitcoin
 adduser --system --ingroup system --disabled-login --no-create-home              electrs
-usermod -a -G bitcoin electrs
+usermod -a -G system electrs
 adduser --system --ingroup system --disabled-login --home /var/run/avahi-daemon  avahi
 adduser --system --ingroup system --disabled-login --no-create-home              prometheus
 adduser --system --ingroup system --disabled-login --no-create-home              node_exporter
@@ -236,7 +236,7 @@ alias llog='journalctl -f -u lightningd'
 # Electrum
 alias elog='journalctl -n 100 -f -u electrs'
 
-export PATH=$PATH:/usr/local/go/bin:/opt/shift/scripts
+export PATH=$PATH:/usr/local/go/bin
 export GOPATH=$HOME/go
 EOF
 
@@ -255,6 +255,10 @@ EOF
 
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
+
+# make bbb scripts executable by sudo
+sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
@@ -585,7 +589,7 @@ After=network-online.target
 
 [Service]
 User=prometheus
-Group=prometheus
+Group=system
 Type=simple
 ExecStart=/usr/local/bin/prometheus \
     --web.listen-address="127.0.0.1:9090" \
@@ -613,7 +617,7 @@ After=network-online.target
 
 [Service]
 User=node_exporter
-Group=node_exporter
+Group=system
 Type=simple
 ExecStart=/usr/local/bin/node_exporter
 Restart=always
@@ -636,8 +640,8 @@ After=network-online.target
 [Service]
 ExecStart=/opt/shift/scripts/prometheus-base.py
 KillMode=process
-User=bitcoin
-Group=bitcoin
+User=node_exporter
+Group=system
 Restart=always
 RestartSec=10
 
