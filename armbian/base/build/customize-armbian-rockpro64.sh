@@ -456,7 +456,7 @@ if ! echo "b7d7b4319b2d86a2ed20cef3b47aa23f0c97612b469178deecd021610f6917df  go1
 tar -C /usr/local -xzf go${GO_VERSION}.linux-arm64.tar.gz
 
 ## bbbfancontrol
-## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
+## see https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbfancontrol/README.md
 cd /opt/shift/tools/bbbfancontrol
 /usr/local/go/bin/go build -v
 cp bbbfancontrol /usr/local/sbin/
