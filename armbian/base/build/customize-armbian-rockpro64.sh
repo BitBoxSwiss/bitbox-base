@@ -123,7 +123,7 @@ chown -R base:bitcoin /home/base/
 chmod -R 700 /home/base/.ssh/
 
 # disable password login for SSH (authorized ssh keys only)
-if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+if [ ! "$BASE_SSH_PASSWORD_LOGIN" == "true" ]; then
   sed -i '/PASSWORDAUTHENTICATION/Ic\PasswordAuthentication no' /etc/ssh/sshd_config
   sed -i '/CHALLENGERESPONSEAUTHENTICATION/Ic\ChallengeResponseAuthentication no' /etc/ssh/sshd_config
 fi
@@ -138,7 +138,7 @@ adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/    
 usermod -a -G system bitcoin
 adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
 usermod -a -G system electrs
-adduser --system --ingroup system --disabled-login --home /var/run/avahi-daemon   avahi
+adduser --system --ingroup avahi  --disabled-login --home /var/run/avahi-daemon   avahi
 adduser --system --ingroup system --disabled-login --no-create-home               prometheus
 adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
 adduser --system hdmi
