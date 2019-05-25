@@ -136,11 +136,11 @@ fi
 # add service users 
 adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
 usermod -a -G system bitcoin
-adduser --system --ingroup system --disabled-login --no-create-home              electrs
+adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
 usermod -a -G system electrs
-adduser --system --ingroup system --disabled-login --home /var/run/avahi-daemon  avahi
-adduser --system --ingroup system --disabled-login --no-create-home              prometheus
-adduser --system --ingroup system --disabled-login --no-create-home              node_exporter
+adduser --system --ingroup system --disabled-login --home /var/run/avahi-daemon   avahi
+adduser --system --ingroup system --disabled-login --no-create-home               prometheus
+adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
@@ -241,7 +241,7 @@ export GOPATH=$HOME/go
 EOF
 
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
-source /home/base/.bashrc
+source /home/base/.bashrc-custom
 
 cat << 'EOF' >> /etc/services
 electrum-rpc    50000/tcp
@@ -265,7 +265,6 @@ sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 SYSCONFIG_PATH="/opt/shift/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
-
 
 
 # TOR --------------------------------------------------------------------------
