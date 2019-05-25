@@ -6,24 +6,26 @@ set -eu
 
 function usage() {
     echo "BitBox Base: batch control system units"
-    echo "Usage: bbb-systemctl <status|start|restart|stop>"
+    echo "Usage: bbb-systemctl <status|start|restart|stop|enable|disable>"
 }
 
 ACTION=${1:-"status"}
 
+if [[ ${ACTION} == "-h" ]] || [[ ${ACTION} == "--help" ]]; then
+  usage
+	exit 0
+fi
+
 if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable)$ ]]; then
-	usage
+  echo "bbb-systemctl.sh: unknown argument."
+  echo
+  usage
 	exit 1
 fi
 
-if [[ ${UID} -ne 0 ]]; then
-  echo "${0}: needs to be run as superuser." >&2
-  exit 1
-fi
-
-echo 
 case ${ACTION} in
         status)
+                echo
                 echo "Checking systemd unit status of BitBox Base..."
                 echo 
                 echo "bitcoind:                 $(systemctl is-active bitcoind.service)"
@@ -41,6 +43,12 @@ case ${ACTION} in
                 ;;
 
 	start|restart|stop|enable|disable)
+
+                if [[ ${UID} -ne 0 ]]; then
+                  echo "bbb-systemctl.sh: needs to be run as superuser." >&2
+                  exit 1
+                fi
+
                 systemctl daemon-reload
 
                 systemctl $ACTION prometheus
