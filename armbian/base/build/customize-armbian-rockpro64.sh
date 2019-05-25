@@ -231,10 +231,10 @@ alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'
 
 # Lightning
 alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'
-alias llog='journalctl -f -u lightningd'
+alias llog='sudo journalctl -f -u lightningd'
 
 # Electrum
-alias elog='journalctl -n 100 -f -u electrs'
+alias elog='sudo journalctl -n 100 -f -u electrs'
 
 export PATH=$PATH:/usr/local/go/bin
 export GOPATH=$HOME/go
