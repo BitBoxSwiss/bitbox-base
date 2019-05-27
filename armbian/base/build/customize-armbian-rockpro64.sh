@@ -920,7 +920,7 @@ EOF
 # firewall: restore iptables rules on startup
 cat << 'EOF' > /etc/systemd/system/iptables-restore.service
 [Unit]
-Description = BitBox Base: restore iptables rules
+Description=BitBox Base: restore iptables rules
 Before=network.target
 [Service]
 Type=oneshot
