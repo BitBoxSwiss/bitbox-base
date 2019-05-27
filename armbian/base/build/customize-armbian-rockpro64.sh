@@ -180,10 +180,10 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # build electrs
 # apt install -y  clang cmake
 
-# networking
-apt install -y  openssl tor net-tools fio fail2ban \
-                avahi-daemon avahi-discover libnss-mdns \
-                avahi-utils
+# system
+apt install -y  openssl tor net-tools fio libnss-mdns \
+                avahi-daemon avahi-discover avahi-utils \
+                fail2ban acl
 
 
 # STARTUP CHECKS ---------------------------------------------------------------

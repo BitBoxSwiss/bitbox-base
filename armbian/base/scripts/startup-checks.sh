@@ -51,11 +51,14 @@ if ! mountpoint /mnt/ssd -q; then
 fi
 
 # create missing directories & always set correct owner
+# access control lists (setfacl) are used to control permissions of newly created files 
 chown bitcoin:system /mnt/ssd 
 mkdir -p /mnt/ssd/bitcoin/
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
