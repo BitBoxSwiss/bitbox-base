@@ -33,10 +33,20 @@ function echoArguments {
 ================================================================================
 ==> $1
 ================================================================================
-    USER / PASSWORD: root / ${BASE_ROOTPW}
-    HOSTNAME:        ${BASE_HOSTNAME}
-    BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+CONFIGURATION:
+    USER / PASSWORD:    base / ${BASE_ROOTPW}
+    HOSTNAME:           ${BASE_HOSTNAME}
+    BITCOIN NETWORK:    ${BASE_BITCOIN_NETWORK}
+    WIFI SSID / PWD:    ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
+    WEB DASHBOARD:      ${BASE_DASHBOARD_WEB_ENABLED}
+    HDMI DASHBOARD:     ${BASE_DASHBOARD_HDMI_ENABLED}
+    SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
+    SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
+    AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
+
+================================================================================
+BUILD OPTIONS:
+    HDMI OUTPUT:      ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
@@ -49,6 +59,16 @@ BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
+BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
+BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
+BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
+BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+
+# HDMI dashboard only enabled if image is built to support it
+if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
+  BASE_DASHBOARD_HDMI_ENABLED="false"
+fi
+BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -58,12 +78,8 @@ fi
 # Disable Armbian script on first boot
 rm -f /root/.not_logged_in_yet
 
-# Set root password (either from configuration or random)
-BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
-echo root:${BASE_ROOTPW} | chpasswd
-export HOME=/root
-
 echoArguments "Starting build process."
+echoArguments "Starting build process." > /opt/shift/config/buildargs.log
 
 set -ex
 
@@ -71,43 +87,63 @@ set -ex
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
 export LANG=C LC_ALL="en_US.UTF-8"
+export HOME=/root
 
-# Customize MOTD
-echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
-cat << EOF > /etc/update-motd.d/20-shift
-#!/bin/bash
-. /etc/os-release
-. /etc/armbian-release
-KERNELID=$(uname -r)
-TERM=linux toilet -f standard -F metal "BitBox Base"
-printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
-if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
-echo "Configured for Bitcoin TESTNET"; echo
-EOF
-chmod 755 /etc/update-motd.d/20-shift
 
-echo "$BASE_HOSTNAME" > /etc/hostname
-hostname -F /etc/hostname
+# USERS & LOGIN-----------------------------------------------------------------
+# - group 'bitcoin' covers sensitive information
+# - group 'system' is used for service users without sensitive privileges
+# - user 'root' is disabled from logging in with password
+# - user 'base' has sudo rights and is used for low-level user access
+# - user 'hdmi' has minimal access rights
+
+# add groups
+addgroup --system bitcoin
+addgroup --system system
+
+# Set root password (either from configuration or random) and lock account
+BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
+echo "root:${BASE_ROOTPW}" | chpasswd
+passwd -l root
+
+# create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
+adduser --ingroup system --disabled-password --gecos "" base
+usermod -a -G sudo,bitcoin base
+echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
-mkdir -p /root/.ssh/
-if [ -f /tmp/overlay/build/build.conf ]; then
-  cp /tmp/overlay/build/authorized_keys /root/.ssh/
+mkdir -p /root/.ssh 
+mkdir -p /home/base/.ssh
+if [ -f /tmp/overlay/build/authorized_keys ]; then
+  cp -f /tmp/overlay/build/authorized_keys /root/.ssh/
+  cp -f /tmp/overlay/build/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/build/authorized_keys), password login only."
 fi
-chmod -R 700 /root/.ssh/
+chown -R base:bitcoin /home/base/
+chmod -R 700 /home/base/.ssh/
 
-# prepare SSD mount point
-mkdir -p /mnt/ssd/
+# disable password login for SSH (authorized ssh keys only)
+if [ ! "$BASE_SSH_PASSWORD_LOGIN" == "true" ]; then
+  sed -i '/PASSWORDAUTHENTICATION/Ic\PasswordAuthentication no' /etc/ssh/sshd_config
+  sed -i '/CHALLENGERESPONSEAUTHENTICATION/Ic\ChallengeResponseAuthentication no' /etc/ssh/sshd_config
+fi
 
-# Add service users
-adduser --system --group --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
-adduser --system --group --disabled-login --no-create-home              electrs
-adduser --system --group --disabled-login --home /var/run/avahi-daemon  avahi
-adduser --system --group --disabled-login --no-create-home              prometheus
-adduser --system --group --disabled-login --no-create-home              node_exporter
-usermod -a -G bitcoin electrs
+# disable root login via SSH
+if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+  sed -i '/PERMITROOTLOGIN/Ic\PermitRootLogin no' /etc/ssh/sshd_config
+fi
+
+# add service users 
+adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
+usermod -a -G system bitcoin
+adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
+usermod -a -G system electrs
+adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi
+adduser --system --ingroup system --disabled-login --no-create-home               prometheus
+adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
+adduser --system hdmi
+chsh -s /bin/bash hdmi
 
 # remove bitcoin user home on rootfs (must be on SSD)
 # also revoke direct write access for service users to local directory
@@ -145,9 +181,9 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # apt install -y  clang cmake
 
 # networking
-apt install -y  openssl tor net-tools fio \
+apt install -y  openssl tor net-tools fio fail2ban \
                 avahi-daemon avahi-discover libnss-mdns \
-                avahi-utils avahi-daemon avahi-discover
+                avahi-utils
 
 
 # STARTUP CHECKS ---------------------------------------------------------------
@@ -164,7 +200,28 @@ EOF
 
 
 # OS CONFIG --------------------------------------------------------------------
-cat << EOF > /root/.bashrc-custom
+# customize MOTD
+echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
+cat << EOF > /etc/update-motd.d/20-shift
+#!/bin/bash
+source /etc/os-release
+source /etc/armbian-release
+KERNELID=$(uname -r)
+TERM=linux toilet -f standard -F metal "BitBox Base"
+printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
+if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
+echo "Configured for Bitcoin TESTNET"; echo
+EOF
+chmod 755 /etc/update-motd.d/20-shift
+
+echo "$BASE_HOSTNAME" > /etc/hostname
+hostname -F /etc/hostname
+
+# prepare SSD mount point
+mkdir -p /mnt/ssd/
+
+# add shortcuts
+cat << EOF > /home/base/.bashrc-custom
 export LS_OPTIONS='--color=auto'
 alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -la'
@@ -175,17 +232,17 @@ alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'
 
 # Lightning
 alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'
-alias llog='journalctl -f -u lightningd'
+alias llog='sudo journalctl -f -u lightningd'
 
 # Electrum
-alias elog='journalctl -n 100 -f -u electrs'
+alias elog='sudo journalctl -n 100 -f -u electrs'
 
-export PATH=$PATH:/usr/local/go/bin:/opt/shift/scripts
+export PATH=$PATH:/usr/local/go/bin
 export GOPATH=$HOME/go
 EOF
 
-echo "source /root/.bashrc-custom" >> /root/.bashrc
-source /root/.bashrc
+echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
+source /home/base/.bashrc-custom
 
 cat << 'EOF' >> /etc/services
 electrum-rpc    50000/tcp
@@ -200,27 +257,41 @@ EOF
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
+# make bbb scripts executable with sudo
+sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
+
+
+# SYSTEM CONFIGURATION ---------------------------------------------------------
+SYSCONFIG_PATH="/opt/shift/sysconfig"
+mkdir -p "${SYSCONFIG_PATH}"
+echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
+
 
 # TOR --------------------------------------------------------------------------
 cat << EOF > /etc/tor/torrc
-HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/
-HiddenServiceVersion 3
-HiddenServicePort 18333 127.0.0.1:18333
+HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
+HiddenServiceVersion 3                                    #BITCOIND#
+HiddenServicePort 18333 127.0.0.1:18333                   #BITCOIND#
 
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/
-HiddenServiceVersion 3
-HiddenServicePort 22 127.0.0.1:22
+HiddenServiceDir /var/lib/tor/hidden_service_ssh/         #SSH#
+HiddenServiceVersion 3                                    #SSH#
+HiddenServicePort 22 127.0.0.1:22                         #SSH#
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/
-HiddenServiceVersion 3
-HiddenServicePort 50002 127.0.0.1:50002
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/    #ELECTRUM#
+HiddenServiceVersion 3                                    #ELECTRUM#
+HiddenServicePort 50002 127.0.0.1:50002                   #ELECTRUM#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v2/      #LN2#
+HiddenServicePort 9375 127.0.0.1:9735                     #LN2#
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/
-HiddenServiceVersion 3
-HiddenServicePort 9375 127.0.0.1:9735
+HiddenServiceDir /var/lib/tor/lightningd-service_v3/      #LN#
+HiddenServiceVersion 3                                    #LN#
+HiddenServicePort 9375 127.0.0.1:9735                     #LN#
+
+HiddenServiceDir /var/lib/tor/hidden_service_middleware/  #MIDDLEWARE#
+HiddenServiceVersion 3                                    #MIDDLEWARE#
+HiddenServicePort 9375 127.0.0.1:8845                     #MIDDLEWARE#
 EOF
 
 
@@ -370,7 +441,7 @@ ELECTRS_VERSION="0.6.1"
 # ./install.sh
 #
 # apt install clang cmake
-# git clone https://github.com/romanz/electrs
+# git clone https://github.com/romanz/electrs || true
 # cd electrs
 # git checkout tags/v${ELECTRS_VERSION}
 # cargo build --release
@@ -378,10 +449,10 @@ ELECTRS_VERSION="0.6.1"
 
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
-# temporary storage of `electrs` until official binary releases are available
+# temporary storage of 'electrs' until official binary releases are available
 curl --retry 5 -SLO https://github.com/Stadicus/electrs-bin/raw/master/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
 if ! echo "1b1664afe338aa707660bc16b2d82919e5cb8f5fd35faa61c27a7fef24aad156  electrs-0.6.1-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
-  echo "sha256sum for precompiled `electrs` failed" >&2
+  echo "sha256sum for precompiled 'electrs' failed" >&2
   exit 1
 fi
 tar -xzf electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz -C /usr/bin
@@ -427,6 +498,7 @@ EOF
 
 # MIDDLEWARE -------------------------------------------------------------------
 GO_VERSION="1.12.4"
+export GOPATH=/home/base/go
 
 mkdir -p /usr/local/src/go && cd "$_"
 curl --retry 5 -SLO https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz
@@ -434,16 +506,15 @@ if ! echo "b7d7b4319b2d86a2ed20cef3b47aa23f0c97612b469178deecd021610f6917df  go1
 tar -C /usr/local -xzf go${GO_VERSION}.linux-arm64.tar.gz
 
 ## bbbfancontrol
-## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
+## see https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbfancontrol/README.md
 cd /opt/shift/tools/bbbfancontrol
 /usr/local/go/bin/go build -v
 cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
-mkdir -p $GOPATH/src/github.com/shiftdevices && cd "$_"
-#cd $GOPATH/src/github.com/shiftdevices
-git clone https://github.com/shiftdevices/base-middleware
+mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
+git clone https://github.com/shiftdevices/base-middleware || true
 cd base-middleware
 make native
 cp base-middleware /usr/local/sbin/
@@ -519,7 +590,7 @@ After=network-online.target
 
 [Service]
 User=prometheus
-Group=prometheus
+Group=system
 Type=simple
 ExecStart=/usr/local/bin/prometheus \
     --web.listen-address="127.0.0.1:9090" \
@@ -547,7 +618,7 @@ After=network-online.target
 
 [Service]
 User=node_exporter
-Group=node_exporter
+Group=system
 Type=simple
 ExecStart=/usr/local/bin/node_exporter
 Restart=always
@@ -570,8 +641,8 @@ After=network-online.target
 [Service]
 ExecStart=/opt/shift/scripts/prometheus-base.py
 KillMode=process
-User=bitcoin
-Group=bitcoin
+User=node_exporter
+Group=system
 Restart=always
 RestartSec=10
 
@@ -661,6 +732,7 @@ EOF
 
 # NGINX ------------------------------------------------------------------------
 apt install -y nginx
+rm -f /etc/nginx/sites-enabled/default
 
 cat << 'EOF' > /etc/nginx/nginx.conf
 user www-data;
@@ -702,7 +774,7 @@ http {
   default_type application/octet-stream;
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
-  include /etc/nginx/sites-enabled/*;
+  include /etc/nginx/sites-enabled/*.conf;
 }
 EOF
 
@@ -718,20 +790,49 @@ server {
 }
 EOF
 
-rm /etc/nginx/sites-enabled/default || true
-ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
+if [[ "${BASE_DASHBOARD_WEB_ENABLED}" == "true" ]]; then
+  /opt/shift/scripts/bbb-config.sh enable dashboard_web
+fi
 
 mkdir -p /etc/systemd/system/nginx.service.d/
 cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
 [Unit]
 After=grafana-server.service startup-checks.service
-
+ 
 [Service]
 Restart=always
 RestartSec=10
 PrivateTmp=true
 EOF
 
+# DASHBOARD OVER HDMI ----------------------------------------------------------
+if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
+
+  sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+
+  cat << 'EOF' > /etc/xdg/openbox/autostart
+# Disable any form of screen saver / screen blanking / power management
+xset s off
+xset s noblank
+xset -dpms
+
+# Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
+chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
+EOF
+
+  # start x-server on user 'hdmi' login
+  cat << 'EOF' > /home/hdmi/.bashrc
+startx -- -nocursor && exit
+EOF
+
+  # enable autologin for user 'hdmi'
+  if [[ "${BASE_DASHBOARD_HDMI_ENABLED}" == "true" ]]; then
+    /opt/shift/scripts/bbb-config.sh enable dashboard_hdmi
+  fi
+  
+fi
 
 # NETWORK ----------------------------------------------------------------------
 cat << 'EOF' > /etc/NetworkManager/NetworkManager.conf
@@ -759,12 +860,10 @@ EOF
 
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  cat << EOF > /etc/network/interfaces.d/wlan0.conf
-auto wlan0
-iface wlan0 inet dhcp
-  wpa-ssid ${BASE_WIFI_SSID}
-  wpa-psk ${BASE_WIFI_PW}
-EOF
+  sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
+  sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+  cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
+  echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi
 
 # mDNS services
@@ -857,12 +956,12 @@ systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
 # Set to mainnet if configured
-if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
-  /opt/shift/scripts/set-bitcoin-network.sh mainnet
+if [ "${BASE_BITCOIN_NETWORK}" == "mainnet" ]; then
+  /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
 fi
 
-if [ "$BASE_AUTOSETUP_SSD" == "true" ]; then
-  touch /opt/shift/config/.autosetup_ssd
+if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
+  /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
 
 set +x

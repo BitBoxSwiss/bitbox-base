@@ -4,6 +4,10 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
 
 All details outlined here reflect the current progress of the project and are subject to change if necessary.
 
+## Technical documentation
+
+The in-depth [technical documentation](https://digitalbitbox.github.io/bitbox-base) is hosted seperately and is updated frequently.
+
 ## Project goals
 
 We believe that storing Bitcoin private keys on a hardware wallet like the [BitBox](https://shiftcrypto.ch) is only one part of the equation to gain financial sovereignty. While hardware wallets provide security, they do not provide privacy. Your entire financial history can be read by the company, such as the hardware wallet provider, who queries the blockchain for you. Because we respect an individual's right to privacy, we decided to build the BitBox Base. The currently missing part of the equation is a personal appliance that syncs directly with the Bitcoin peer-to-peer network and is able to send and validate transactions in a private manner. Trusting a third party to check your current Bitcoin balance is to be avoided.
