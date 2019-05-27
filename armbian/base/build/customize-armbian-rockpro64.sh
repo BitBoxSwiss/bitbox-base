@@ -93,7 +93,7 @@ export HOME=/root
 # USERS & LOGIN-----------------------------------------------------------------
 # - group 'bitcoin' covers sensitive information
 # - group 'system' is used for service users without sensitive privileges
-# - user 'root' is locked for login
+# - user 'root' is disabled from logging in with password
 # - user 'base' has sudo rights and is used for low-level user access
 # - user 'hdmi' has minimal access rights
 
@@ -106,7 +106,7 @@ BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo "root:${BASE_ROOTPW}" | chpasswd
 passwd -l root
 
-# add user 'base' to sudo and other groups (with options for non-interactive cmd)
+# create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
 adduser --ingroup system --disabled-password --gecos "" base
 usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
@@ -204,8 +204,8 @@ EOF
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
 cat << EOF > /etc/update-motd.d/20-shift
 #!/bin/bash
-. /etc/os-release
-. /etc/armbian-release
+source /etc/os-release
+source /etc/armbian-release
 KERNELID=$(uname -r)
 TERM=linux toilet -f standard -F metal "BitBox Base"
 printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
@@ -257,7 +257,7 @@ EOF
 # retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
-# make bbb scripts executable by sudo
+# make bbb scripts executable with sudo
 sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
 sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 

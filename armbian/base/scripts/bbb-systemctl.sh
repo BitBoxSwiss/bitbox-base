@@ -13,14 +13,14 @@ ACTION=${1:-"status"}
 
 if [[ ${ACTION} == "-h" ]] || [[ ${ACTION} == "--help" ]]; then
   usage
-	exit 0
+  exit 0
 fi
 
 if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable)$ ]]; then
   echo "bbb-systemctl.sh: unknown argument."
   echo
   usage
-	exit 1
+  exit 1
 fi
 
 case ${ACTION} in
@@ -42,7 +42,7 @@ case ${ACTION} in
                 echo
                 ;;
 
-	start|restart|stop|enable|disable)
+  start|restart|stop|enable|disable)
 
                 if [[ ${UID} -ne 0 ]]; then
                   echo "bbb-systemctl.sh: needs to be run as superuser." >&2
