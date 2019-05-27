@@ -818,6 +818,19 @@ cat << 'EOF' > /etc/avahi/services/bitboxbase.service
 </service-group>
 EOF
 
+# firewall: restore iptables rules on startup
+cat << 'EOF' > /etc/systemd/system/iptables-restore.service
+[Unit]
+Description = BitBox Base: restore iptables rules
+Before=network.target
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "/sbin/iptables-restore < /opt/shift/config/iptables/iptables.rules"
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
 # FINALIZE ---------------------------------------------------------------------
 
 ## Clean up
@@ -841,6 +854,7 @@ systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
 systemctl enable base-middleware.service
+systemctl enable iptables-restore.service
 
 # Set to mainnet if configured
 if [ "$BASE_BITCOIN_NETWORK" == "mainnet" ]; then
