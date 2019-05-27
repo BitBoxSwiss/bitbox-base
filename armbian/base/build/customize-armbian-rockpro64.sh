@@ -464,6 +464,7 @@ NETWORK=testnet
 RPCCONNECT=127.0.0.1
 RPCPORT=18332
 DB_DIR=/mnt/ssd/electrs/db
+DAEMON_DIR=/mnt/ssd/bitcoin/.bitcoin
 VERBOSITY=vvvv
 RUST_BACKTRACE=1
 EOF
@@ -477,7 +478,7 @@ After=bitcoind.service
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/bin/bash -c "electrs --network ${NETWORK} -${VERBOSITY} --index-batch-size=10 --jsonrpc-import --db-dir ${DB_DIR} --daemon-rpc-addr ${RPCCONNECT}:${RPCPORT} --cookie __cookie__:${RPCPASSWORD}"
+ExecStart=/usr/bin/electrs --network ${NETWORK} -${VERBOSITY} --db-dir ${DB_DIR} --daemon-dir ${DAEMON_DIR} --cookie "__cookie__:${RPCPASSWORD}"
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin
