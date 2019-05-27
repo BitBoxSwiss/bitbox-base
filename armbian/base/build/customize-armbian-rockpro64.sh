@@ -36,7 +36,7 @@ function echoArguments {
     USER / PASSWORD: root / ${BASE_ROOTPW}
     HOSTNAME:        ${BASE_HOSTNAME}
     BITCOIN NETWORK: ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PASS}
+    WIFI SSID / PWD: ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
 ================================================================================
 "
 }
@@ -48,7 +48,7 @@ BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
-BASE_WIFI_PASS=${BASE_WIFI_PASS:-""}
+BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
@@ -763,7 +763,7 @@ if [[ -n "${BASE_WIFI_SSID}" ]]; then
 auto wlan0
 iface wlan0 inet dhcp
   wpa-ssid ${BASE_WIFI_SSID}
-  wpa-psk ${BASE_WIFI_PASS}
+  wpa-psk ${BASE_WIFI_PW}
 EOF
 fi
 
