@@ -37,6 +37,9 @@ if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
 elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
   echo "bbb-config version 0.1"
   exit 0
+elif [[ ${#} -eq 1 ]]; then
+  usage
+  exit 0
 fi
 
 if [[ ${UID} -ne 0 ]]; then
@@ -119,7 +122,7 @@ case "${COMMAND}" in
         ;;
 
     set)
-        if [[ -z ${3} ]]; then
+        if [[ ${#} -lt 3 ]]; then
             echo "Missing argument: command 'set' needs two arguments."
             exit 1
         fi
