@@ -180,10 +180,10 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # build electrs
 # apt install -y  clang cmake
 
-# networking
-apt install -y  openssl tor net-tools fio fail2ban \
-                avahi-daemon avahi-discover libnss-mdns \
-                avahi-utils
+# system
+apt install -y  openssl tor net-tools fio libnss-mdns \
+                avahi-daemon avahi-discover avahi-utils \
+                fail2ban acl ifmetric
 
 
 # STARTUP CHECKS ---------------------------------------------------------------
@@ -464,6 +464,7 @@ NETWORK=testnet
 RPCCONNECT=127.0.0.1
 RPCPORT=18332
 DB_DIR=/mnt/ssd/electrs/db
+DAEMON_DIR=/mnt/ssd/bitcoin/.bitcoin
 VERBOSITY=vvvv
 RUST_BACKTRACE=1
 EOF
@@ -477,7 +478,7 @@ After=bitcoind.service
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/bin/bash -c "electrs --network ${NETWORK} -${VERBOSITY} --index-batch-size=10 --jsonrpc-import --db-dir ${DB_DIR} --daemon-rpc-addr ${RPCCONNECT}:${RPCPORT} --cookie __cookie__:${RPCPASSWORD}"
+ExecStart=/usr/bin/electrs --network ${NETWORK} -${VERBOSITY} --db-dir ${DB_DIR} --daemon-dir ${DAEMON_DIR} --cookie "__cookie__:${RPCPASSWORD}"
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin
@@ -860,8 +861,8 @@ EOF
 
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
-  sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+  sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
+  sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
   cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
   echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi

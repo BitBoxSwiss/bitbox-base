@@ -8,6 +8,9 @@ if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
+# make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
+ifmetric eth0 10
+
 timedatectl set-ntp true
 echo "180" > /sys/class/hwmon/hwmon0/pwm1
 
@@ -51,11 +54,14 @@ if ! mountpoint /mnt/ssd -q; then
 fi
 
 # create missing directories & always set correct owner
+# access control lists (setfacl) are used to control permissions of newly created files 
 chown bitcoin:system /mnt/ssd 
 mkdir -p /mnt/ssd/bitcoin/
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
