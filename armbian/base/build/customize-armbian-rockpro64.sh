@@ -183,7 +183,7 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # system
 apt install -y  openssl tor net-tools fio libnss-mdns \
                 avahi-daemon avahi-discover avahi-utils \
-                fail2ban acl
+                fail2ban acl ifmetric
 
 
 # STARTUP CHECKS ---------------------------------------------------------------
@@ -861,8 +861,8 @@ EOF
 
 # include Wifi credentials, if specified
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  sed -i '/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}' /opt/shift/config/wifi/wlan0.conf
-  sed -i '/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}' /opt/shift/config/wifi/wlan0.conf
+  sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
+  sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
   cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
   echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi

@@ -8,6 +8,9 @@ if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
+# make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
+ifmetric eth0 10
+
 timedatectl set-ntp true
 echo "180" > /sys/class/hwmon/hwmon0/pwm1
 
