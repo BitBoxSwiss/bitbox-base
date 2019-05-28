@@ -1,6 +1,8 @@
-.DEFAULT_GOAL := native
+.DEFAULT_GOAL := aarch64
 
-native:
-	go build
-aarch64:
-	GOARCH=arm64 go build
+native: copy-service
+	go build -o ../../build/bbbfancontrol
+aarch64: copy-service
+	GOARCH=arm64 go build -o ../../build/bbbfancontrol
+copy-service:
+	cp bbbfancontrol.service ../../build/
