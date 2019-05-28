@@ -1,12 +1,11 @@
-SHELL:=/bin/bash
+.DEFAULT_GOAL := aarch64
 
+ci:
+	./scripts/ci.sh
 envinit:
 	./scripts/go-get.sh v1.15.0 github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u github.com/golang/dep/cmd/dep
 native:
-	cd src && go build -o base-middleware && mv base-middleware ..
+	go build -o ../build/base-middleware ./src/
 aarch64:
-	cd src && GOARCH=arm64 go build -o base-middleware && mv base-middleware ..
-ci:
-	./scripts/ci.sh
-
+	GOARCH=arm64 go build -o ../build/base-middleware ./src/
