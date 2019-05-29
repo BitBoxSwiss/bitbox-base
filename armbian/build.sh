@@ -59,7 +59,7 @@ case ${ACTION} in
 		mkdir -p output/
 		mkdir -p userpatches/overlay
 		cp -aR ../base/* userpatches/overlay/					# copy scripts and configuration items to overlay
-		cp -aR ../../tools userpatches/overlay/					# copy additional software packages to overlay
+		cp -aR ../../build/* userpatches/overlay/				# copy additional software binaries to overlay
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
 		: "${BOARD:=rockpro64}"
@@ -82,5 +82,4 @@ case ${ACTION} in
 			rm -rf armbian-build
 		fi
 		;;
-
 esac

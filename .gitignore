@@ -2,3 +2,4 @@ armbian/armbian-build
 armbian/base/build/build-local.conf
 tools/bbbfancontrol/bbbfancontrol
 *.sw?
+build/
