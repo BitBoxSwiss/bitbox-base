@@ -62,10 +62,11 @@ case ${ACTION} in
 		cp -aR ../../tools userpatches/overlay/					# copy additional software packages to overlay
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
+		: "${BOARD:=rockpro64}"
 		if [ "${ACTION}" == "build" ]; then
-			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20'
+			vagrant ssh -c "cd armbian/ && sudo time ./compile.sh BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20"
 		else
-			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no CLEAN_LEVEL="oldcache" PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20'
+			vagrant ssh -c "cd armbian/ && sudo time ./compile.sh BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no CLEAN_LEVEL="oldcache" PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20"
 		fi
 
 		sha256sum output/images/Armbian_*.img
