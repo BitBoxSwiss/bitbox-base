@@ -271,7 +271,7 @@ if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then
 fi
 
 apt update
-apt -y install tor
+apt -y install tor --no-install-recommends
 
 cat << EOF > /etc/tor/torrc
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
