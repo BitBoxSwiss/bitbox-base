@@ -157,11 +157,6 @@ apt purge -y ntp network-manager
 
 
 # DEPENDENCIES -----------------------------------------------------------------
-curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
-if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then 
-  echo "deb https://deb.torproject.org/torproject.org stretch main" >> /etc/apt/sources.list
-fi
 apt update
 apt upgrade -y
 
@@ -181,7 +176,7 @@ apt install -y  autoconf automake build-essential git libtool libgmp-dev \
 # apt install -y  clang cmake
 
 # system
-apt install -y  openssl tor net-tools fio libnss-mdns \
+apt install -y  openssl net-tools fio libnss-mdns \
                 avahi-daemon avahi-discover avahi-utils \
                 fail2ban acl ifmetric
 
@@ -269,6 +264,15 @@ echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
 
 # TOR --------------------------------------------------------------------------
+curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
+gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then 
+  echo "deb https://deb.torproject.org/torproject.org stretch main" >> /etc/apt/sources.list
+fi
+
+apt update
+apt -y install tor
+
 cat << EOF > /etc/tor/torrc
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
 HiddenServiceVersion 3                                    #BITCOIND#
@@ -324,6 +328,7 @@ prune=0
 disablewallet=1
 pid=/run/bitcoind/bitcoind.pid
 rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie
+sysparms=1
 
 # rpc
 rpcconnect=127.0.0.1
