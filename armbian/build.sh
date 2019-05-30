@@ -37,7 +37,7 @@ trap cleanup EXIT
 
 case ${ACTION} in
 	build|update)
-		if ! which git >/dev/null 2>&1 && ! which vagrant >/dev/null 2>&1; then
+		if ! which git >/dev/null 2>&1 || ! which vagrant >/dev/null 2>&1; then
 			echo
 			echo "Build environment not set up, please check documentation at"
 			echo "https://digitalbitbox.github.io/bitbox-base"
