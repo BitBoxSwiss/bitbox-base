@@ -14,5 +14,4 @@
 # limitations under the License.
 
 # This script has to be called from the project root directory.
-cd src
 golangci-lint run

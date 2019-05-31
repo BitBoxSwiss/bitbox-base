@@ -9,7 +9,7 @@ ci:
 envinit:
 	# TODO(hkjn): Make this rule more robust, or remove it if there's no clear
 	# need for it.
-	./scripts/go-get.sh v1.15.0 github.com/golangci/golangci-lint/cmd/golangci-lint
+	./scripts/go-get.sh v1.16.0 github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u github.com/golang/dep/cmd/dep
 native: check-env
 	go build -o $(REPO_ROOT)/build/base-middleware ./src/
