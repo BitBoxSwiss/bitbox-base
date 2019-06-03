@@ -12,6 +12,6 @@ envinit:
 	./scripts/go-get.sh v1.16.0 github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u github.com/golang/dep/cmd/dep
 native: check-env
-	go build -o $(REPO_ROOT)/build/base-middleware ./src/
+	go build -o $(REPO_ROOT)/build/base-middleware ./cmd/middleware/
 aarch64: check-env
-	GOARCH=arm64 go build -o $(REPO_ROOT)/build/base-middleware ./src/
+	GOARCH=arm64 go build -o $(REPO_ROOT)/build/base-middleware ./cmd/middleware/
