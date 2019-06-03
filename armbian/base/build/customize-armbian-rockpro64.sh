@@ -163,17 +163,9 @@ apt upgrade -y
 # development
 apt install -y  git tmux qrencode bwm-ng
 
-# build Bitcoin Core
-#apt install -y  build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 \
-#                libssl-dev libevent-dev libboost-system-dev libboost-filesystem-dev \
-#                libboost-chrono-dev libboost-test-dev libboost-thread-dev libzmq3-dev
-
 # build c-lightning
 apt install -y  autoconf automake build-essential git libtool libgmp-dev \
                 libsqlite3-dev python python3 net-tools zlib1g-dev libsodium-dev
-
-# build electrs
-# apt install -y  clang cmake
 
 # system
 apt install -y  openssl net-tools fio libnss-mdns \
@@ -425,25 +417,6 @@ EOF
 # ELECTRS ----------------------------------------------------------------------
 ELECTRS_VERSION="0.6.1"
 
-# cross-compilation from source is currently not possible
-# ---
-# mkdir -p /usr/local/src/rust
-# cd /usr/local/src/rust
-# curl https://static.rust-lang.org/dist/rust-1.34.1-aarch64-unknown-linux-gnu.tar.gz -o rust.tar.gz
-# if ! echo "0565e50dae58759a3a5287abd61b1a49dfc086c4d6acf2ce604fe1053f704e53 rust.tar.gz" | sha256sum -c -; then
-#   echo "sha256sum for rust.tar.gz failed" >&2
-#   exit 1
-# fi
-# tar --strip-components 1 -xzf rust.tar.gz
-# ./install.sh
-#
-# apt install clang cmake
-# git clone https://github.com/romanz/electrs || true
-# cd electrs
-# git checkout tags/v${ELECTRS_VERSION}
-# cargo build --release
-# cp /usr/local/src/rust/electrs/target/release/electrs /usr/bin/
-
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
 # temporary storage of 'electrs' until official binary releases are available
@@ -510,13 +483,6 @@ cd /opt/shift/tools/bbbfancontrol
 /usr/local/go/bin/go build -v
 cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
-
-## base-middleware
-# mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
-# git clone https://github.com/shiftdevices/base-middleware || true
-# cd base-middleware
-# make native
-# cp base-middleware /usr/local/sbin/
 
 mkdir -p /etc/base-middleware/
 cat << EOF > /etc/base-middleware/base-middleware.conf
@@ -951,7 +917,7 @@ systemctl enable prometheus-node-exporter.service
 systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
-#systemctl enable base-middleware.service
+systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
 # Set to mainnet if configured
