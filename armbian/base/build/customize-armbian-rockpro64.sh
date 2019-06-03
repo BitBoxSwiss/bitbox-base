@@ -187,7 +187,7 @@ cat << 'EOF' > /etc/systemd/system/startup-checks.service
 Description=BitBox Base startup checks
 After=network-online.target
 [Service]
-ExecStart=/opt/shift/scripts/startup-checks.sh
+ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
 Type=simple
 [Install]
 WantedBy=multi-user.target
@@ -352,15 +352,7 @@ Description=Bitcoin daemon
 After=network-online.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
-# give Tor some time to provide the SOCKS proxy
-ExecStartPre=/bin/bash -c "sleep 10"
-ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
-# provide cookie authentication as .env file for electrs and base-middleware 
-ExecStartPost=/bin/bash -c " \
-  sleep 10 && \
-  echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
-  tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
-  sleep 10"
+ExecStart=/opt/shift/scripts/systemd-start-bitcoind.sh
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
@@ -411,7 +403,7 @@ Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/usr/local/bin/lightningd --daemon --conf=/etc/lightningd/lightningd.conf
+ExecStart=/opt/shift/scripts/systemd-start-lightningd.sh
 RuntimeDirectory=lightningd
 User=bitcoin
 Group=bitcoin
@@ -520,11 +512,11 @@ cp bbbfancontrol /usr/local/sbin/
 cp bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
-mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
-git clone https://github.com/shiftdevices/base-middleware || true
-cd base-middleware
-make native
-cp base-middleware /usr/local/sbin/
+# mkdir -p "${GOPATH}/src/github.com/shiftdevices" && cd "$_"
+# git clone https://github.com/shiftdevices/base-middleware || true
+# cd base-middleware
+# make native
+# cp base-middleware /usr/local/sbin/
 
 mkdir -p /etc/base-middleware/
 cat << EOF > /etc/base-middleware/base-middleware.conf
@@ -959,7 +951,7 @@ systemctl enable prometheus-node-exporter.service
 systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
-systemctl enable base-middleware.service
+#systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
 # Set to mainnet if configured
