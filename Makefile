@@ -6,3 +6,6 @@ default:
 	$(MAKE) -C middleware
 	echo "Building armbian.."
 	$(MAKE) -C armbian
+
+ci:
+	./scripts/travis-ci.sh
