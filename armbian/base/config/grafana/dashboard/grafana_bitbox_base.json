@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1559639785844,
+  "iteration": 1559642883250,
   "links": [],
   "panels": [
     {
@@ -2174,6 +2174,13 @@
               "refId": "A"
             },
             {
+              "expr": "electrs_parse_blocks{type=\"duplicate\"}",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "parsed blocks",
+              "refId": "C"
+            },
+            {
               "expr": "electrs_index_height",
               "format": "time_series",
               "interval": "",
@@ -2186,7 +2193,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "electrs: blocks indexed",
+          "title": "electrs: blockchain sync",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3805,5 +3812,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 17
+  "version": 18
 }
