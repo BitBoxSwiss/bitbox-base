@@ -446,10 +446,8 @@ Description=Electrs server daemon
 Wants=bitcoind.service
 After=bitcoind.service
 [Service]
-EnvironmentFile=/etc/electrs/electrs.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/usr/bin/electrs --network ${NETWORK} -${VERBOSITY} --db-dir ${DB_DIR} --daemon-dir ${DAEMON_DIR} --cookie "__cookie__:${RPCPASSWORD}" --monitoring-addr ${MONITORING_ADDR}
+ExecStart=/opt/shift/scripts/systemd-start-electrs.sh
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin
@@ -472,6 +470,7 @@ EOF
 GO_VERSION="1.12.4"
 export GOPATH=/home/base/go
 
+# install Go
 mkdir -p /usr/local/src/go && cd "$_"
 curl --retry 5 -SLO https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz
 if ! echo "b7d7b4319b2d86a2ed20cef3b47aa23f0c97612b469178deecd021610f6917df  go1.12.4.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
