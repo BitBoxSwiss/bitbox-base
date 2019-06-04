@@ -17,8 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1558525909790,
+  "iteration": 1559639785844,
   "links": [],
   "panels": [
     {
@@ -1263,14 +1262,14 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"[a-z]*[a-z]\"}[5m])",
+              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])",
               "format": "time_series",
               "intervalFactor": 4,
               "legendFormat": "{{device}} - Reads completed",
               "refId": "A"
             },
             {
-              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"[a-z]*[a-z]\"}[5m])  ",
+              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])  ",
               "format": "time_series",
               "intervalFactor": 4,
               "legendFormat": "{{device}} - Writes completed",
@@ -1747,7 +1746,7 @@
           "show": true
         },
         {
-          "format": "bytes",
+          "format": "kbytes",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -2034,7 +2033,7 @@
             "h": 6,
             "w": 4,
             "x": 0,
-            "y": 18
+            "y": 14
           },
           "id": 42,
           "legend": {
@@ -2131,12 +2130,106 @@
           }
         },
         {
+          "aliasColors": {},
+          "bars": false,
+          "cacheTimeout": null,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 6,
+            "w": 10,
+            "x": 4,
+            "y": 14
+          },
+          "id": 86,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "electrs_parse_blocks{type=\"indexed\"}",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "indexed blocks",
+              "refId": "A"
+            },
+            {
+              "expr": "electrs_index_height",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "index height",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "electrs: blocks indexed",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
           "content": "# Fees: Todo\n\n* estimatesmartfee from Bitcoin Core\n* mempool tx\n* getpeerinfo: inbound / outbound",
           "gridPos": {
             "h": 6,
             "w": 5,
-            "x": 4,
-            "y": 18
+            "x": 19,
+            "y": 14
           },
           "id": 54,
           "mode": "markdown",
@@ -3585,8 +3678,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "HAPPYGLEE",
-          "value": "HAPPYGLEE"
+          "text": "BLUEMONKEY",
+          "value": "BLUEMONKEY"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -3610,8 +3703,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1",
-          "value": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1"
+          "text": "02f83728a4ab8e0bf2c58e43824c90830c2e45262ace0db235cc9f46a1ea488708",
+          "value": "02f83728a4ab8e0bf2c58e43824c90830c2e45262ace0db235cc9f46a1ea488708"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -3712,5 +3805,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 16
+  "version": 17
 }
