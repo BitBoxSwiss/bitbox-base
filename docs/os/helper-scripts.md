@@ -2,7 +2,7 @@
 layout: default
 title: Helper scripts
 parent: Operating System
-nav_order: 250
+nav_order: 350
 
 ---
 ## Helper scripts

@@ -2,7 +2,7 @@
 layout: default
 title: Configuration
 parent: Operating System
-nav_order: 220
+nav_order: 320
 
 ---
 ## Configuration

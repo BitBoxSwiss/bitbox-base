@@ -11,7 +11,11 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
 
 1. [About](about.md)
 1. Hardware
-1. Operating system
+1. Creating the Base image
+   1. Build system
+   1. Build configuration
+   1. Dependencies
+1. Operating System
    1. [Build Armbian image](os/armbian-build.md)
    1. [Configuration](os/configuration.md)
    1. Security considerations 

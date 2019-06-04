@@ -2,7 +2,7 @@
 layout: default
 title: Build Armbian image
 parent: Operating System
-nav_order: 210
+nav_order: 310
 ---
 ## Building the Armbian base image
 
