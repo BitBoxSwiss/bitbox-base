@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# This script is called by the bitcoind.service to start bitcoind.
+#
 
 # wait a few seconds for Tor networking to be ready
 sleep 10

@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# This script is called by the electrs.service to start electrs (Electrum Server in Rust).
+#
 
 # load configuration file
 source /etc/electrs/electrs.conf

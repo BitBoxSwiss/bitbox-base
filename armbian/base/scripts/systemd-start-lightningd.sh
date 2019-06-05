@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# This script is called by the lightningd.service to start c-lightning.
+#
 
 # start main lightningd daemon
 /usr/local/bin/lightningd --daemon --conf=/etc/lightningd/lightningd.conf
@@ -11,4 +14,3 @@ if [[ "${BITCOIN_NETWORK}" == "mainnet" ]]; then
 else
     chmod g+rwx /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 fi
-

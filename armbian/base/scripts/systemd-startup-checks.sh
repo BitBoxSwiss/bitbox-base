@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# This script is called by the startup-checks.service on boot
+# to check basic system parameters and assure correct configuration.
+#
+
 set -eu
 
 SYSCONFIG_PATH="/opt/shift/sysconfig"

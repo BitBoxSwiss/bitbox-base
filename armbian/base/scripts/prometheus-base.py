@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# This script is called by the prometheus-base.service 
+# to provide system metrics to Prometheus.
+#
 
 import json
 import time
@@ -9,7 +13,7 @@ from prometheus_client import start_http_server, Gauge, Counter, Info
 
 SYSCONFIG_PATH="/opt/shift/sysconfig/"
 
-# Create Prometheus metrics to track bitcoind stats.
+# Create Prometheus metrics to track Base stats.
 ## metadata
 BASE_SYSTEM_INFO = Info("base_system", "System information")
 
