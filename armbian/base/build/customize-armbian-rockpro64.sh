@@ -163,17 +163,9 @@ apt upgrade -y
 # development
 apt install -y  git tmux qrencode bwm-ng
 
-# build Bitcoin Core
-#apt install -y  build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 \
-#                libssl-dev libevent-dev libboost-system-dev libboost-filesystem-dev \
-#                libboost-chrono-dev libboost-test-dev libboost-thread-dev libzmq3-dev
-
 # build c-lightning
 apt install -y  autoconf automake build-essential git libtool libgmp-dev \
                 libsqlite3-dev python python3 net-tools zlib1g-dev libsodium-dev
-
-# build electrs
-# apt install -y  clang cmake
 
 # system
 apt install -y  openssl net-tools fio libnss-mdns \
@@ -187,11 +179,22 @@ cat << 'EOF' > /etc/systemd/system/startup-checks.service
 Description=BitBox Base startup checks
 After=network-online.target
 [Service]
-ExecStart=/opt/shift/scripts/startup-checks.sh
+ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
 Type=simple
 [Install]
 WantedBy=multi-user.target
 EOF
+
+
+# SYSTEM CONFIGURATION ---------------------------------------------------------
+SYSCONFIG_PATH="/opt/shift/sysconfig"
+mkdir -p "${SYSCONFIG_PATH}"
+echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
+
+# store build information
+echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
+echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
+echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
 
 # OS CONFIG --------------------------------------------------------------------
@@ -209,8 +212,8 @@ echo "Configured for Bitcoin TESTNET"; echo
 EOF
 chmod 755 /etc/update-motd.d/20-shift
 
-echo "$BASE_HOSTNAME" > /etc/hostname
-hostname -F /etc/hostname
+# set hostname
+/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 # prepare SSD mount point
 mkdir -p /mnt/ssd/
@@ -257,12 +260,6 @@ sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
 sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
-# SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/opt/shift/sysconfig"
-mkdir -p "${SYSCONFIG_PATH}"
-echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
-
-
 # TOR --------------------------------------------------------------------------
 curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
@@ -271,7 +268,7 @@ if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then
 fi
 
 apt update
-apt -y install tor
+apt -y install tor --no-install-recommends
 
 cat << EOF > /etc/tor/torrc
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
@@ -352,15 +349,7 @@ Description=Bitcoin daemon
 After=network-online.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
-# give Tor some time to provide the SOCKS proxy
-ExecStartPre=/bin/bash -c "sleep 10"
-ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf 
-# provide cookie authentication as .env file for electrs and base-middleware 
-ExecStartPost=/bin/bash -c " \
-  sleep 10 && \
-  echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
-  tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env && \
-  sleep 10"
+ExecStart=/opt/shift/scripts/systemd-start-bitcoind.sh
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
@@ -411,7 +400,7 @@ Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/usr/local/bin/lightningd --daemon --conf=/etc/lightningd/lightningd.conf
+ExecStart=/opt/shift/scripts/systemd-start-lightningd.sh
 RuntimeDirectory=lightningd
 User=bitcoin
 Group=bitcoin
@@ -433,25 +422,6 @@ EOF
 # ELECTRS ----------------------------------------------------------------------
 ELECTRS_VERSION="0.6.1"
 
-# cross-compilation from source is currently not possible
-# ---
-# mkdir -p /usr/local/src/rust
-# cd /usr/local/src/rust
-# curl https://static.rust-lang.org/dist/rust-1.34.1-aarch64-unknown-linux-gnu.tar.gz -o rust.tar.gz
-# if ! echo "0565e50dae58759a3a5287abd61b1a49dfc086c4d6acf2ce604fe1053f704e53 rust.tar.gz" | sha256sum -c -; then
-#   echo "sha256sum for rust.tar.gz failed" >&2
-#   exit 1
-# fi
-# tar --strip-components 1 -xzf rust.tar.gz
-# ./install.sh
-#
-# apt install clang cmake
-# git clone https://github.com/romanz/electrs || true
-# cd electrs
-# git checkout tags/v${ELECTRS_VERSION}
-# cargo build --release
-# cp /usr/local/src/rust/electrs/target/release/electrs /usr/bin/
-
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
 # temporary storage of 'electrs' until official binary releases are available
@@ -470,6 +440,7 @@ RPCCONNECT=127.0.0.1
 RPCPORT=18332
 DB_DIR=/mnt/ssd/electrs/db
 DAEMON_DIR=/mnt/ssd/bitcoin/.bitcoin
+MONITORING_ADDR=127.0.0.1:4224
 VERBOSITY=vvvv
 RUST_BACKTRACE=1
 EOF
@@ -480,10 +451,8 @@ Description=Electrs server daemon
 Wants=bitcoind.service
 After=bitcoind.service
 [Service]
-EnvironmentFile=/etc/electrs/electrs.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/usr/bin/electrs --network ${NETWORK} -${VERBOSITY} --db-dir ${DB_DIR} --daemon-dir ${DAEMON_DIR} --cookie "__cookie__:${RPCPASSWORD}"
+ExecStart=/opt/shift/scripts/systemd-start-electrs.sh
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin

@@ -17,8 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1558525909790,
+  "iteration": 1559726386323,
   "links": [],
   "panels": [
     {
@@ -295,12 +294,14 @@
     {
       "cacheTimeout": null,
       "colorBackground": true,
+      "colorPostfix": false,
       "colorValue": false,
       "colors": [
         "#74997e",
         "#cc914e",
         "#e63963"
       ],
+      "decimals": 0,
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -315,7 +316,7 @@
         "x": 6,
         "y": 1
       },
-      "id": 49,
+      "id": 44,
       "interval": null,
       "links": [],
       "mappingType": 1,
@@ -332,7 +333,7 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "postfix": "",
+      "postfix": "°C",
       "postfixFontSize": "50%",
       "prefix": "",
       "prefixFontSize": "50%",
@@ -352,28 +353,23 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "base_systemd_prometheus",
+          "expr": "base_cpu_temp{instance=~\"$node.*\"} / 1000",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
         }
       ],
-      "thresholds": "1,2",
+      "thresholds": "50,80",
       "timeFrom": null,
       "timeShift": null,
-      "title": "Monitoring",
+      "title": "Temperature",
       "type": "singlestat",
-      "valueFontSize": "70%",
+      "valueFontSize": "50%",
       "valueMaps": [
         {
           "op": "=",
-          "text": "✓",
-          "value": "0"
-        },
-        {
-          "op": "=",
-          "text": "down",
-          "value": "3"
+          "text": "N/A",
+          "value": "null"
         }
       ],
       "valueName": "current"
@@ -716,6 +712,113 @@
     },
     {
       "cacheTimeout": null,
+      "content": "<center><h2>$base_hostname</h2></center>",
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 0,
+        "y": 3
+      },
+      "id": 49,
+      "links": [],
+      "mode": "html",
+      "targets": [
+        {
+          "expr": "",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "hostname",
+      "type": "text"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "decimals": 0,
+      "format": "s",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 2,
+        "x": 4,
+        "y": 3
+      },
+      "id": 28,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "node_time_seconds - node_boot_time_seconds",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Uptime",
+      "type": "singlestat",
+      "valueFontSize": "70%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
       "colorBackground": true,
       "colorValue": false,
       "colors": [
@@ -734,7 +837,7 @@
       "gridPos": {
         "h": 2,
         "w": 2,
-        "x": 0,
+        "x": 6,
         "y": 3
       },
       "id": 47,
@@ -811,171 +914,6 @@
       "valueName": "current"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": true,
-      "colorPostfix": false,
-      "colorValue": false,
-      "colors": [
-        "#74997e",
-        "#cc914e",
-        "#e63963"
-      ],
-      "decimals": 0,
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 2,
-        "y": 3
-      },
-      "id": 44,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "°C",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "base_cpu_temp{instance=~\"$node.*\"} / 1000",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "thresholds": "50,80",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Temperature",
-      "type": "singlestat",
-      "valueFontSize": "50%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "decimals": 0,
-      "format": "s",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 4,
-        "x": 4,
-        "y": 3
-      },
-      "id": 28,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "node_time_seconds - node_boot_time_seconds",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Uptime",
-      "type": "singlestat",
-      "valueFontSize": "70%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -986,6 +924,31 @@
       "id": 26,
       "panels": [
         {
+          "cacheTimeout": null,
+          "content": "<center><h2>$base_build_date</h2></center>",
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 0,
+            "y": 10
+          },
+          "id": 87,
+          "links": [],
+          "mode": "html",
+          "targets": [
+            {
+              "expr": "",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "build date",
+          "type": "text"
+        },
+        {
           "aliasColors": {},
           "bars": false,
           "cacheTimeout": null,
@@ -995,9 +958,9 @@
           "fill": 3,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 6
+            "w": 10,
+            "x": 3,
+            "y": 10
           },
           "id": 24,
           "legend": {
@@ -1119,9 +1082,9 @@
           "fill": 3,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 6
+            "w": 11,
+            "x": 13,
+            "y": 10
           },
           "id": 50,
           "legend": {
@@ -1218,6 +1181,56 @@
           }
         },
         {
+          "cacheTimeout": null,
+          "content": "<center><h2>$base_build_time</h2></center>",
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 0,
+            "y": 12
+          },
+          "id": 88,
+          "links": [],
+          "mode": "html",
+          "targets": [
+            {
+              "expr": "",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "build time",
+          "type": "text"
+        },
+        {
+          "cacheTimeout": null,
+          "content": "<center><h2>$base_build_commit</h2></center>",
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 0,
+            "y": 14
+          },
+          "id": 90,
+          "links": [],
+          "mode": "html",
+          "targets": [
+            {
+              "expr": "",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "build commit",
+          "type": "text"
+        },
+        {
           "aliasColors": {},
           "bars": false,
           "dashLength": 10,
@@ -1225,9 +1238,9 @@
           "fill": 2,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 14
+            "w": 10,
+            "x": 3,
+            "y": 18
           },
           "id": 52,
           "legend": {
@@ -1263,14 +1276,14 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"[a-z]*[a-z]\"}[5m])",
+              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])",
               "format": "time_series",
               "intervalFactor": 4,
               "legendFormat": "{{device}} - Reads completed",
               "refId": "A"
             },
             {
-              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"[a-z]*[a-z]\"}[5m])  ",
+              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])  ",
               "format": "time_series",
               "intervalFactor": 4,
               "legendFormat": "{{device}} - Writes completed",
@@ -1352,9 +1365,9 @@
           "fill": 4,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 14
+            "w": 11,
+            "x": 13,
+            "y": 18
           },
           "id": 32,
           "legend": {
@@ -1455,7 +1468,7 @@
           }
         }
       ],
-      "title": "System health details",
+      "title": "System details",
       "type": "row"
     },
     {
@@ -1747,7 +1760,7 @@
           "show": true
         },
         {
-          "format": "bytes",
+          "format": "kbytes",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -2034,7 +2047,7 @@
             "h": 6,
             "w": 4,
             "x": 0,
-            "y": 18
+            "y": 14
           },
           "id": 42,
           "legend": {
@@ -2131,12 +2144,113 @@
           }
         },
         {
+          "aliasColors": {},
+          "bars": false,
+          "cacheTimeout": null,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 6,
+            "w": 10,
+            "x": 4,
+            "y": 14
+          },
+          "id": 86,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "electrs_parse_blocks{type=\"indexed\"}",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "indexed blocks",
+              "refId": "A"
+            },
+            {
+              "expr": "electrs_parse_blocks{type=\"duplicate\"}",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "parsed blocks",
+              "refId": "C"
+            },
+            {
+              "expr": "electrs_index_height",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "index height",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "electrs: blockchain sync",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
           "content": "# Fees: Todo\n\n* estimatesmartfee from Bitcoin Core\n* mempool tx\n* getpeerinfo: inbound / outbound",
           "gridPos": {
             "h": 6,
             "w": 5,
-            "x": 4,
-            "y": 18
+            "x": 19,
+            "y": 14
           },
           "id": 54,
           "mode": "markdown",
@@ -3681,6 +3795,106 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "carol",
+          "value": "carol"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(base_system_info, hostname)",
+        "hide": 2,
+        "includeAll": false,
+        "label": "HOSTNAME",
+        "multi": false,
+        "name": "base_hostname",
+        "options": [],
+        "query": "label_values(base_system_info, hostname)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "2019-06-05",
+          "value": "2019-06-05"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(base_system_info, build_date)",
+        "hide": 2,
+        "includeAll": false,
+        "label": "BUILD_DATE",
+        "multi": false,
+        "name": "base_build_date",
+        "options": [],
+        "query": "label_values(base_system_info, build_date)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "07:41",
+          "value": "07:41"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(base_system_info, build_time)",
+        "hide": 2,
+        "includeAll": false,
+        "label": "BUILD_TIME",
+        "multi": false,
+        "name": "base_build_time",
+        "options": [],
+        "query": "label_values(base_system_info, build_time)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "f6b62f3",
+          "value": "f6b62f3"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(base_system_info, build_commit)",
+        "hide": 2,
+        "includeAll": false,
+        "label": "BUILD_COMMIT",
+        "multi": false,
+        "name": "base_build_commit",
+        "options": [],
+        "query": "label_values(base_system_info, build_commit)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
       }
     ]
   },
@@ -3712,5 +3926,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 16
+  "version": 19
 }

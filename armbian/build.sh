@@ -45,6 +45,8 @@ case ${ACTION} in
 			exit 1
 		fi
 
+		git log --pretty=format:'%h' -n 1 > ./base/config/latest_commit
+
 		if [ ! -d "armbian-build" ]; then 
 			git clone https://github.com/armbian/build armbian-build
 			sed -i "s/#vb.memory = \"8192\"/vb.memory = \"${VIRTUALBOX_MEMORY}\"/g" armbian-build/Vagrantfile

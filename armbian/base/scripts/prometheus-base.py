@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# This script is called by the prometheus-base.service 
+# to provide system metrics to Prometheus.
+#
 
 import json
 import time
 import subprocess
 import sys
-from prometheus_client import start_http_server, Gauge, Counter
+from prometheus_client import start_http_server, Gauge, Counter, Info
 
-# Create Prometheus metrics to track bitcoind stats.
+SYSCONFIG_PATH="/opt/shift/sysconfig/"
+
+# Create Prometheus metrics to track Base stats.
+## metadata
+BASE_SYSTEM_INFO = Info("base_system", "System information")
+
+## System metrics
 BASE_CPU_TEMP = Gauge("base_cpu_temp", "CPU temperature")
 BASE_FAN_SPEED = Gauge("base_fan_speed", "Fan speed in %")
 
-# systemd status: 0 = running / 3 = inactive
+## systemd status: 0 = running / 3 = inactive
 BASE_SYSTEMD_BITCOIND = Gauge("base_systemd_bitcoind", "Systemd unit status for Bitcoin Core")
 BASE_SYSTEMD_ELECTRS = Gauge("base_systemd_electrs", "Systemd unit status for Electrs")
 BASE_SYSTEMD_LIGHTNINGD = Gauge("base_systemd_lightningd", "Systemd unit status for c-lightning")
@@ -26,6 +36,15 @@ def readFile(filepath):
 
     return value
 
+def getSystemInfo():
+        configfiles = ['HOSTNAME','BUILD_DATE','BUILD_TIME','BUILD_COMMIT']
+        info = {}
+        for filename in configfiles:
+            file = open(SYSCONFIG_PATH + filename,'r')
+            info[filename.lower()] = file.readline().split('=')[1].strip(("\"'\n"))
+            file.close()
+
+        return info
 
 def getSystemdStatus(unit):
     try:
@@ -35,11 +54,11 @@ def getSystemdStatus(unit):
         print(unit, e.returncode, e.output)
         return e.returncode
 
-
 def main():
     # Start up the server to expose the metrics.
     start_http_server(8400)
     while True:
+        BASE_SYSTEM_INFO.info(getSystemInfo())
         BASE_CPU_TEMP.set(readFile("/sys/class/thermal/thermal_zone0/temp"))
         BASE_FAN_SPEED.set(readFile("/sys/class/hwmon/hwmon0/pwm1"))
 

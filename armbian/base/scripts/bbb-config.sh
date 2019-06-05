@@ -179,6 +179,7 @@ case "${COMMAND}" in
                         ;;
                     *)
                         echo "${3}" > /etc/hostname
+                        hostname -F /etc/hostname
                         echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
                         cat "${SYSCONFIG_PATH}/${SETTING}"
                 esac

@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# This script is called by the startup-checks.service on boot
+# to check basic system parameters and assure correct configuration.
+#
+
 set -eu
 
 SYSCONFIG_PATH="/opt/shift/sysconfig"
@@ -56,20 +61,22 @@ fi
 # create missing directories & always set correct owner
 # access control lists (setfacl) are used to control permissions of newly created files 
 chown bitcoin:system /mnt/ssd 
-mkdir -p /mnt/ssd/bitcoin/
+
+# bitcoin data storage
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
+
+# electrs data storage
 mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
-setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
+
+# system folders
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
-chmod -R 750 /mnt/ssd
 
-# We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
-# no way to specify where to expect the bitcoin cookie for c-lightning, so let's
-# create a symlink at the expected testnet location.
-mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
-ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
+# set permissions for whole ssd 
+# (user:rwx group:r-x other:---)
+chmod -R 750 /mnt/ssd
