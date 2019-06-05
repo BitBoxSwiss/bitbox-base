@@ -1,3 +1,7 @@
+#
+# The docker image produced by this config provides the build environment
+# for BitBox Base.
+#
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -16,9 +20,10 @@ RUN mkdir -p /opt/go_dist &&\
 
 ENV GOPATH /opt/go
 ENV GOROOT /opt/go_dist/go
-ENV PATH $GOROOT/bin:$GOPATH/bin:$PATH
+ENV PATH ${GOROOT}/bin:${GOPATH}/bin:${PATH}
 
-ADD middleware/Makefile /tmp/
-ADD middleware/scripts/go-get.sh /tmp/scripts/
-RUN make -C  /tmp/ envinit
-
+WORKDIR /opt/go/src/github.com/digitalbitbox/bitbox-base/middleware/
+COPY middleware/scripts/ scripts/
+RUN ./scripts/envinit.sh
+WORKDIR /opt/go/src/github.com/digitalbitbox/bitbox-base
+RUN rm -rf middleware
