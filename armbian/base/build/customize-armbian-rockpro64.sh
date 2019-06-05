@@ -256,8 +256,8 @@ EOF
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 # make bbb scripts executable with sudo
-sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
-sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
+sudo ln -s /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+sudo ln -s /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
 # TOR --------------------------------------------------------------------------
