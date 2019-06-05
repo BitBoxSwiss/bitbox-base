@@ -1,17 +1,25 @@
 .DEFAULT_GOAL := aarch64
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/..
+SHELL:=/bin/bash
 
-check-env:
-	./scripts/check-env.sh "$(REPO_ROOT)"
+build-target-exists:
+	@mkdir -p $(REPO_ROOT)/build
+
+check-go-env: build-target-exists
+	@echo "Checking that environment supports Go builds.."
+	@$(REPO_ROOT)/scripts/check-go-env.sh "$(REPO_ROOT)"
 
 ci:
-	./scripts/ci.sh
+	cd $(REPO_ROOT)/middleware/src
+	golangci-lint run
+
 envinit:
-	# TODO(hkjn): Make this rule more robust, or remove it if there's no clear
-	# need for it.
-	./scripts/go-get.sh v1.16.0 github.com/golangci/golangci-lint/cmd/golangci-lint
-	go get -u github.com/golang/dep/cmd/dep
-native: check-env
-	go build -o $(REPO_ROOT)/build/base-middleware ./cmd/middleware/
-aarch64: check-env
-	GOARCH=arm64 go build -o $(REPO_ROOT)/build/base-middleware ./cmd/middleware/
+	@echo "Initializing Go environment.."
+	$(REPO_ROOT)/middleware/scripts/envinit.sh
+
+native: check-go-env
+	go install $(REPO_ROOT)/middleware/cmd/middleware
+
+aarch64: check-go-env
+	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
+	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/build/base-middleware
