@@ -11,7 +11,7 @@ SYSCONFIG_PATH="/opt/shift/sysconfig/"
 
 # Create Prometheus metrics to track bitcoind stats.
 ## metadata
-BASE_SYSTEM_INFO = Info("base_system_info", "System information")
+BASE_SYSTEM_INFO = Info("base_system", "System information")
 
 ## System metrics
 BASE_CPU_TEMP = Gauge("base_cpu_temp", "CPU temperature")
