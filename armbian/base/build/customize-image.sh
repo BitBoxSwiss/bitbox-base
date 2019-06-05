@@ -37,7 +37,7 @@ CustomizeArmbian() {
     cp -aR /tmp/overlay/config /opt/shift
 
     # copy additional software packages to temp directory
-    cp -aR /tmp/overlay/tools /opt/shift
+    cp -aR /tmp/overlay/build/* /opt/shift
 
     /bin/bash /tmp/overlay/build/customize-armbian-rockpro64.sh
 } # CustomizeArmbian

@@ -1,8 +1,10 @@
+MAKE_PATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 default:
-	bash build.sh build
+	bash $(MAKE_PATH)/build.sh build
 
 update:
-	bash build.sh update
+	bash $(MAKE_PATH)/build.sh update
 
 clean:
-	bash build.sh clean
+	bash $(MAKE_PATH)/build.sh clean

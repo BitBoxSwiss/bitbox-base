@@ -472,21 +472,14 @@ EOF
 
 
 # MIDDLEWARE -------------------------------------------------------------------
-GO_VERSION="1.12.4"
-export GOPATH=/home/base/go
-
-# install Go
-mkdir -p /usr/local/src/go && cd "$_"
-curl --retry 5 -SLO https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz
-if ! echo "b7d7b4319b2d86a2ed20cef3b47aa23f0c97612b469178deecd021610f6917df  go1.12.4.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
-tar -C /usr/local -xzf go${GO_VERSION}.linux-arm64.tar.gz
 
 ## bbbfancontrol
-## see https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbfancontrol/README.md
-cd /opt/shift/tools/bbbfancontrol
-/usr/local/go/bin/go build -v
-cp bbbfancontrol /usr/local/sbin/
-cp bbbfancontrol.service /etc/systemd/system/
+## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
+cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
+cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
+
+## base-middleware
+cp /tmp/overlay/base-middleware /usr/local/sbin/
 
 mkdir -p /etc/base-middleware/
 cat << EOF > /etc/base-middleware/base-middleware.conf
