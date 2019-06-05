@@ -37,7 +37,7 @@ trap cleanup EXIT
 
 case ${ACTION} in
 	build|update)
-		if ! which git >/dev/null 2>&1 && ! which vagrant >/dev/null 2>&1; then
+		if ! which git >/dev/null 2>&1 || ! which vagrant >/dev/null 2>&1; then
 			echo
 			echo "Build environment not set up, please check documentation at"
 			echo "https://digitalbitbox.github.io/bitbox-base"
@@ -61,13 +61,14 @@ case ${ACTION} in
 		mkdir -p output/
 		mkdir -p userpatches/overlay
 		cp -aR ../base/* userpatches/overlay/					# copy scripts and configuration items to overlay
-		cp -aR ../../tools userpatches/overlay/					# copy additional software packages to overlay
+		cp -aR ../../build/* userpatches/overlay/				# copy additional software binaries to overlay
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
+		: "${BOARD:=rockpro64}"
 		if [ "${ACTION}" == "build" ]; then
-			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20'
+			vagrant ssh -c "cd armbian/ && sudo time ./compile.sh BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20"
 		else
-			vagrant ssh -c 'cd armbian/ && sudo time ./compile.sh BOARD=rockpro64 KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no CLEAN_LEVEL="oldcache" PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20'
+			vagrant ssh -c "cd armbian/ && sudo time ./compile.sh BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no CLEAN_LEVEL=oldcache PROGRESS_LOG_TO_FILE=yes LIB_TAG=sunxi-4.20"
 		fi
 
 		sha256sum output/images/Armbian_*.img
@@ -83,5 +84,4 @@ case ${ACTION} in
 			rm -rf armbian-build
 		fi
 		;;
-
 esac

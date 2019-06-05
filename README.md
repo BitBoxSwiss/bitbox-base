@@ -1,5 +1,7 @@
 ![BitBox Base logo](bitbox-base-logo.png)
 
+[![Build Status](https://travis-ci.org/digitalbitbox/bitbox-base.svg?branch=master)](https://travis-ci.org/digitalbitbox/bitbox-base)
+
 The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin & Lightning full node appliance. The software is completely open-source and can be adapted to other hardware platforms.
 
 All details outlined here reflect the current progress of the project and are subject to change if necessary.
