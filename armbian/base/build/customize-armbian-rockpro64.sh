@@ -186,6 +186,17 @@ WantedBy=multi-user.target
 EOF
 
 
+# SYSTEM CONFIGURATION ---------------------------------------------------------
+SYSCONFIG_PATH="/opt/shift/sysconfig"
+mkdir -p "${SYSCONFIG_PATH}"
+echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
+
+# store build information
+echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
+echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
+echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
+
+
 # OS CONFIG --------------------------------------------------------------------
 # customize MOTD
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
@@ -201,8 +212,8 @@ echo "Configured for Bitcoin TESTNET"; echo
 EOF
 chmod 755 /etc/update-motd.d/20-shift
 
-echo "$BASE_HOSTNAME" > /etc/hostname
-hostname -F /etc/hostname
+# set hostname
+/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 # prepare SSD mount point
 mkdir -p /mnt/ssd/
@@ -247,12 +258,6 @@ ln -sf /mnt/ssd/system/journal/ /var/log/journal
 # make bbb scripts executable with sudo
 sudo ln /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
 sudo ln /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
-
-
-# SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/opt/shift/sysconfig"
-mkdir -p "${SYSCONFIG_PATH}"
-echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
 
 # TOR --------------------------------------------------------------------------
