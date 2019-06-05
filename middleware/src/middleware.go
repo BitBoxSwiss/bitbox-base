@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 )
 
@@ -18,20 +19,16 @@ type SampleInfo struct {
 
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
 type Middleware struct {
-	info                                               SampleInfo
-	events                                             chan *SampleInfo
-	bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort string
-	lightningRPCPath                                   string
+	info        SampleInfo
+	environment system.Environment
+	events      chan *SampleInfo
 }
 
 // NewMiddleware returns a new instance of the middleware
-func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath string) *Middleware {
+func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network string) *Middleware {
 	middleware := &Middleware{
-		events:             make(chan *SampleInfo),
-		bitcoinRPCUser:     bitcoinRPCUser,
-		bitcoinRPCPassword: bitcoinRPCPassword,
-		bitcoinRPCPort:     bitcoinRPCPort,
-		lightningRPCPath:   lightningRPCPath,
+		environment: system.NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network),
+		events:      make(chan *SampleInfo),
 		info: SampleInfo{
 			Blocks:         0,
 			Difficulty:     0.0,
@@ -43,13 +40,13 @@ func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightning
 }
 
 // demoBitcoinRPC is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo.
-func (middleware *Middleware) demoBitcoinRPC(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort string) {
+func (middleware *Middleware) demoBitcoinRPC() {
 	connCfg := rpcclient.ConnConfig{
 		HTTPPostMode: true,
 		DisableTLS:   true,
-		Host:         "127.0.0.1:" + bitcoinRPCPort,
-		User:         bitcoinRPCUser,
-		Pass:         bitcoinRPCPassword,
+		Host:         "127.0.0.1:" + middleware.environment.GetBitcoinRPCPort(),
+		User:         middleware.environment.GetBitcoinRPCUser(),
+		Pass:         middleware.environment.GetBitcoinRPCPassword(),
 	}
 	client, err := rpcclient.New(&connCfg, nil)
 	if err != nil {
@@ -76,9 +73,9 @@ func (middleware *Middleware) demoBitcoinRPC(bitcoinRPCUser, bitcoinRPCPassword,
 }
 
 // demoCLightningRPC demonstrates a connection with lightnind. Currently it gets the lightningd alias and writes it into the SampleInfo.
-func (middleware *Middleware) demoCLightningRPC(lightningRPCPath string) {
+func (middleware *Middleware) demoCLightningRPC() {
 	ln := &lightning.Client{
-		Path: lightningRPCPath,
+		Path: middleware.environment.GetLightningRPCPath(),
 	}
 
 	nodeinfo, err := ln.Call("getinfo")
@@ -91,8 +88,8 @@ func (middleware *Middleware) demoCLightningRPC(lightningRPCPath string) {
 
 func (middleware *Middleware) rpcLoop() {
 	for {
-		middleware.demoBitcoinRPC(middleware.bitcoinRPCUser, middleware.bitcoinRPCPassword, middleware.bitcoinRPCPort)
-		middleware.demoCLightningRPC(middleware.lightningRPCPath)
+		middleware.demoBitcoinRPC()
+		middleware.demoCLightningRPC()
 		middleware.events <- &middleware.info
 		time.Sleep(5 * time.Second)
 	}
