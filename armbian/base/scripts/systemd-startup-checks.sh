@@ -63,10 +63,10 @@ fi
 chown bitcoin:system /mnt/ssd 
 
 # bitcoin data storage
-mkdir -p /mnt/ssd/bitcoin/.bitcoin/
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
-setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
-setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
+setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
+setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
 # electrs data storage
 mkdir -p /mnt/ssd/electrs/
