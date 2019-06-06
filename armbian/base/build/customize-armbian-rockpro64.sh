@@ -163,7 +163,7 @@ apt update
 apt upgrade -y
 
 # development
-apt install -y  git tmux qrencode #bwm-ng
+apt install -y  git tmux qrencode
 
 # system
 apt install -y  openssl net-tools fio libnss-mdns \
@@ -370,13 +370,15 @@ EOF
 BIN_DEPS_TAG="v0.0.1-alpha"
 LIGHTNING_VERSION="0.7.0"
 
+apt install -y libsodium-dev
+
 ## either compile c-lightning from source (default), or use prebuilt binary
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                  libsqlite3-dev python python3 net-tools zlib1g-dev libsodium-dev
+                  libsqlite3-dev python python3 net-tools zlib1g-dev
 
   cd /usr/local/src/
-  git clone https://github.com/ElementsProject/lightning.git || true
+  git clone https://github.com/ElementsProject/lightning.git
   cd lightning
   git checkout v${LIGHTNING_VERSION}
   ./configure
@@ -384,7 +386,6 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   make install
 
 else
-  apt install -y libsodium-dev
   cd /usr/local/src/
   # temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
   curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION}-1_arm64.deb
@@ -393,6 +394,8 @@ else
     exit 1
   fi
   dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
+
+  # symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
   ln -s /usr/bin/lightningd /usr/local/bin/lightningd
   
 fi
