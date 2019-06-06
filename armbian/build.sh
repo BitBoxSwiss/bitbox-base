@@ -51,11 +51,8 @@ case ${ACTION} in
 			git clone https://github.com/armbian/build armbian-build
 			sed -i "s/#vb.memory = \"8192\"/vb.memory = \"${VIRTUALBOX_MEMORY}\"/g" armbian-build/Vagrantfile
 			sed -i "s/#vb.cpus = \"4\"/vb.cpus = \"${VIRTUALBOX_CPU}\"/g" armbian-build/Vagrantfile
-			cd armbian-build
-		else 
-			cd armbian-build
-			git pull --no-rebase
 		fi
+		cd armbian-build
 
 		vagrant up
 		mkdir -p output/
