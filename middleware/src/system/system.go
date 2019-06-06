@@ -3,10 +3,12 @@ package system
 
 // Environment provides some information on the system we are running on.
 type Environment struct {
-	network                                            string
-	electrsRPCPort                                     string
-	bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort string
-	lightningRPCPath                                   string
+	Network            string `json:"network"`
+	ElectrsRPCPort     string `json:"electrsRPCPort"`
+	bitcoinRPCUser     string
+	bitcoinRPCPassword string
+	bitcoinRPCPort     string
+	lightningRPCPath   string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -17,8 +19,8 @@ func NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightnin
 		bitcoinRPCPassword: bitcoinRPCPassword,
 		bitcoinRPCPort:     bitcoinRPCPort,
 		lightningRPCPath:   lightningRPCPath,
-		electrsRPCPort:     electrsRPCPort,
-		network:            network,
+		ElectrsRPCPort:     electrsRPCPort,
+		Network:            network,
 	}
 	return environment
 }
@@ -41,14 +43,4 @@ func (environment *Environment) GetBitcoinRPCPort() string {
 // GetLightningRPCPath is a getter for the lightningRPCPath
 func (environment *Environment) GetLightningRPCPath() string {
 	return environment.lightningRPCPath
-}
-
-// GetElectrsRPCPort is a getter for the electrsRPCPort
-func (environment *Environment) GetElectrsRPCPort() string {
-	return environment.electrsRPCPort
-}
-
-// GetNetwork is a getter for the network type (testnet/mainnet)
-func (environment *Environment) GetNetwork() string {
-	return environment.network
 }

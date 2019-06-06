@@ -2,18 +2,23 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
+	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan *middleware.SampleInfo
+	// GetSystemEnv returns a system Environment instance containing host system services information.
+	GetSystemEnv() system.Environment
 }
 
 // Handlers provides a web api
@@ -38,6 +43,7 @@ func NewHandlers(middlewareInstance Middleware) *Handlers {
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
+	handlers.Router.HandleFunc("/getenv", handlers.getEnvHandler).Methods("GET")
 
 	handlers.middlewareEvents = handlers.middleware.Start()
 	return handlers
@@ -49,6 +55,21 @@ func (handlers *Handlers) rootHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("OK!!\n"))
 	if err != nil {
 		log.Println(err.Error() + " Failed to write response bytes in root handler")
+	}
+}
+
+func (handlers *Handlers) getEnvHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := json.Marshal(handlers.middleware.GetSystemEnv())
+	if err != nil {
+		log.Println(err.Error() + " Failed to serialize GetSystemEnv data to json in getEnvHandler")
+		http.Error(w, "Something went wrong, I cannot read these hieroglyphs.", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write(data)
+	if err != nil {
+		log.Println(err.Error() + " Failed to write response bytes in getNetwork handler")
+		http.Error(w, "Something went wrong, I cannot read these hieroglyphs", http.StatusInternalServerError)
+		return
 	}
 }
 

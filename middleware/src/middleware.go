@@ -100,3 +100,8 @@ func (middleware *Middleware) Start() <-chan *SampleInfo {
 	go middleware.rpcLoop()
 	return middleware.events
 }
+
+// GetSystemEnv implements a getter for the system environment.
+func (middleware *Middleware) GetSystemEnv() system.Environment {
+	return middleware.environment
+}
