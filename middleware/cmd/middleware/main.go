@@ -14,8 +14,10 @@ import (
 func main() {
 	bitcoinRPCUser := flag.String("rpcuser", "rpcuser", "Bitcoin rpc user name")
 	bitcoinRPCPassword := flag.String("rpcpassword", "rpcpassword", "Bitcoin rpc password")
-	bitcoinRPCPort := flag.String("rpcport", "8332", "Bitcoin rpc port, localhost is assumed as an address")
+	bitcoinRPCPort := flag.String("rpcport", "18332", "Bitcoin rpc port, localhost is assumed as an address")
 	lightningRPCPath := flag.String("lightning-rpc-path", "/home/bitcoin/.lightning/lightning-rpc", "Path to the lightning rpc unix socket")
+	electrsRPCPort := flag.String("electrsport", "51002", "Electrs rpc port")
+	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
 	flag.Parse()
 
 	logBeforeExit := func() {
@@ -27,7 +29,7 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
-	middleware := middleware.NewMiddleware(*bitcoinRPCUser, *bitcoinRPCPassword, *bitcoinRPCPort, *lightningRPCPath)
+	middleware := middleware.NewMiddleware(*bitcoinRPCUser, *bitcoinRPCPassword, *bitcoinRPCPort, *lightningRPCPath, *electrsRPCPort, *network)
 	log.Println("--------------- Started middleware --------------")
 
 	handlers := handlers.NewHandlers(middleware)
