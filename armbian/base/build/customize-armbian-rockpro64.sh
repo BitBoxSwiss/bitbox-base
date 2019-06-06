@@ -46,7 +46,8 @@ CONFIGURATION:
 
 ================================================================================
 BUILD OPTIONS:
-    HDMI OUTPUT:      ${BASE_HDMI_BUILD}
+    BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
+    HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
@@ -63,6 +64,7 @@ BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
 
 # HDMI dashboard only enabled if image is built to support it
 if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
@@ -161,11 +163,7 @@ apt update
 apt upgrade -y
 
 # development
-apt install -y  git tmux qrencode bwm-ng
-
-# build c-lightning
-apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                libsqlite3-dev python python3 net-tools zlib1g-dev libsodium-dev
+apt install -y  git tmux qrencode #bwm-ng
 
 # system
 apt install -y  openssl net-tools fio libnss-mdns \
@@ -369,15 +367,34 @@ EOF
 
 
 # LIGHTNING --------------------------------------------------------------------
+BIN_DEPS_TAG="v0.0.1-alpha"
 LIGHTNING_VERSION="0.7.0"
 
-cd /usr/local/src/
-git clone https://github.com/ElementsProject/lightning.git || true
-cd lightning
-git checkout v${LIGHTNING_VERSION}
-./configure
-make
-make install
+## either compile c-lightning from source (default), or use prebuilt binary
+if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
+  apt install -y  autoconf automake build-essential git libtool libgmp-dev \
+                  libsqlite3-dev python python3 net-tools zlib1g-dev libsodium-dev
+
+  cd /usr/local/src/
+  git clone https://github.com/ElementsProject/lightning.git || true
+  cd lightning
+  git checkout v${LIGHTNING_VERSION}
+  ./configure
+  make -j 4
+  make install
+
+else
+  cd /usr/local/src/
+  # temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
+  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION}-1_arm64.deb
+  if ! echo "52be094f8162749acb207bf9ad08125d25288a9d03eb25690f364ba42fcff3c4  lightningd_0.7.0-1_arm64.deb" | sha256sum -c -; then
+    echo "sha256sum for precompiled 'lightningd' failed" >&2
+    exit 1
+  fi
+  dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
+  ln -s /usr/bin/lightningd /usr/local/bin/lightningd
+  
+fi
 
 mkdir -p /etc/lightningd/
 cat << EOF > /etc/lightningd/lightningd.conf
@@ -420,13 +437,14 @@ EOF
 
 
 # ELECTRS ----------------------------------------------------------------------
-ELECTRS_VERSION="0.6.1"
+BIN_DEPS_TAG="v0.0.1-alpha"
+ELECTRS_VERSION="0.6.2"
 
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
 # temporary storage of 'electrs' until official binary releases are available
-curl --retry 5 -SLO https://github.com/Stadicus/electrs-bin/raw/master/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
-if ! echo "1b1664afe338aa707660bc16b2d82919e5cb8f5fd35faa61c27a7fef24aad156  electrs-0.6.1-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
+curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
+if ! echo "291e05c33c83002245b5805574001424f6f45be926fef81a2d74b12c5002509f  electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
   echo "sha256sum for precompiled 'electrs' failed" >&2
   exit 1
 fi
@@ -479,7 +497,8 @@ cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
 cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
-cp /tmp/overlay/base-middleware /usr/local/sbin/
+## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
+# cp /tmp/overlay/base-middleware /usr/local/sbin/
 
 mkdir -p /etc/base-middleware/
 cat << EOF > /etc/base-middleware/base-middleware.conf
@@ -895,7 +914,7 @@ EOF
 # FINALIZE ---------------------------------------------------------------------
 
 ## Clean up
-apt-get install -f
+apt install -f
 apt clean
 apt autoremove -y
 rm -rf /usr/local/src/*
