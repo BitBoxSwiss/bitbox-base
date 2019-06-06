@@ -384,6 +384,7 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   make install
 
 else
+  apt install -y libsodium-dev
   cd /usr/local/src/
   # temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
   curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION}-1_arm64.deb
