@@ -19,7 +19,6 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. [Build Armbian image](os/armbian-build.md)
    1. [Configuration](os/configuration.md)
    1. Security considerations 
-   1. Firmware upgrades
    1. [Helper scripts](os/helper-scripts.md)
 1. Base Middleware
    1. API
@@ -37,7 +36,7 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. Prometheus
    1. Grafana
 1. Firmware upgrades
-   1. Overall concept
+   1. [Overall concept](upgrade/concept.md)
    1. Device implementation
    1. Attestation
    1. Custom firmware
