@@ -63,10 +63,17 @@ fi
 chown bitcoin:system /mnt/ssd 
 
 # bitcoin data storage
+<<<<<<< HEAD:armbian/base/scripts/systemd-startup-checks.sh
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
+=======
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/
+chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
+setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
+>>>>>>> d51ac9bdd0d85dcfbca7e657bacae8f4adf73fc9:armbian/base/scripts/startup-checks.sh
 
 # electrs data storage
 mkdir -p /mnt/ssd/electrs/
@@ -76,7 +83,24 @@ chown -R electrs:bitcoin /mnt/ssd/electrs/
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
+<<<<<<< HEAD:armbian/base/scripts/systemd-startup-checks.sh
 
 # set permissions for whole ssd 
 # (user:rwx group:r-x other:---)
 chmod -R 750 /mnt/ssd
+=======
+<<<<<<< Updated upstream:armbian/base/scripts/startup-checks.sh
+chmod -R 750 /mnt/ssd
+
+# We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
+# no way to specify where to expect the bitcoin cookie for c-lightning, so let's
+# create a symlink at the expected testnet location.
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
+ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
+=======
+
+# set permissions for whole ssd 
+# (user:rwx group:r-x other:---)
+chmod -R 750 /mnt/ssd
+>>>>>>> Stashed changes:armbian/base/scripts/systemd-startup-checks.sh
+>>>>>>> d51ac9bdd0d85dcfbca7e657bacae8f4adf73fc9:armbian/base/scripts/startup-checks.sh

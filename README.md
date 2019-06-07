@@ -55,7 +55,7 @@ Additional noteworthy components on the BitBox Base:
 * [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network
 * [Prometheus](https://prometheus.io/): monitoring of system and software components
 * [Grafana](https://grafana.com/): visualization of system and network performance metrics
-* [RAUC](https://rauc.readthedocs.io/): atomic update controller
+* [Mender](https://mender.io/): atomic updates of filesystem images over-the-air
 
 ### Hardware considerations
 
