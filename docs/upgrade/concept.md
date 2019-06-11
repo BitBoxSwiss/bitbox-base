@@ -31,7 +31,8 @@ This solution has the following features:
 * **custom firmware**: more in the #reckless category, updating custom-built firmware can be enabled through the BitBox App.
 
 ### Upgrade process
-After building the custom Armbian image, it is post-processed using [mender-convert](https://github.com/mendersoftware/mender-convert). As this tool is currently not available for the RockPro64 board, we collaborate with Mender to extend it, with all results being released as open-source for other projects to use. 
+
+After building the custom Armbian image, it is post-processed using [mender-convert](https://github.com/mendersoftware/mender-convert). As this tool is currently not available for the RockPro64 board, we collaborate with Mender to extend it, with all results being released as open-source for other projects to use.
 
 This post-processing creates Mender upgrade artifacts for over-the-air (OTA) updates, as well as a new full disk image for initial flashing on the device, containing four partitions:
 
@@ -40,10 +41,17 @@ This post-processing creates Mender upgrade artifacts for over-the-air (OTA) upd
 * root filesystem B
 * persitent data
 
-The disk image has the Mender client built in, running as a system daemon in the background. It communicates with the BitBox App and can be triggered to to update the device.
+![Mender architecture](mender_architecture.png)
+
+The disk image has the Mender client built in, running as a system daemon user space in the currently booted root filesystem (rootfs). It communicates with the BitBox App and can be triggered to to update the device.
 
 On the BitBox Base, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "rootfs A". When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "rootfs B". After successful verification of the update signature and completion of the download, the bootloader is configured to boot from the updated "rootfs B" once. The device is then rebooted.
 
 The BitBox Base now boots into the updated "rootfs B", where various custom checks can be performed. If everything works as expected, the updated "rootfs B" is commited to the bootloader as the new active partition.
 
 If the device is not able to boot, or if application-level checks fail after the update, the system automatically performs a fallback by rebooting to the previous "rootfs A" that is still guaranteed to work. With this procedure, it is very hard to update a device into a non-operative state where it can no longer be fixed using OTA mechanisms.
+
+![Mender update process](mender_upgrade.png)
+
+See additional information on <https://mender.io/overview/solution>  
+Images (c) 2019 by [Northern.tech AS](https://northern.tech/)
