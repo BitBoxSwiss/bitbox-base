@@ -11,7 +11,7 @@ As a networked device, reachable from any network, the attack surface of the Bit
 ### Pairing Base with BitBox App
 The first step is to safely pair the BitBox Base and App. To achieve this, the Base announces itself on the local network using mDNS and the Middlware exposes provides an API endpoint to initiate a secure connection. The Base is automatically detected by the App and announced within the user interface. 
 
-At first, only a single public API endpoint for pairing is available that allows the two components to establish an encrypted communication channel. To rule out a man-in-the-middle attack, a confirmation code is shown both within the App and on the Base and needs to be confirmed manually. With the secure connection established, the [Noise encryption](http://noiseprotocol.org) can be set up and the full API functionality is available to the App.
+At first, only a single public API endpoint for pairing is available that allows the two components to establish an encrypted communication channel. To rule out a man-in-the-middle attack, a confirmation code is shown both within the App and on the Base and needs to be confirmed manually. With the secure connection established, the [Noise encryption](http://noiseprotocol.org) can be set up and the full API functionality, like node management, Bitcoin transaction verfication or Lightning Network usage, is available to the App.
 
 ### Networking
 The following components help harden the Base against networking attacks:
