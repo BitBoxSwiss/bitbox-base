@@ -6,4 +6,3 @@ has_children: true
 permalink: /hardware
 ---
 ## BitBox Base: Hardware
-
