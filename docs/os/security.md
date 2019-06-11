@@ -6,7 +6,7 @@ nav_order: 330
 ---
 ## Security considerations
 
-As a networked device, reachable from the outside, the attack surface of the BitBox Base needs to be minimized as much as possible. This is why we use our BitBox App as the dedicated user interface for node management. By default, only one port is exposed on the Base to communicate over an end-to-end encrypted channel with the App, providing all functionality.
+As a networked device, reachable from any network, the attack surface of the BitBox Base needs to be minimized as much as possible. This is why we use our open-source [BitBox App](https://github.com/digitalbitbox/bitbox-wallet-app/) as the dedicated user interface for node management. By default, only one port is exposed on the Base to communicate over an end-to-end encrypted channel with the App, providing all functionality.
 
 ### Pairing Base with BitBox App
 The first step is to safely pair the BitBox Base and App. To achieve this, the Base announces itself on the local network using mDNS and the Middlware exposes provides an API endpoint to initiate a secure connection. The Base is automatically detected by the App and announced within the user interface. 
@@ -39,4 +39,4 @@ A network appliance like the BitBox Base, built on readily available components,
 
 * **Disabled USB**: to prevent tampering with a USB keyboard, the USB ports are configured to ignore USB-HID by default.
 
-This list of security measures is non-exaustive and meant to grow over time. Please let us know by opening a [GitHub issue](https://github.com/digitalbitbox/bitbox-base/issues) if you think we are missing a critical security feature!
+This list of security controls is non-exaustive and meant to grow over time. Please let us know by opening a [GitHub issue](https://github.com/digitalbitbox/bitbox-base/issues) if you think we are missing a critical security feature!

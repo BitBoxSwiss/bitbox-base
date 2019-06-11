@@ -39,17 +39,17 @@ This post-processing creates Mender upgrade artifacts for over-the-air (OTA) upd
 * bootloader
 * root filesystem A
 * root filesystem B
-* persitent data
+* persistent data
 
 ![Mender architecture](mender_architecture.png)
 
-The disk image has the Mender client built in, running as a system daemon user space in the currently booted root filesystem (rootfs). It communicates with the BitBox App and can be triggered to to update the device.
+The disk image has the Mender client built in, running as a system daemon user space in the currently booted root filesystem. It communicates with the BitBox App and can be triggered to to update the device.
 
-On the BitBox Base, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "rootfs A". When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "rootfs B". After successful verification of the update signature and completion of the download, the bootloader is configured to boot from the updated "rootfs B" once. The device is then rebooted.
+On the BitBox Base, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "root filesystem A". When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "root filesystem B". After successful verification of the update signature and completion of the download, the bootloader is configured to boot from the updated "root filesystem B" once. The device is then rebooted.
 
-The BitBox Base now boots into the updated "rootfs B", where various custom checks can be performed. If everything works as expected, the updated "rootfs B" is commited to the bootloader as the new active partition.
+The BitBox Base now boots into the updated "root filesystem B", where various custom checks can be performed. If everything works as expected, the updated "root filesystem B" is commited to the bootloader as the new active partition.
 
-If the device is not able to boot, or if application-level checks fail after the update, the system automatically performs a fallback by rebooting to the previous "rootfs A" that is still guaranteed to work. With this procedure, it is very hard to update a device into a non-operative state where it can no longer be fixed using OTA mechanisms.
+If the device is unable to boot, or if application-level checks fail after the update, the system automatically falls back to booting to the previous "root filesystem A", which was working before the upgrade. This process makes it very unlikely that a device will end up in a state that can't be fixed using further OTA upgrades.
 
 ![Mender update process](mender_upgrade.png)
 
