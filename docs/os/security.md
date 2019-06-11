@@ -13,6 +13,8 @@ The first step is to safely pair the BitBox Base and App. To achieve this, the B
 
 At first, only a single public API endpoint for pairing is available that allows the two components to establish an encrypted communication channel. To rule out a man-in-the-middle attack, a confirmation code is shown both within the App and on the Base and needs to be confirmed manually. With the secure connection established, the [Noise encryption](http://noiseprotocol.org) can be set up and the full API functionality, like node management, Bitcoin transaction verfication or Lightning Network usage, is available to the App.
 
+🏗️ [WIP](https://github.com/shiftdevices/bitbox-base-internal/issues/175): pairing is not implemented yet.
+
 ### Networking
 The following components help harden the Base against networking attacks:
 
@@ -24,7 +26,9 @@ The following components help harden the Base against networking attacks:
 
 * **Brute-force protection**: by default, SSH-login is disabled. Once enabled, only login with SSH keys should be used. Nonetheless, we use [fail2ban](https://www.fail2ban.org) to log any login attempts and block ip addresses for a certain time after too many unsuccessful tries.
 
-* **SSH Keys**: for secure usage of SSH, the password login is disabled by default, so that a terminal login is only possible using SSH keys. The public key can be integrated in the Base image on build time, or later with the App.
+* **SSH Keys**: for secure usage of SSH, the password login is disabled by default, so that a terminal login is only possible using SSH keys. The public key can be integrated in the Base image on build time, or later with the App.  
+  
+  🏗️ [WIP](https://github.com/shiftdevices/bitbox-base-internal/issues/176): updating ssh keys with the App is not implemented yet.
 
 * **Disabled root user**: SSH login for the root user is disabled by default, even using SSH keys. This way, even when gaining access to the device using a stolen key, the attacker still needs to enter the root password when using `sudo`.
 
@@ -39,4 +43,4 @@ A network appliance like the BitBox Base, built on readily available components,
 
 * **Disabled USB**: to prevent tampering with a USB keyboard, the USB ports are configured to ignore USB-HID by default.
 
-This list of security controls is non-exaustive and meant to grow over time. Please let us know by opening a [GitHub issue](https://github.com/digitalbitbox/bitbox-base/issues) if you think we are missing a critical security feature!
+This list of security controls is non-exhaustive and meant to grow over time. Please let us know by opening a [GitHub issue](https://github.com/digitalbitbox/bitbox-base/issues) if you think we are missing a critical security feature!
