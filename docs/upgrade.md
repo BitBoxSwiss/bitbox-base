@@ -6,4 +6,3 @@ has_children: true
 permalink: /upgrade
 ---
 ## BitBox Base: Firmware Upgrade
-

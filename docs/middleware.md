@@ -6,4 +6,3 @@ has_children: true
 permalink: /middleware
 ---
 ## BitBox Base: Middleware
-

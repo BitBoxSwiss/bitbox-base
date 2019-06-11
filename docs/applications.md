@@ -6,4 +6,3 @@ has_children: true
 permalink: /applications
 ---
 ## BitBox Base: Main Applications
-
