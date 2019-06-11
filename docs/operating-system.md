@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Operating System
-nav_order: 200
+nav_order: 300
 has_children: true
 permalink: /os
 ---
