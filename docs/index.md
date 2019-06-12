@@ -25,9 +25,9 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. Noise encryption
    1. HSM integration
 1. Main applications
-   1. Bitcoin Core
-   1. c-lightning
-   1. Electrs
+   1. [Bitcoin Core](applications/bitcoin-core.md)
+   1. [c-lightning](applications/c-lightning.md)
+   1. [Electrs](applications/electrs.md)
 1. Supporting applications
    1. Base Supervisor
    1. Tor
