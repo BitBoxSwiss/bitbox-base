@@ -14,7 +14,7 @@ While the `master` branch on GitHub reflects the current development process, a 
 
 Instead of compiling Bitcoin Core from source when building the Armbian image, or poviding our own binaries, we believe that following the official binary releases is a good way to minimize trusting any single entity and keep the build process performant.
 
-To ensure that the official binary is used, we store the verified signing key `90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values. If this verification does not succeed (a single bit difference would be enough) the build script aborts with an error.
+To ensure that the official binary is used, we store the verified signing key `01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values. If this verification does not succeed (a single bit difference would be enough) the build script aborts with an error.
 
 ### Configuration
 
