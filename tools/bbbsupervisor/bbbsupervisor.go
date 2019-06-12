@@ -19,12 +19,41 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/coreos/go-systemd/sdjournal"
 )
+
+func test() {
+	jconf := sdjournal.JournalReaderConfig{
+		Since: time.Duration(-15) * time.Second,
+		Matches: []sdjournal.Match{
+			{
+				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
+				Value: "NetworkManager.service",
+			},
+		},
+	}
+
+	jr, err := sdjournal.NewJournalReader(jconf)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if jr == nil {
+		fmt.Println("Got a nil reader")
+		return
+	}
+
+	defer jr.Close()
+
+	jr.Follow(nil, os.Stdout)
+}
 
 func main() {
 
 	versionNum := 0.1
-	cycle := 10
+	cycle := 1
 
 	// parse command line arguments
 	verbose := flag.Bool("v", false, "verbose, log internal data to stdout")
@@ -42,8 +71,11 @@ func main() {
 		// endless loop
 
 		if *verbose {
-			fmt.Printf("debug message: %v\n", versionNum)
+			fmt.Printf("debug message: %v\n", time.Now())
 		}
+		fmt.Printf("x")
+
+		test()
 
 		time.Sleep(time.Duration(cycle) * time.Second)
 	}
