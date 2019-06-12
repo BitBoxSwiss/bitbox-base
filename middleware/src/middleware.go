@@ -14,7 +14,7 @@ import (
 type SampleInfo struct {
 	Blocks         int64   `json:"blocks"`
 	Difficulty     float64 `json:"difficulty"`
-	LightningAlias string  `json:"lightning_alias"`
+	LightningAlias string  `json:"lightningAlias"`
 }
 
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
