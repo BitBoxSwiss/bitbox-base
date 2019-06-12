@@ -502,7 +502,7 @@ cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
 
 ## base-middleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-# cp /tmp/overlay/base-middleware /usr/local/sbin/
+cp /tmp/overlay/base-middleware /usr/local/sbin/
 
 mkdir -p /etc/base-middleware/
 cat << EOF > /etc/base-middleware/base-middleware.conf
