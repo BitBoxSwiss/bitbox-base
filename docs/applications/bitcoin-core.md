@@ -6,19 +6,19 @@ nav_order: 610
 ---
 ## Bitcoin Core
 
-Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>. The BitBox base uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks. All data is regarded as untrusted until it is locally verified to the consensus rules enforced by the BitBox Base.
+Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>. The BitBox Base uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks. All data is regarded as untrusted until it is locally verified to match the consensus rules of Bitcoin Core.
 
 ### Using binary releases
 
-While the `master` branch on GitHub reflects the current development process, a new stable release is tagged and tested every few months. This release is built from the source code in a reproduciable way for various platforms by many contributors, verifying that they get the exact same binary executables by comparing the sha256 hash. These hash values for all images are provided in the `SHA256SUM.asc` file, which is signed by a Bitcoin Core maintainer, currently [laanwj](https://github.com/laanwj).
+While the `master` branch on GitHub reflects the current development process, a new stable release is tagged and tested every few months. This release is built from the source code in a reproducible way for various platforms by many contributors, verifying that they get the exact same binary executables by comparing the sha256 hash. These hash values for all images are provided in the `SHA256SUM.asc` file, which is signed by a Bitcoin Core maintainer, currently [laanwj](https://github.com/laanwj).
 
 Instead of compiling Bitcoin Core from source when building the Armbian image, or poviding our own binaries, we believe that following the official binary releases is a good way to minimize trusting any single entity and keep the build process performant.
 
-To ensure that the official binary is used, we store the verified signing key `90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values. If this verification does not succeed (a single bit difference would be enough) the build script abort with an error.
+To ensure that the official binary is used, we store the verified signing key `90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values. If this verification does not succeed (a single bit difference would be enough) the build script aborts with an error.
 
 ### Configuration
 
-The application configuration is specified in the local `/etc/bitcoin/bitcoin.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+The application configuration is specified in the local `/etc/bitcoin/bitcoin.conf` file. The `bitcoin.conf` file is written into the Armbian image by the  [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh) script.
 
 ```
 # application
