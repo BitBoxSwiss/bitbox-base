@@ -3,11 +3,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
-	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -16,7 +14,7 @@ import (
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
-	Start() <-chan *middleware.SampleInfo
+	Start() <-chan interface{}
 	// GetSystemEnv returns a system Environment instance containing host system services information.
 	GetSystemEnv() system.Environment
 }
@@ -27,8 +25,8 @@ type Handlers struct {
 	//upgrader takes an http request and upgrades the connection with its origin to websocket
 	upgrader   websocket.Upgrader
 	middleware Middleware
-	//TODO(TheCharlatan): In future this event should have a generic interface (thus only containing raw json)
-	middlewareEvents <-chan *middleware.SampleInfo
+	//TODO(TheCharlatan): Starting from the generic interface, flesh out restrictive types over time as the code implements more services.
+	middlewareEvents <-chan interface{}
 }
 
 // NewHandlers returns a handler instance.
@@ -89,11 +87,8 @@ func (handlers *Handlers) serveSampleInfoToClient(ws *websocket.Conn) error {
 	var i = 0
 	for {
 		i++
-		val := <-handlers.middlewareEvents
-		// TODO(TheCharlatan): When middleware events starts streaming more generic data, this should become json
-		blockinfo := fmt.Sprintf("%d %f %d %s", val.Blocks, val.Difficulty, i, val.LightningAlias)
-		log.Println(blockinfo)
-		err := ws.WriteMessage(websocket.TextMessage, []byte(blockinfo))
+		event := <-handlers.middlewareEvents
+		err := ws.WriteJSON(event)
 		if err != nil {
 			log.Println(err.Error() + " Unexpected websocket error")
 			ws.Close()

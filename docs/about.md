@@ -5,7 +5,7 @@ nav_order: 150
 ---
 # About
 
-The **BitBox Base** is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin & Lightning full node appliance. The software is completely open-source and can be adapted to other hardware platforms. 
+The **BitBox Base** is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin & Lightning full node appliance. The software is completely open-source and can be adapted to other hardware platforms.
 
 All details outlined here reflect the current progress of the project and are subject to change if necessary.
 
@@ -92,9 +92,9 @@ More detail on how to build the base operating image yourself will be detailed i
 
 ### Integrated HSM
 
-A networked device can never be viewed as truly secure. Therefore, adding a Hardware Security Module (HSM) can drastically improve the security for use-cases that depend on trusted information or a need to safeguard secrets. We plan to integrate HSM functionality based on a modified version of the BitBox02 hardware wallet. This allows for safe pairing and can enable future use-cases like automated transaction signing to whitelisted addresses. 
+A networked device can never be viewed as truly secure. Therefore, adding a Hardware Security Module (HSM) can drastically improve the security for use-cases that depend on trusted information or a need to safeguard secrets. We plan to integrate HSM functionality based on a modified version of the BitBox02 hardware wallet. This allows for safe pairing and can enable future use-cases like automated transaction signing to whitelisted addresses.
 
-The HSM will run Bitcoin-only firmware and incorporates a trusted display and capacitive touch buttons. Together with the possibility to show limited "untrusted" data from the Linux system, with the trust-level clearly indicated, the screen and buttons provide the flexibility to create a great user experience. Additionally, LEDs on the HSM can allow for a quick way to show additional information like the overall status of the Base. 
+The HSM will run Bitcoin-only firmware and incorporates a trusted display and capacitive touch buttons. Together with the possibility to show limited "untrusted" data from the Linux system, with the trust-level clearly indicated, the screen and buttons provide the flexibility to create a great user experience. Additionally, LEDs on the HSM can allow for a quick way to show additional information like the overall status of the Base.
 
 ### Networking
 
@@ -111,7 +111,7 @@ The BitBox Base plans to solve this issue comprehensively, by providing three co
    One drawback of this method is that the computer running the BitBox App must have Tor installed, so that the BitBox App can route all traffic through the available Tor proxy. That might not be possible on every device.
 
 3. **Shift Connect**  
-   For maximum flexibility, BitBox Base users will be able to connect through the Shift Connect proxy that provides a regular HTTPS endpoint for each registered node, configured automatically on pairing. This service is purely opt-in and can not gather any information as the BitBox Base connects with Tor to the Shift Connect proxy, without revealing its identity, ip address or location. 
+   For maximum flexibility, BitBox Base users will be able to connect through the Shift Connect proxy that provides a regular HTTPS endpoint for each registered node, configured automatically on pairing. This service is purely opt-in and can not gather any information as the BitBox Base connects with Tor to the Shift Connect proxy, without revealing its identity, ip address or location.
 
    As the proxy effectively is a man-in-the-middle, SSL encryption does not add enough privacy guarantees and is used only to secure the connection from the App to the proxy. This is why all data routed over the proxy is end-to-end encrypted. The public ip address connecting to the proxy is the only information that theoretically could be logged (which obviously won't be the case).
 
@@ -130,5 +130,3 @@ One caveat of this approach, specifically tailored for ease-of-use, is its propr
 We are building the software stack of the BitBox Base fully open source and with its application outside of our own hardware device in mind. Contributions are very welcome. Please read [CONTRIBUTING](CONTRIBUTING.md) before submitting changes to the repository.
 
 For **regular updates**, watch the [Github repository](https://github.com/digitalbitbox/bitbox-base) or follow us on Twitter at [@ShiftCryptoHQ](https://twitter.com/ShiftCryptoHQ).
-
-
