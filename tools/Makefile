@@ -1,3 +1,5 @@
 default:
 	$(MAKE) -C bbbfancontrol
-	$(MAKE) -C bbbsupervisor
+
+	# uncomment once bbbsupervisor compiles including all dependencies
+	#$(MAKE) -C bbbsupervisor
