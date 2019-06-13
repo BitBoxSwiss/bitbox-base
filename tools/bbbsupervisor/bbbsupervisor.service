@@ -1,0 +1,12 @@
+[Unit]
+Description=BitBox Base Supervisor
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/bbbsupervisor
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
