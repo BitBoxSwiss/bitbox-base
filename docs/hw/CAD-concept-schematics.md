@@ -1,8 +1,7 @@
 ---
 layout: default
 title: Build Armbian image
-parent: Hardware
+parent: Operating System
 nav_order: 210
 ---
-
-##Parts List
+##Concept Schematics
