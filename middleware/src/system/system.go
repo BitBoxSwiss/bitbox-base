@@ -32,7 +32,7 @@ func (environment *Environment) GetBitcoinRPCUser() string {
 
 // GetBitcoinRPCPassword is a getter for the bitcoinRPCPassword
 func (environment *Environment) GetBitcoinRPCPassword() string {
-	return environment.bitcoinRPCUser
+	return environment.bitcoinRPCPassword
 }
 
 // GetBitcoinRPCPort is a getter for the bitcoinRPCPort
