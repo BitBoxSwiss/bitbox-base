@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Build Armbian image
+title: Platform choice
 parent: Hardware
 nav_order: 220
 ---
