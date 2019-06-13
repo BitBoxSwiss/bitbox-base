@@ -8,4 +8,4 @@ nav_order: 210
 
 ![alt text][images]
 
-[images]: hw\images\Base_render_angle_1.png "Concept Render of BitBox Base"
+[images]: Base_render_angle_1.png "Concept Render of BitBox Base"
