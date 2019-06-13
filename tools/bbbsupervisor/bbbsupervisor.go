@@ -12,6 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// BitBox Base Supervisor
+// ----------------------
+// monitors systemd or file logs to detect potential issues and take action.
+//
+// Functionality to implement:
+// * System
+//   - temperature control: monitor bbbfancontrol and throttle CPU if needed
+//   - disk space: monitor free space on rootfs and ssd, perform cleanup of temp & logs
+//   - swap: detect issues with swap file, no memory left or "zram decompression failed", perform reboot
+//
+// * Middleware
+//   - monitor service availability
+//
+// * Bitcoin Core
+//   - monitor service availability
+//   - perform backup tasks
+//   - switch between IBD and normal operation mode (e.g. adjust dbcache)
+//
+// * c-lightning
+//   - monitor service availability
+//   - perform backup tasks (once possible)
+//
+// * electrs
+//   - monitor service availability
+//   - track initial sync and full database compaction, restart service if needed
+//
+// * NGINX, Grafana, ...
+//   - monitor service availability
+//
+//
+
 package main
 
 import (
@@ -23,13 +54,18 @@ import (
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
-func test() {
+//Q: how to create this "Follower" according to best practice?
+func startFollower(service string, logline chan string) {
+	fmt.Println(service + ": started")
+
+	logline <- "channel: " + service + ": started"
+
 	jconf := sdjournal.JournalReaderConfig{
 		Since: time.Duration(-15) * time.Second,
 		Matches: []sdjournal.Match{
 			{
 				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
-				Value: "NetworkManager.service",
+				Value: service,
 			},
 		},
 	}
@@ -41,42 +77,57 @@ func test() {
 	}
 
 	if jr == nil {
-		fmt.Println("Got a nil reader")
+		fmt.Println(service + ": got a nil reader")
 		return
 	}
 
 	defer jr.Close()
 
+	// Q: how to implement and use a Writer that pipes the journal entries to the `logline` channel?
 	jr.Follow(nil, os.Stdout)
 }
 
-func main() {
+// Test only, make some beeps
+func test(logline chan string) {
+	for {
+		time.Sleep(time.Duration(time.Second))
+		logline <- "beep"
+	}
+}
 
+func monitorJournal(logline chan string) {
+	for {
+		// endless loop
+		fmt.Println(<-logline)
+	}
+}
+
+func main() {
 	versionNum := 0.1
-	cycle := 1
 
 	// parse command line arguments
-	verbose := flag.Bool("v", false, "verbose, log internal data to stdout")
 	version := flag.Bool("version", false, "return program version")
 	flag.Parse()
 
+	fmt.Println("bbbsupervisor version", versionNum)
 	if *version {
-		fmt.Println("bbbsupervisor version", versionNum)
 		os.Exit(0)
 	}
 
-	fmt.Println("BitBox Base Supervisor, version", versionNum)
+	// monitoring routine and channel to process input from systemd followers
+	logline := make(chan string)
+	go monitorJournal(logline)
+
+	// follower routines for systemd services
+	go startFollower("NetworkManager.service", logline)
+	go startFollower("user@1001.service", logline)
+	go startFollower("kernel.service", logline)
+
+	// make some beeps
+	go test(logline)
 
 	for {
 		// endless loop
-
-		if *verbose {
-			fmt.Printf("debug message: %v\n", time.Now())
-		}
-		fmt.Printf("x")
-
-		test()
-
-		time.Sleep(time.Duration(cycle) * time.Second)
+		// not sure yet what to put here
 	}
 }
