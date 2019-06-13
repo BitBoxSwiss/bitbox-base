@@ -21,14 +21,14 @@ type SampleInfo struct {
 type Middleware struct {
 	info        SampleInfo
 	environment system.Environment
-	events      chan *SampleInfo
+	events      chan interface{}
 }
 
 // NewMiddleware returns a new instance of the middleware
 func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network string) *Middleware {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network),
-		events:      make(chan *SampleInfo),
+		events:      make(chan interface{}),
 		info: SampleInfo{
 			Blocks:         0,
 			Difficulty:     0.0,
@@ -96,7 +96,7 @@ func (middleware *Middleware) rpcLoop() {
 }
 
 // Start gives a trigger for the handler to start the rpc event loop
-func (middleware *Middleware) Start() <-chan *SampleInfo {
+func (middleware *Middleware) Start() <-chan interface{} {
 	go middleware.rpcLoop()
 	return middleware.events
 }
