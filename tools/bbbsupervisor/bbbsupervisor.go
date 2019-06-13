@@ -54,7 +54,7 @@ import (
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
-//TODO: create "follower" with proper methods (like newFollower, Writer) and data fields
+//TODO(Stadicus): create "follower" with proper methods (like newFollower, Writer) and data fields
 func startFollower(service string, journaldLogMsg chan string) {
 	fmt.Println(service + ": started")
 
@@ -83,7 +83,7 @@ func startFollower(service string, journaldLogMsg chan string) {
 
 	defer jr.Close()
 
-	// TODO: use custom Writer that pipes the journal entries to the `logline` channel
+	// TODO(Stadicus): use custom Writer that pipes the journal entries to the `logline` channel
 	jr.Follow(nil, os.Stdout)
 }
 
@@ -126,10 +126,10 @@ func main() {
 			fmt.Println(message)
 
 		// logfile messages
-		// TODO: tail logfiles on filesystem (if necessary)
+		// TODO(Stadicus): tail logfiles on filesystem (if necessary)
 
 		// Prometheus updates
-		// TODO: recurring system metrics from Prometheus databasae
+		// TODO(Stadicus): recurring system metrics from Prometheus databasae
 
 		// test messages
 		case message := <-testMsg:
