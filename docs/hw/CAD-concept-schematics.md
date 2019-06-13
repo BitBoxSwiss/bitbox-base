@@ -12,4 +12,4 @@ nav_order: 210
 
 [images]: Base_render_top_dimensions_1.png "Concept Render of BitBox Base - top view"
 
-[images]: base_section_explode_angle_1.pn "Concept Render of BitBox Base - exploded section view"
+[images]: base_section_explode_angle_1.png "Concept Render of BitBox Base - exploded section view"
