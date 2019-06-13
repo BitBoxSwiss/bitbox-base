@@ -30,7 +30,7 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. [Electrs](applications/electrs.md)
 1. Supporting applications
    1. Base Supervisor
-   1. Tor
+   1. [Tor](support/tor.md)
    1. NGINX
    1. Custom tools
    1. Prometheus
