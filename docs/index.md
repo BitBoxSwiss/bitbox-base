@@ -37,7 +37,7 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. [c-lightning](applications/c-lightning.md)
    1. [Electrs](applications/electrs.md)
 1. Supporting applications
-   1. Base Supervisor
+   1. [Base Supervisor](support/supervisor.md)
    1. [Tor](support/tor.md)
    1. [NGINX](support/nginx.md)
    1. Custom tools
