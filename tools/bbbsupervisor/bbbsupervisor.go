@@ -54,11 +54,11 @@ import (
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
-//Q: how to create this "Follower" according to best practice?
-func startFollower(service string, logline chan string) {
+//TODO: create "follower" with proper methods (like newFollower, Writer) and data fields
+func startFollower(service string, journaldLogMsg chan string) {
 	fmt.Println(service + ": started")
 
-	logline <- "channel: " + service + ": started"
+	journaldLogMsg <- "channel: " + service + ": started"
 
 	jconf := sdjournal.JournalReaderConfig{
 		Since: time.Duration(-15) * time.Second,
@@ -83,22 +83,15 @@ func startFollower(service string, logline chan string) {
 
 	defer jr.Close()
 
-	// Q: how to implement and use a Writer that pipes the journal entries to the `logline` channel?
+	// TODO: use custom Writer that pipes the journal entries to the `logline` channel
 	jr.Follow(nil, os.Stdout)
 }
 
 // Test only, make some beeps
-func test(logline chan string) {
+func test(testMsg chan string) {
 	for {
 		time.Sleep(time.Duration(time.Second))
-		logline <- "beep"
-	}
-}
-
-func monitorJournal(logline chan string) {
-	for {
-		// endless loop
-		fmt.Println(<-logline)
+		testMsg <- "beep"
 	}
 }
 
@@ -115,19 +108,32 @@ func main() {
 	}
 
 	// monitoring routine and channel to process input from systemd followers
-	logline := make(chan string)
-	go monitorJournal(logline)
+	journaldLogMsg := make(chan string)
 
 	// follower routines for systemd services
-	go startFollower("NetworkManager.service", logline)
-	go startFollower("user@1001.service", logline)
-	go startFollower("kernel.service", logline)
+	go startFollower("NetworkManager.service", journaldLogMsg)
+	go startFollower("bitcoind.service", journaldLogMsg)
+	go startFollower("electrs.service", journaldLogMsg)
 
 	// make some beeps
-	go test(logline)
+	testMsg := make(chan string)
+	go test(testMsg)
 
 	for {
-		// endless loop
-		// not sure yet what to put here
+		select {
+		// journald log messages
+		case message := <-journaldLogMsg:
+			fmt.Println(message)
+
+		// logfile messages
+		// TODO: tail logfiles on filesystem (if necessary)
+
+		// Prometheus updates
+		// TODO: recurring system metrics from Prometheus databasae
+
+		// test messages
+		case message := <-testMsg:
+			fmt.Println("Test: " + message)
+		}
 	}
 }
