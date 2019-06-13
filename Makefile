@@ -21,6 +21,10 @@ build-all: build-target-exists docker-build-go
 	@echo "Building armbian.."
 	$(MAKE) -C armbian
 
+clean:
+	$(MAKE) -C armbian clean
+	rm -rf $(REPO_ROOT)/build
+
 dockerinit: check-docker
 	docker build --tag digitalbitbox/bitbox-base .
 

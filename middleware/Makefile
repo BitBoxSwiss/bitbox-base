@@ -21,9 +21,9 @@ fetch-deps:
 	@echo "Fetching dependencies.."
 	go get -v ./...
 
-native: check-go-env fetch-deps
+native: check-go-env fetch-deps ci
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
-aarch64: check-go-env fetch-deps
+aarch64: check-go-env fetch-deps ci
 	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
 	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/build/base-middleware
