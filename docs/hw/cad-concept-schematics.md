@@ -1,7 +1,7 @@
 ---
 layout: default
 title: CAD concept schematics
-parent: Operating System
+parent: Hardware
 nav_order: 230
 ---
 ## Concept Schematics
