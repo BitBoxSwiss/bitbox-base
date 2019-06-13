@@ -6,10 +6,8 @@ nav_order: 210
 ---
 ## Concept Schematics
 
-![alt text][images]
+![alt text](Base_render_angle_1.png "Concept Render of BitBox Base")
 
-[images]: Base_render_angle_1.png "Concept Render of BitBox Base"
+![alt text](Base_render_top_dimensions_1.png "Concept Render of BitBox Base - top view")
 
-[images]: Base_render_top_dimensions_1.png "Concept Render of BitBox Base - top view"
-
-[images]: base_section_explode_angle_1.png "Concept Render of BitBox Base - exploded section view"
+![alt text](base_section_explode_angle_1.png "Concept Render of BitBox Base - exploded section view")
