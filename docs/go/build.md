@@ -9,7 +9,7 @@ parent: Go applications
 The BitBox Base runs custom software written in Go that has to be compiled and become part of [the Armbian image](/os/armbian-build.md).
 This page describes the process used to build those images.
 
-The top-level [`Makefile`](https://github.com/digitalbitbox/bitbox-base/blob/master/Makefile#L27) for the repository has two targets:
+The top-level [`Makefile`](https://github.com/digitalbitbox/bitbox-base/blob/master/Makefile) for the repository has two targets:
 
 - `make docker-build-go`: Build the Go applications inside a Docker container
 - `make build-go`: Build the Go applications on the host
