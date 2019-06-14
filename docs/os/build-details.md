@@ -15,7 +15,7 @@ It performs the following steps:
 1. cloning the [`github.com/armbian/build`](https://github.com/armbian/build/) repo into `armbian/armbian-build/`, if it doesn't exist already
 1. copying over the following files from the host system into `armbian/armbian-build/userpatches/overlay/`:
     1. `armbian/base/`: scripts and configs included in the Armbian image
-    1. `build/`: contains all built Go binaries and their associated `.service` files
+    1. `build/`: contains all [built Go binaries](/docs/go-apps.md) and their associated `.service` files
     1. [`customize-image.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-image.sh): the hook which the Armbian build process calls
 1. constructing the appropriate build arguments
 1. calling the [`armbian/armbian-build/compile.sh`](https://github.com/armbian/build/blob/master/compile.sh) script with the `docker` argument, to kick off the dockerized build process
