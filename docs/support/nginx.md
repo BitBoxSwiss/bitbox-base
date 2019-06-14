@@ -29,7 +29,7 @@ The main configuration file in turn includes all `conf` files from this director
 
 #### Main configuration
 
-The file `/etc/nginx/nginx.conf` contains the main configuration. the TCP reverse-proxy for the Electrum server (the `stream {...}` block) and the top `http {...}` block to include additional HTTP reverse-proxy rules.
+The file `/etc/nginx/nginx.conf` contains the main configuration.
 
 * **General configuration**: information is available in the [NGINX documentation](https://nginx.org/en/docs/ngx_core_module.html)
 * **TCP reverse-proxy** is used for the Electrum server: as `electrs` does not provide TLS encryption, NGINX is used to route TCP communication from the insecure internal port `50001` over the public TLS port `50002` which uses TLS with a self-signed SSL certificate.
