@@ -28,16 +28,15 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. [Configuration](os/configuration.md)
    1. [Security considerations](os/security.md)
    1. [Helper scripts](os/helper-scripts.md)
-1. Base Middleware
-   1. API
-   1. Noise encryption
-   1. HSM integration
+1. Go applications
+   1. [Building Go binaries](go/build.md)
+   1. [Middleware](go/middleware.md)
+   1. [Go tools](go/tools.md)
 1. Main applications
    1. [Bitcoin Core](applications/bitcoin-core.md)
    1. [c-lightning](applications/c-lightning.md)
    1. [Electrs](applications/electrs.md)
 1. Supporting applications
-   1. [Base Supervisor](support/supervisor.md)
    1. [Tor](support/tor.md)
    1. [NGINX](support/nginx.md)
    1. Custom tools
