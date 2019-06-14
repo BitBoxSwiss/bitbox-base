@@ -5,7 +5,9 @@ nav_order: 100
 ---
 # BitBox Base
 
-The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin full node appliance. The whole softare stack is free open-source. This documentation is aimed at project members, contributors and intersted people that want to reuse our work on their own devices.
+The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin full node appliance.
+The whole softare stack is free open-source.
+This documentation is aimed at project members, contributors and intersted people that want to reuse our work on their own devices.
 
 ## Table of Content
 
@@ -42,7 +44,7 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. [NGINX](support/nginx.md)
    1. Custom tools
    1. Prometheus
-   1. Grafana
+   1. [Grafana](support/grafana.md)
 1. Firmware upgrades
    1. [Overall concept](upgrade/concept.md)
    1. Device implementation
