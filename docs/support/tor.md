@@ -19,7 +19,7 @@ Please not that only Bitcoin-related communication is routed over Tor.
 
 ### Installation
 
-Tor is installed using the official repository at `https://deb.torproject.org/torproject.org`, over a TLS connection secured by the official Tor signing key.
+Tor is installed using signed Debian packages from the official repository at `https://deb.torproject.org/torproject.org`.
 
 ### Configuration
 
