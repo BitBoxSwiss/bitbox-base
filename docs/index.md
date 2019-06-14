@@ -18,6 +18,10 @@ The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcry
    1. Build system
    1. Build configuration
    1. Dependencies
+1. Go applications
+   1. [Building Go binaries](go/build.md)
+   1. [Middleware](go/middleware.md)
+   1. [Go tools](go/tools.md)
 1. Operating System
    1. [Build Armbian image](os/armbian-build.md)
    1. [Build details](os/build-details.md)
