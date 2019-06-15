@@ -61,23 +61,23 @@ The following metrics are collected both from the system and from specific appli
 * **Operating System**: the [Prometheus Node Exporter](https://github.com/prometheus/node_exporter) collects very granualar system operations information.
   * Installation: downloaded from the [GitHub releases page](https://github.com/prometheus/node_exporter/releases), verified against a hardcoded checksum and installed by the Armbian build script similar to Prometheus itself
   * Service management: run by systemd as `prometheus-node-exporter.service`
-  * Prometheus URI: <http://localhost:9100>
+  * Prometheus URI: <http://127.0.0.1:9100>
 * **BitBox Base**
   * Installation: single Python3 script [`prometheus-base.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/prometheus-base.py) that is copied to `/opt/shift/scripts/`
   * Service management: run by systemd as `prometheus-base.service`
-  * Prometheus URI: <http://localhost:8400>
+  * Prometheus URI: <http://127.0.0.1:8400>
 * **Bitcoin Core**
   * Installation: single Python3 script [`prometheus-bitcoind.py`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/prometheus-bitcoind.py) that is copied to `/opt/shift/scripts/`
   * Service management: run by systemd as `prometheus-bitcoind.service`
-  * Prometheus URI: <http://localhost:8334>
+  * Prometheus URI: <http://127.0.0.1:8334>
 * **electrs**
   * Installation & service management: `electrs` provides Prometheus metrics by default, no additional steps necessary.
-  * Prometheus URI: <http://localhost:4224>
+  * Prometheus URI: <http://127.0.0.1:4224>
 * **c-lightning**
   * Installation: single Python3 script that is downloaded from the [`lightningd/plugins`](https://github.com/lightningd/plugins/tree/master/prometheus) GitHub repository to `/opt/shift/scripts/` and checked against a hardcoded checksum
   * Service management: the script is run as a c-lightning server plugin and started together with `lightningd`.
     It is specified in the configuration file `/etc/lightningd/lightningd.conf`.
-  * Prometheus URI: <http://localhost:9900>
+  * Prometheus URI: <http://127.0.0.1:9900>
 
 ### Service management
 
