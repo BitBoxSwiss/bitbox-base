@@ -16,7 +16,7 @@ This documentation is aimed at project members, contributors and intersted peopl
    1. [Specifications Overview](hw/spec-overview.md)
    1. [Platform Choice](hw/platform-choice.md)
    1. [CAD Concept Schematics](hw/cad-concept-schematics.md)
-1. Creating the Base image
+1. [Creating the Base image](base-image.md)
 1. Go applications
    1. [Building Go binaries](go/build.md)
    1. [Middleware](go/middleware.md)
@@ -34,7 +34,7 @@ This documentation is aimed at project members, contributors and intersted peopl
 1. Supporting applications
    1. [Tor](support/tor.md)
    1. [NGINX](support/nginx.md)
-   1. Prometheus
+   1. [Prometheus](support/prometheus.md)
    1. [Grafana](support/grafana.md)
 1. Firmware upgrades
    1. [Overall concept](upgrade/concept.md)
