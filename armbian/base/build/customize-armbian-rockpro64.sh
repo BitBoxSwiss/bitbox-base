@@ -268,7 +268,14 @@ fi
 apt update
 apt -y install tor --no-install-recommends
 
+# allow user 'bitcoin' to access Tor proxy socket
+usermod -a -G debian-tor bitcoin
+
 cat << EOF > /etc/tor/torrc
+ControlPort 9051                                          #TOR#
+CookieAuthentication 1                                    #TOR#
+CookieAuthFileGroupReadable 1                             #TOR#
+
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
 HiddenServiceVersion 3                                    #BITCOIND#
 HiddenServicePort 18333 127.0.0.1:18333                   #BITCOIND#
@@ -299,10 +306,11 @@ BITCOIN_VERSION="0.18.0"
 
 mkdir -p /usr/local/src/bitcoin
 cd /usr/local/src/bitcoin/
-curl --retry 5 -SL https://bitcoincore.org/keys/laanwj-releases.asc | gpg --import
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 
+## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
+gpg --keyserver pool.sks-keyservers.net --recv-keys 01EA5486DE18A882D4C2684590C8019E36C2E964
 gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
@@ -317,6 +325,7 @@ testnet=1
 # server
 server=1
 listen=1
+listenonion=1
 daemon=1
 txindex=0
 prune=0
