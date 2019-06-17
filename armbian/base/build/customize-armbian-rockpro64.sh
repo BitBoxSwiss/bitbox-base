@@ -268,7 +268,14 @@ fi
 apt update
 apt -y install tor --no-install-recommends
 
+# allow user 'bitcoin' to access Tor proxy socket
+usermod -a -G debian-tor bitcoin
+
 cat << EOF > /etc/tor/torrc
+ControlPort 9051                                          #TOR#
+CookieAuthentication 1                                    #TOR#
+CookieAuthFileGroupReadable 1                             #TOR#
+
 HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
 HiddenServiceVersion 3                                    #BITCOIND#
 HiddenServicePort 18333 127.0.0.1:18333                   #BITCOIND#
@@ -317,6 +324,7 @@ testnet=1
 # server
 server=1
 listen=1
+listenonion=1
 daemon=1
 txindex=0
 prune=0
