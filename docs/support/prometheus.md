@@ -8,14 +8,14 @@ nav_order: 750
 
 There's a lot going on within the BitBox Base and it's good to have reliable metrics over time to aid in development, fine-tuning, during operations and when looking for the cause of a specific error.
 [Prometheus](https://prometheus.io/) takes care of that.
-It is a open-source monitoring solution that is easily extendable to monitor any application.
+It is a open-source monitoring solution that is easily extensible to monitor any application.
 Measurements are stored in a time-series database that can easily be queried and visualized, e.g. using [Grafana](grafana.md).
-This database is also the main data pool that is queried by the Base Middleware.
+This database is also the main source of data that is queried by the Base Middleware.
 
 ### Installation
 
-The Prometheus archive file is downloaded directly from the GitHub releases page and checked against a hardcoded checksum.
-The archive is extracted, its content copied to various system locations and proper ownerwhip is set while building the Armbian image.
+The Prometheus is downloaded directly from the GitHub releases page and checked against a hardcoded checksum.
+The `.tar.gz` archive is extracted, its content copied to various system locations and proper ownerwhip is set while building the Armbian image.
 
 ```bash
 mkdir -p /etc/prometheus /var/lib/prometheus
@@ -58,7 +58,7 @@ scrape_configs:
 
 The following metrics are collected both from the system and from specific applications.
 
-* **Operating System**: the [Prometheus Node Exporter](https://github.com/prometheus/node_exporter) collects very granualar system operations information.
+* **Operating System**: the [Prometheus Node Exporter](https://github.com/prometheus/node_exporter) collects very granular information about the system, such as CPU and memory usage.
   * Installation: downloaded from the [GitHub releases page](https://github.com/prometheus/node_exporter/releases), verified against a hardcoded checksum and installed by the Armbian build script similar to Prometheus itself
   * Service management: run by systemd as `prometheus-node-exporter.service`
   * Prometheus URI: <http://127.0.0.1:9100>
