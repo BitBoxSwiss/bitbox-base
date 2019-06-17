@@ -14,7 +14,7 @@ This database is also the main source of data that is queried by the Base Middle
 
 ### Installation
 
-The Prometheus is downloaded directly from the GitHub releases page and checked against a hardcoded checksum.
+Prometheus is downloaded directly from the GitHub releases page and checked against a hardcoded checksum.
 The `.tar.gz` archive is extracted, its content copied to various system locations and proper ownerwhip is set while building the Armbian image.
 
 ```bash
