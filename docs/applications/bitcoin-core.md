@@ -25,6 +25,7 @@ The application configuration is specified in the local `/etc/bitcoin/bitcoin.co
 testnet=1
 server=1
 listen=1
+listenonion=1
 daemon=1
 txindex=0
 prune=0
@@ -55,6 +56,7 @@ Some notes about this specific configuration:
     * or by running the command `bbb-config.sh set bitcoin_network mainnet` manually on the BitBox Base (see [OS/Helper Scripts](../os/helper-scripts.md)).
   * `server`: enables the RPC interface
   * `listen`: accept connections from other nodes
+  * `listenonion`: create a Tor hidden service and accept incoming connections from other nodes on that address
   * `daemon`: run bitcoind as a server in the background
   * `txindex`: a full transaction index is not necessary, as we use electrs - which has its own indices - to serve transaction information.
   * `prune`: both c-lightning as well as electrs do not support pruned Bitcoin nodes at the moment.
