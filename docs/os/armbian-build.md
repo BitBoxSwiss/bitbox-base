@@ -65,11 +65,11 @@ Now the operating system image can be built. The whole BitBox Base configuration
   make
   ```
 
-* The resulting image is available in `armbian-build/output/images/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!  
+* The resulting image is available in `build/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
   
   ```bash
   lsblk
-  sudo dd if=armbian-build/output/images/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
+  sudo dd if=build/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
   sync
   ```  
 
