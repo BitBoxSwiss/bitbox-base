@@ -310,7 +310,7 @@ curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --keyserver pool.sks-keyservers.net --recv-keys 01EA5486DE18A882D4C2684590C8019E36C2E964
+gpg --import /tmp/overlay/build/laanwj-releases.asc
 gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1

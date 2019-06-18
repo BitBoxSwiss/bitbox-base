@@ -4,7 +4,7 @@
 # to check basic system parameters and assure correct configuration.
 #
 
-set -eu
+set -eux
 
 SYSCONFIG_PATH="/opt/shift/sysconfig"
 
@@ -45,10 +45,15 @@ if ! grep -q '/mnt/ssd' /etc/fstab ; then
       echo "/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
     elif lsblk | grep -q 'sda1'; then
       echo "/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
+    else
+      echo "ERR: autosetup partition not found"
     fi
   fi
 
   mount -a
+
+else
+  echo "/mnt/ssd is already specified in /etc/fstab, no action required"
 
 fi
 
