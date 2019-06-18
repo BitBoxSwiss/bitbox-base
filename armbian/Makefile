@@ -7,4 +7,4 @@ update:
 	bash $(MAKE_PATH)/build.sh update
 
 clean:
-	bash $(MAKE_PATH)/build.sh clean
+	rm -rf $(MAKE_PATH)/armbian/armbian-build

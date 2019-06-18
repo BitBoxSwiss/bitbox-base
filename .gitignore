@@ -1,7 +1,6 @@
 armbian/armbian-build
 armbian/base/build/build-local.conf
 armbian/base/config/latest_commit
-build
 tools/bbbfancontrol/bbbfancontrol
 tools/bbbsupervisor/bbbsupervisor
 *.sw?

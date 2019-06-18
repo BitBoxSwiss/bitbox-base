@@ -9,12 +9,12 @@ set -eu
 
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
-	echo "Usage: ${0} [update]"
+	echo "Usage: ${0} [build|update]"
 }
 
 ACTION=${1:-"build"}
 
-if ! [[ "${ACTION}" =~ ^(build|update|clean)$ ]]; then
+if ! [[ "${ACTION}" =~ ^(build|update)$ ]]; then
 	usage
 	exit 1
 fi
@@ -49,9 +49,5 @@ case ${ACTION} in
 		fi
 		time ./compile.sh ${BUILD_ARGS}
 
-		;;
-
-	clean)
-		rm -rf armbian-build
 		;;
 esac
