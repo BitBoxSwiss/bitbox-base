@@ -2,28 +2,24 @@
 HAS_DOCKER := $(shell which docker 2>/dev/null)
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-build-target-exists:
-	@mkdir -p $(REPO_ROOT)/build
-
 check-docker:
 ifndef HAS_DOCKER
 	$(error "This command requires Docker.")
 endif
 
-build-go: build-target-exists
-	@mkdir -p $(REPO_ROOT)/build
+build-go:
 	@echo "Building tools.."
 	$(MAKE) -C tools
 	@echo "Building middleware.."
 	$(MAKE) -C middleware
 
-build-all: build-target-exists docker-build-go
+build-all: docker-build-go
 	@echo "Building armbian.."
 	$(MAKE) -C armbian
 
 clean:
 	$(MAKE) -C armbian clean
-	rm -rf $(REPO_ROOT)/build
+	bash $(REPO_ROOT)/scripts/clean.sh
 
 dockerinit: check-docker
 	docker build --tag digitalbitbox/bitbox-base .

@@ -1,10 +1,7 @@
 .DEFAULT_GOAL := aarch64
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/../..
 
-build-target-exists:
-	@mkdir -p $(REPO_ROOT)/build
-
-check-go-env: build-target-exists
+check-go-env:
 	@echo "Checking that environment supports Go builds.."
 	@$(REPO_ROOT)/scripts/check-go-env.sh "$(REPO_ROOT)"
 
