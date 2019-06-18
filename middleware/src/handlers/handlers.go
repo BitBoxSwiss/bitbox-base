@@ -1,4 +1,4 @@
-// Package handlers implements an api for the bitbox-wallet-app to talk to.
+// Package handlers implements an api for the bitbox-wallet-app to talk to. It also takes care of running the noise encryption.
 package handlers
 
 import (
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	noisemanager "github.com/digitalbitbox/bitbox-base/middleware/src/noise"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -27,17 +28,19 @@ type Handlers struct {
 	middleware Middleware
 	//TODO(TheCharlatan): Starting from the generic interface, flesh out restrictive types over time as the code implements more services.
 	middlewareEvents <-chan interface{}
+
+	noiseConfig *noisemanager.NoiseConfig
 }
 
 // NewHandlers returns a handler instance.
-func NewHandlers(middlewareInstance Middleware) *Handlers {
+func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 	router := mux.NewRouter()
 
 	handlers := &Handlers{
-		middleware: middlewareInstance,
-		Router:     router,
-		// TODO(TheCharlatan): The upgrader should do an origin check before upgrading. This is important later once we introduce authentication.
-		upgrader: websocket.Upgrader{},
+		middleware:  middlewareInstance,
+		Router:      router,
+		upgrader:    websocket.Upgrader{},
+		noiseConfig: noisemanager.NewNoiseConfig(dataDir),
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
@@ -47,7 +50,6 @@ func NewHandlers(middlewareInstance Middleware) *Handlers {
 	return handlers
 }
 
-// TODO(TheCharlatan): Define a better error-response system. In future, this should be the first step in an authentication procedure.
 // rootHandler provides an endpoint to indicate that the middleware is online and able to handle requests.
 func (handlers *Handlers) rootHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("OK!!\n"))
@@ -71,28 +73,36 @@ func (handlers *Handlers) getEnvHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// wsHandler spawns a new ws client, by upgrading the sent request to websocket and then starts a serveSampleInfoToClient stream.
+// wsHandler spawns a new ws client, by upgrading the sent request to websocket.
+// It listens indefinitely to events from the middleware and relays them to clients accordingly.
 func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := handlers.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err.Error() + " Failed to upgrade connection")
 	}
 
-	err = handlers.serveSampleInfoToClient(ws)
-	log.Println(err.Error(), " Websocket client disconnected.")
-}
-
-// serveSampleInfoToClient takes a single connected ws client and streams data to it indefinitely until the client disconnected, or a websocket error forces it to return.
-func (handlers *Handlers) serveSampleInfoToClient(ws *websocket.Conn) error {
-	var i = 0
-	for {
-		i++
-		event := <-handlers.middlewareEvents
-		err := ws.WriteJSON(event)
-		if err != nil {
-			log.Println(err.Error() + " Unexpected websocket error")
-			ws.Close()
-			return err
-		}
+	err = handlers.noiseConfig.InitializeNoise(ws)
+	if err != nil {
+		log.Println(err.Error() + "Noise connection failed to initialize")
+		return
 	}
+
+	sendChan, _, _, remoteHasQuitChan := handlers.runWebsocket(ws)
+	go func() {
+		for {
+			select {
+			case <-remoteHasQuitChan:
+				return
+			case event := <-handlers.middlewareEvents:
+				log.Println("sending middleware event")
+				data, err := json.Marshal(event)
+				if err != nil {
+					log.Println(err.Error() + " Failed to serialize data to json for runWebsocket")
+					return
+				}
+				sendChan <- data
+			}
+		}
+	}()
+
 }
