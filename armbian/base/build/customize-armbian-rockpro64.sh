@@ -326,13 +326,12 @@ testnet=1
 server=1
 listen=1
 listenonion=1
-daemon=1
 txindex=0
 prune=0
 disablewallet=1
-pid=/run/bitcoind/bitcoind.pid
 rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie
 sysparms=1
+printtoconsole=1
 
 # rpc
 rpcconnect=127.0.0.1
@@ -356,12 +355,12 @@ Description=Bitcoin daemon
 After=network-online.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
-ExecStart=/opt/shift/scripts/systemd-start-bitcoind.sh
+ExecStart=/usr/bin/bitcoind -conf=/etc/bitcoin/bitcoin.conf
+ExecStartPost=/opt/shift/scripts/systemd-bitcoind-post.sh
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
-Type=forking
-PIDFile=/run/bitcoind/bitcoind.pid
+Type=simple
 Restart=always
 RestartSec=60
 TimeoutSec=300
@@ -419,7 +418,6 @@ lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet
 bind-addr=127.0.0.1:9735
 proxy=127.0.0.1:9050
 log-level=debug
-daemon
 plugin=/opt/shift/scripts/prometheus-lightningd.py
 EOF
 
@@ -430,12 +428,12 @@ Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/opt/shift/scripts/systemd-start-lightningd.sh
+ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
+ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
 RuntimeDirectory=lightningd
 User=bitcoin
 Group=bitcoin
-Type=forking
-#PIDFile=/run/lightningd/lightningd.pid
+Type=simple
 Restart=always
 RestartSec=10
 TimeoutSec=240
@@ -483,7 +481,7 @@ Wants=bitcoind.service
 After=bitcoind.service
 [Service]
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/opt/shift/scripts/systemd-start-electrs.sh
+ExecStart=/opt/shift/scripts/systemd-electrs-start.sh
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin
