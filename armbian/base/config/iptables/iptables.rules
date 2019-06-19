@@ -41,9 +41,9 @@
 
 # Allow inbound ICMP type 0, 3 and 8 ("Echo Reply", "Destination
 # Unreachable" and "Echo", i.e. ping).
-# -A INPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
-# -A INPUT -p icmp -m icmp --icmp-type 3 -j ACCEPT
-# -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+-A INPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
+-A INPUT -p icmp -m icmp --icmp-type 3 -j ACCEPT
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
 
 # Explicitly whitelist established / related connections. This is a
 # last-ditch safeguard to avoid locking yourself out if a too-restrictive
