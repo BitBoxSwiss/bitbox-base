@@ -20,19 +20,22 @@ build-all: docker-build-go
 clean:
 	$(MAKE) -C armbian clean
 	bash $(REPO_ROOT)/scripts/clean.sh
+	# Note that this only delete the final image, not the docker cache
+	# You should never need it, but if you want to delete the cache, you can run
+	# "docker rmi $(docker images -a --filter=dangling=true -q)"
+	docker rmi digitalbitbox/bitbox-base
 
 dockerinit: check-docker
 	docker build --tag digitalbitbox/bitbox-base .
 
 docker-build-go: dockerinit
 	@echo "Building tools and middleware inside Docker container.."
+	docker build --tag digitalbitbox/bitbox-base .
 	docker run \
 	       --rm \
 	       --tty \
-	       -v $(REPO_ROOT):/opt/go/src/github.com/digitalbitbox/bitbox-base \
-	  digitalbitbox/bitbox-base bash -c " \
-	      make -C tools && \
-	      make -C middleware"
+	       -v $(REPO_ROOT)/build:/opt/build_host \
+	  digitalbitbox/bitbox-base bash -c "cp -f /opt/build/* /opt/build_host"
 
 ci: dockerinit
 	./scripts/travis-ci.sh

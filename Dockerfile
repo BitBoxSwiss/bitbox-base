@@ -2,28 +2,36 @@
 # The docker image produced by this config provides the build environment
 # for BitBox Base.
 #
-FROM ubuntu:18.04
-
+FROM golang:1.12.5-stretch as bitbox-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
     gcc \
     libc6-dev \
     make \
-    curl \
-    ca-certificates \
-    git
+    ca-certificates 
+WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
+RUN mkdir build
 
-RUN mkdir -p /opt/go_dist &&\
-    curl -O https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz &&\
-    echo "aea86e3c73495f205929cfebba0d63f1382c8ac59be081b6351681415f4063cf go1.12.5.linux-amd64.tar.gz" | sha256sum -c &&\
-    tar -xzf go1.12.5.linux-amd64.tar.gz -C /opt/go_dist
-
-ENV GOPATH /opt/go
-ENV GOROOT /opt/go_dist/go
-ENV PATH ${GOROOT}/bin:${GOPATH}/bin:${PATH}
-
-WORKDIR /opt/go/src/github.com/digitalbitbox/bitbox-base/middleware/
+# Build the middleware
+FROM bitbox-base as middleware-builder
+WORKDIR /go/src/github.com/digitalbitbox/bitbox-base/middleware/
 COPY middleware/scripts/ scripts/
 RUN ./scripts/envinit.sh
-WORKDIR /opt/go/src/github.com/digitalbitbox/bitbox-base
+WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
 RUN rm -rf middleware
+COPY scripts/. scripts/.
+COPY middleware/. middleware/.
+RUN make -C "middleware"
+
+# Build the tools
+FROM bitbox-base as middleware-tools
+WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
+COPY scripts/. scripts/.
+COPY tools/. tools/.
+RUN make -C "tools"
+
+# Final
+FROM golang:1.12.5-stretch as final
+
+COPY --from=middleware-builder /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
+COPY --from=middleware-tools /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
