@@ -224,7 +224,7 @@ alias ll='ls $LS_OPTIONS -la'
 
 # Bitcoin
 alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
-alias blog='tail -f /mnt/ssd/bitcoin/.bitcoin/testnet3/debug.log'
+alias blog='sudo journalctl -f -u bitcoind'
 
 # Lightning
 alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'
