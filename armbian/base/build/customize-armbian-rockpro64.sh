@@ -924,6 +924,14 @@ EOF
 
 # FINALIZE ---------------------------------------------------------------------
 
+## Remove unnecessary packages
+apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
+              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0*
+
 ## Clean up
 apt install -f
 apt clean
