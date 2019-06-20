@@ -19,7 +19,7 @@ Usage of the precompiled image can be enabled in [`build.conf`](../../armbian/ba
 
 The application configuration is specified in the local `/etc/lightningd/lightningd.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
 
-```
+```bash
 bitcoin-cli=/usr/bin/bitcoin-cli
 bitcoin-rpcconnect=127.0.0.1
 bitcoin-rpcport=18332
@@ -47,7 +47,7 @@ Additional information can be found in the reference [lightningd.config](https:/
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `lightningd.service` shown below.
 Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
 
-```
+```bash
 [Unit]
 Description=c-lightning daemon
 Wants=bitcoind.service

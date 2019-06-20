@@ -32,7 +32,8 @@ The main configuration file in turn includes all `conf` files from this director
 The file `/etc/nginx/nginx.conf` contains the main configuration.
 
 * **General configuration**: information is available in the [NGINX documentation](https://nginx.org/en/docs/ngx_core_module.html)
-* **TCP reverse-proxy** is used for the Electrum server: as `electrs` does not provide TLS encryption, NGINX is used to route TCP communication from the insecure internal port `50001` over the public TLS port `50002` which uses TLS with a self-signed SSL certificate.
+* **TCP reverse-proxy** is used for the Electrum server:
+as `electrs` does not provide TLS encryption, NGINX is used to route TCP communication from the insecure internal port `50001` over the public TLS port `50002` which uses TLS with a self-signed SSL certificate.
   For Bitcoin testnet, ports `60001`/`51002` are used.
 * **HTTP reverse-proxy** is used for specific web content like the Grafana dashboard.
   The top block specifies the general configuration like MIME types and logfile locations.

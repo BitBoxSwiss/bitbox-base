@@ -3,7 +3,7 @@ layout: default
 title: Home
 nav_order: 100
 ---
-# BitBox Base
+## BitBox Base
 
 The BitBox Base is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin full node appliance.
 The whole software stack is free open-source.

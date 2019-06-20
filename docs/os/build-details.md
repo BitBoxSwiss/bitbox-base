@@ -8,7 +8,8 @@ nav_order: 315
 
 This document goes into more detail on how the Armbian build process works.
 
-The [`armbian/build.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/build.sh) script is the entrypoint to the Armbian build process. When running `make` in the `armbian/` directory, it in turn invokes the `armbian/build.sh` script under the hood.
+The [`armbian/build.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/build.sh) script is the entrypoint to the Armbian build process.
+When running `make` in the `armbian/` directory, it in turn invokes the `armbian/build.sh` script under the hood.
 
 It performs the following steps:
 
@@ -20,10 +21,12 @@ It performs the following steps:
 1. constructing the appropriate build arguments
 1. calling the [`armbian/armbian-build/compile.sh`](https://github.com/armbian/build/blob/master/compile.sh) script with the `docker` argument, to kick off the dockerized build process
 
-During the Armbian build process that's started by [`compile.sh`](https://github.com/armbian/build/blob/master/compile.sh), our [`customize-image.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-image.sh) script is eventually called inside the build container, at which point it copies over scripts and configs from the overlay directory into the Armbian filesystem, and it in turn calls our [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) script.
+During the Armbian build process that's started by [`compile.sh`](https://github.com/armbian/build/blob/master/compile.sh), our [`customize-image.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-image.sh) script is eventually called inside the build container.
+This script copies over scripts and configs from the overlay directory into the Armbian filesystem, and then calls our [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) script.
 
 Finally, the [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) script handles steps like:
-1. creating users/groups to runthe different services
+
+1. creating users/groups to run the different services
 1. configuring SSH keys
 1. installing runtime dependencies
 1. creating and enabling systemd `.service` files

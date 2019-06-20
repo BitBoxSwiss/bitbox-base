@@ -10,11 +10,12 @@ nav_order: 350
 Mostly for convenience during development, there are several helper scripts included. All scripts are located in the [`/opt/shift/scripts/`](https://github.com/digitalbitbox/bitbox-base/tree/master/armbian/base/scripts) directory.
 
 * [**bbb-config.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-config.sh)  
-  General system configuration utility. 
-  Settings are stored in individual files in `/opt/shift/sysconfig/` as key/value pair. 
-  For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`. 
+  General system configuration utility.
+  Settings are stored in individual files in `/opt/shift/sysconfig/` as key/value pair.
+  For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`.
   It can be sourced by any script, so that the variable `BITCOIN_NETWORK` is available immediately.
-  ```
+
+  ```bash
   BitBox Base: system configuration utility
   usage: bbb-config.sh [--version] [--help]
                      <command> [<args>]
@@ -32,13 +33,14 @@ Mostly for convenience during development, there are several helper scripts incl
   get       any 'enable' or 'set' argument, or
             <all|tor_ssh_onion|tor_electrum_onion>
 
-  apply     no argument, applies all configuration settings to the system 
+  apply     no argument, applies all configuration settings to the system
             [not yet implemented]
   ```
 
 * [**bbb-systemctl.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-systemctl.sh)  
   Batch control all systemd units at once, e.g. for getting an overall status or stop all services.
-  ```
+  
+  ```bash
   BitBox Base: batch control system units
   Usage: bbb-systemctl.sh <status|start|restart|stop|enable|disable>
   ```

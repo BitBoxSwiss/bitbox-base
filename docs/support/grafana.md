@@ -19,7 +19,9 @@ The Grafana package is downloaded directly from the [release page](https://grafa
 
 ### Configuration
 
-The default Grafana configuration after install needs to be adjusted. There's no good concept to do that script-wise in the main configuration file. It is possible to add options at the end of the configuration, however, and overwrite the same option defined earlier in the file.
+The default Grafana configuration after install needs to be adjusted.
+There's no good concept to do that script-wise in the main configuration file.
+It is possible to add options at the end of the configuration, however, and overwrite the same option defined earlier in the file.
 
 The following configuration is therefore appended to `/etc/grafana/grafana.ini`, with unique `##IDs##` for later script-based adjustment:
 

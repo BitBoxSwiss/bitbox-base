@@ -19,7 +19,7 @@ This is a temporary solution and we'd like to address that and contribute to a s
 
 The application configuration is specified in the local `/etc/electrs/electrs.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
 
-```
+```bash
 NETWORK=testnet
 RPCCONNECT=127.0.0.1
 RPCPORT=18332
@@ -34,7 +34,7 @@ Contrary to other applications, this config file defines environment variables t
 
 Additional information about commandline arguments can be found by running `electrs --help`:
 
-```
+```bash
 Electrum Rust Server 0.6.1
 
 USAGE:
@@ -86,7 +86,7 @@ OPTIONS:
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `electrs.service` shown below.
 Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
 
-```
+```bash
 [Unit]
 Description=Electrs server daemon
 Wants=bitcoind.service

@@ -57,7 +57,8 @@ Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/
 
 ### Compile Armbian from source
 
-Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
+Now the operating system image can be built.
+The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
 * Start the initial build process.
   
@@ -65,7 +66,8 @@ Now the operating system image can be built. The whole BitBox Base configuration
   make
   ```
 
-* The resulting image is available in `build/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
+* The resulting image is available in `build/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/).
+On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
   
   ```bash
   lsblk
