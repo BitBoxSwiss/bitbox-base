@@ -12,7 +12,7 @@ The process to build the Armbian image for the RockPro64 board is mostly automat
 
 It makes use of the Docker containers to perform the build process:
 
-* https://docs.armbian.com/Developer-Guide_Building-with-Docker/
+* <https://docs.armbian.com/Developer-Guide_Building-with-Docker/>
 
 The following build instructions have been tested both on Debian-based Linux systems and within Windows PowerShell.
 
