@@ -39,3 +39,10 @@ docker-build-go: dockerinit
 
 ci: dockerinit
 	./scripts/travis-ci.sh
+
+docker-jekyll: dockerinit
+	# TODO(hkjn): Investigate why we need the 'rm -rf', or else Jekyll throws errors like the
+	# following, seemingly trying to read a non-existing 'share' file under armbian/armbian-build/packages/bsp/common/usr/
+	#   No such file or directory @ realpath_rec - /srv/jekyll/armbian/armbian-build/packages/bsp/common/usr/share
+	rm -rf armbian/armbian-build/packages/bsp/common/usr/
+	docker run --rm -it -p 4000:4000 -v $(REPO_ROOT):/srv/jekyll jekyll/jekyll:pages jekyll serve --watch --incremental
