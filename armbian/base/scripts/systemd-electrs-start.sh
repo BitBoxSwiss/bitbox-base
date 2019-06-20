@@ -8,7 +8,7 @@ source /etc/electrs/electrs.conf
 source /mnt/ssd/bitcoin/.bitcoin/.cookie.env
 
 # start main application
-/usr/bin/electrs \
+exec /usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
     --daemon-dir ${DAEMON_DIR} \
