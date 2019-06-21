@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# This script is called by the prometheus-bitcoind.service 
+# This script is called by the prometheus-bitcoind.service
 # to provide Bitcoin metrics to Prometheus.
 #
 
@@ -23,28 +23,20 @@ bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
 # Create Prometheus metrics to track bitcoind stats.
 BITCOIN_NETWORK = Gauge("bitcoin_network", "Bitcoin network (1=main/2=test/3=reg")
 BITCOIN_BLOCKS = Gauge("bitcoin_blocks", "Block height")
-BITCOIN_VERIFICATION_PROGRESS = Gauge(
-    "bitcoin_verification_progress", "Verification progress of blockchain in percent"
-)
+BITCOIN_VERIFICATION_PROGRESS = Gauge("bitcoin_verification_progress", "Verification progress of blockchain in percent")
 BITCOIN_DIFFICULTY = Gauge("bitcoin_difficulty", "Difficulty")
 BITCOIN_PEERS = Gauge("bitcoin_peers", "Number of peers")
 BITCOIN_HASHPS = Gauge("bitcoin_hashps", "Estimated network hash rate per second")
 BITCOIN_WARNINGS = Counter("bitcoin_warnings", "Number of warnings detected")
 BITCOIN_UPTIME = Gauge("bitcoin_uptime", "Number of seconds the Bitcoin daemon has been running")
 BITCOIN_MEMPOOL_BYTES = Gauge("bitcoin_mempool_bytes", "Size of mempool in bytes")
-BITCOIN_MEMPOOL_SIZE = Gauge(
-    "bitcoin_mempool_size", "Number of unconfirmed transactions in mempool"
-)
+BITCOIN_MEMPOOL_SIZE = Gauge("bitcoin_mempool_size", "Number of unconfirmed transactions in mempool")
 BITCOIN_LATEST_BLOCK_SIZE = Gauge("bitcoin_latest_block_size", "Size of latest block in bytes")
-BITCOIN_LATEST_BLOCK_TXS = Gauge(
-    "bitcoin_latest_block_txs", "Number of transactions in latest block"
-)
+BITCOIN_LATEST_BLOCK_TXS = Gauge("bitcoin_latest_block_txs", "Number of transactions in latest block")
 BITCOIN_NUM_CHAINTIPS = Gauge("bitcoin_num_chaintips", "Number of known blockchain branches")
 BITCOIN_TOTAL_BYTES_RECV = Gauge("bitcoin_total_bytes_recv", "Total bytes received")
 BITCOIN_TOTAL_BYTES_SENT = Gauge("bitcoin_total_bytes_sent", "Total bytes sent")
-BITCOIN_LATEST_BLOCK_INPUTS = Gauge(
-    "bitcoin_latest_block_inputs", "Number of inputs in transactions of latest block"
-)
+BITCOIN_LATEST_BLOCK_INPUTS = Gauge("bitcoin_latest_block_inputs", "Number of inputs in transactions of latest block")
 BITCOIN_LATEST_BLOCK_OUTPUTS = Gauge(
     "bitcoin_latest_block_outputs", "Number of outputs in transactions of latest block"
 )
@@ -66,10 +58,7 @@ def bitcoin(cmd):
     if len(bitcoind_conf) > 0:
         args = [bitcoind_conf] + args
     bitcoin = subprocess.Popen(
-        [BITCOIN_CLI_PATH] + args,
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
     output = bitcoin.communicate()[0]
     return json.loads(output.decode("utf-8"))
@@ -80,10 +69,7 @@ def bitcoincli(cmd):
     if len(bitcoind_conf) > 0:
         args = [bitcoind_conf] + args
     bitcoin = subprocess.Popen(
-        [BITCOIN_CLI_PATH] + args,
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
     output = bitcoin.communicate()[0]
     return output.decode("utf-8")

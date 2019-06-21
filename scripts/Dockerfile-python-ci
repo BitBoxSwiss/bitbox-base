@@ -1,0 +1,16 @@
+#
+# The docker image produced by this config provides the build environment
+# for BitBox Base.
+#
+# note: sha256 value is current hash for alpine:3.10.0
+FROM alpine@sha256:ca1c944a4f8486a153024d9965aafbe24f5723c1d5c02f4964c045a16d19dc54
+
+
+# note: gcc, libc-dev and python3-dev packages are required to install pylint
+RUN apk add --no-cache bash dev86 git gcc libc-dev ncurses python3 python3-dev && \
+    pip3 install --upgrade pip && \
+    pip3 install black pylint prometheus_client whichcraft
+
+WORKDIR /opt/repo_host
+ENTRYPOINT ["./scripts/check-pep8"]
+

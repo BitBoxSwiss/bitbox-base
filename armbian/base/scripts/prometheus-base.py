@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# This script is called by the prometheus-base.service 
+# This script is called by the prometheus-base.service
 # to provide system metrics to Prometheus.
 #
 
@@ -11,7 +11,7 @@ import subprocess
 import sys
 from prometheus_client import start_http_server, Gauge, Counter, Info
 
-SYSCONFIG_PATH="/opt/shift/sysconfig/"
+SYSCONFIG_PATH = "/opt/shift/sysconfig/"
 
 # Create Prometheus metrics to track Base stats.
 ## metadata
@@ -36,15 +36,17 @@ def readFile(filepath):
 
     return value
 
-def getSystemInfo():
-        configfiles = ['HOSTNAME','BUILD_DATE','BUILD_TIME','BUILD_COMMIT']
-        info = {}
-        for filename in configfiles:
-            file = open(SYSCONFIG_PATH + filename,'r')
-            info[filename.lower()] = file.readline().split('=')[1].strip(("\"'\n"))
-            file.close()
 
-        return info
+def getSystemInfo():
+    configfiles = ["HOSTNAME", "BUILD_DATE", "BUILD_TIME", "BUILD_COMMIT"]
+    info = {}
+    for filename in configfiles:
+        file = open(SYSCONFIG_PATH + filename, "r")
+        info[filename.lower()] = file.readline().split("=")[1].strip(("\"'\n"))
+        file.close()
+
+    return info
+
 
 def getSystemdStatus(unit):
     try:
@@ -53,6 +55,7 @@ def getSystemdStatus(unit):
     except subprocess.CalledProcessError as e:
         print(unit, e.returncode, e.output)
         return e.returncode
+
 
 def main():
     # Start up the server to expose the metrics.

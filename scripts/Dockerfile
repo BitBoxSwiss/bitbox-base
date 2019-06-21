@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
     make \
-    ca-certificates 
+    ca-certificates
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
 RUN mkdir build
 
