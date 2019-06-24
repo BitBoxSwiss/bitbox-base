@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-# This script is called by the prometheus-bitcoind.service
-# to provide Bitcoin metrics to Prometheus.
-#
+"""
+This script is called by the prometheus-bitcoind.service
+to provide Bitcoin metrics to Prometheus.
+"""
 
 import json
 import time
