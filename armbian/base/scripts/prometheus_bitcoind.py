@@ -67,7 +67,7 @@ def bitcoin(cmd):
         The output of the command, if any, as JSON-decoded object.
     """
     args = [cmd]
-    if len(BITCOIND_CONF) > 0:
+    if BITCOIND_CONF:
         args = [BITCOIND_CONF] + args
     bitcoin_cmd = subprocess.Popen(
         [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
@@ -78,12 +78,12 @@ def bitcoin(cmd):
 
 def bitcoincli(cmd):
     args = [cmd]
-    if len(BITCOIND_CONF) > 0:
+    if BITCOIND_CONF:
         args = [BITCOIND_CONF] + args
-    bitcoin = subprocess.Popen(
+    bitcoin_cmd = subprocess.Popen(
         [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    output = bitcoin.communicate()[0]
+    output = bitcoin_cmd.communicate()[0]
     return output.decode("utf-8")
 
 
@@ -96,7 +96,7 @@ def get_block(block_height):
         The block, as JSON-decoded object.
     """
     args = ["getblock", block_height]
-    if len(BITCOIND_CONF) > 0:
+    if BITCOIND_CONF:
         args = [BITCOIND_CONF] + args
 
     try:
@@ -117,7 +117,7 @@ def get_raw_tx(txid):
         The transaction, as JSON-decoded object.
     """
     args = ["getrawtransaction", txid, "1"]
-    if len(BITCOIND_CONF) > 0:
+    if BITCOIND_CONF:
         args = [BITCOIND_CONF] + args
 
     try:
