@@ -43,7 +43,7 @@ def read_file(filepath):
     return result
 
 
-def getSystemInfo():
+def get_system_info():
     configfiles = ["HOSTNAME", "BUILD_DATE", "BUILD_TIME", "BUILD_COMMIT"]
     info = {}
     for filename in configfiles:
@@ -54,7 +54,7 @@ def getSystemInfo():
     return info
 
 
-def getSystemdStatus(unit):
+def get_systemd_status(unit):
     try:
         subprocess.check_output(["systemctl", "is-active", unit])
         return 0
@@ -67,15 +67,15 @@ def main():
     # Start up the server to expose the metrics.
     start_http_server(8400)
     while True:
-        BASE_SYSTEM_INFO.info(getSystemInfo())
+        BASE_SYSTEM_INFO.info(get_system_info())
         BASE_CPU_TEMP.set(read_file("/sys/class/thermal/thermal_zone0/temp"))
         BASE_FAN_SPEED.set(read_file("/sys/class/hwmon/hwmon0/pwm1"))
 
-        BASE_SYSTEMD_BITCOIND.set(int(getSystemdStatus("bitcoind")))
-        BASE_SYSTEMD_ELECTRS.set(int(getSystemdStatus("electrs")))
-        BASE_SYSTEMD_LIGHTNINGD.set(int(getSystemdStatus("lightningd")))
-        BASE_SYSTEMD_PROMETHEUS.set(int(getSystemdStatus("prometheus")))
-        BASE_SYSTEMD_GRAFANA.set(int(getSystemdStatus("grafana-server")))
+        BASE_SYSTEMD_BITCOIND.set(int(get_systemd_status("bitcoind")))
+        BASE_SYSTEMD_ELECTRS.set(int(get_systemd_status("electrs")))
+        BASE_SYSTEMD_LIGHTNINGD.set(int(get_systemd_status("lightningd")))
+        BASE_SYSTEMD_PROMETHEUS.set(int(get_systemd_status("prometheus")))
+        BASE_SYSTEMD_GRAFANA.set(int(get_systemd_status("grafana-server")))
 
         time.sleep(10)
 
