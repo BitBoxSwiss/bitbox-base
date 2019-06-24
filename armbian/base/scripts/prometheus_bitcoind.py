@@ -90,8 +90,8 @@ def get_block(block_height):
 
     try:
         block = subprocess.check_output([BITCOIN_CLI_PATH] + args)
-    except Exception as e:
-        print(e)
+    except subprocess.CalledProcessError as cpe:
+        print(cpe)
         print("Error: Can't retrieve block number " + block_height + " from bitcoind.")
         return None
     return json.loads(block.decode("utf-8"))
@@ -111,8 +111,8 @@ def get_raw_tx(txid):
 
     try:
         rawtx = subprocess.check_output([BITCOIN_CLI_PATH])
-    except Exception as e:
-        print(e)
+    except subprocess.CalledProcessError as cpe:
+        print(cpe)
         print("Error: Can't retrieve raw transaction " + txid + " from bitcoind.")
         return None
     return json.loads(rawtx.decode("utf-8"))
