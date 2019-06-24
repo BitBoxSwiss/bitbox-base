@@ -76,17 +76,6 @@ def bitcoin(cmd):
     return json.loads(output.decode("utf-8"))
 
 
-def bitcoincli(cmd):
-    args = [cmd]
-    if BITCOIND_CONF:
-        args = [BITCOIND_CONF] + args
-    bitcoin_cmd = subprocess.Popen(
-        [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    output = bitcoin_cmd.communicate()[0]
-    return output.decode("utf-8")
-
-
 def get_block(block_height):
     """Fetch block at specified height from bitcoin-cli.
 
@@ -147,7 +136,7 @@ def main():
             mempool = bitcoin("getmempoolinfo")
             nettotals = bitcoin("getnettotals")
             latest_block = get_block(str(blockchaininfo["bestblockhash"]))
-            hashps = float(bitcoincli("getnetworkhashps"))
+            hashps = float(bitcoin("getnetworkhashps"))
 
             # map network names to int (0 = undefined)
             networks = {"main": 1, "test": 2, "regtest": 3}
