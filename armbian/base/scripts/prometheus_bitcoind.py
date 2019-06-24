@@ -123,60 +123,62 @@ def main():
     """
     start_http_server(8334)
     while True:
+        blockchaininfo = None
         try:
             blockchaininfo = bitcoin("getblockchaininfo")
-        except:
-            blockchaininfo = None
-            print("Error: Could not get data, Bitcoin Core still warming up?")
+        except FileNotFoundError as fnfe:
+            print("Error: Could not get data: {}".format(fnfe))
+            sys.exit(1)
 
-        if blockchaininfo is not None:
-            blockchaininfo = bitcoin("getblockchaininfo")
-            networkinfo = bitcoin("getnetworkinfo")
-            chaintips = len(bitcoin("getchaintips"))
-            mempool = bitcoin("getmempoolinfo")
-            nettotals = bitcoin("getnettotals")
-            latest_block = get_block(str(blockchaininfo["bestblockhash"]))
-            hashps = float(bitcoin("getnetworkhashps"))
+        blockchaininfo = bitcoin("getblockchaininfo")
+        networkinfo = bitcoin("getnetworkinfo")
+        chaintips = len(bitcoin("getchaintips"))
+        mempool = bitcoin("getmempoolinfo")
+        nettotals = bitcoin("getnettotals")
+        latest_block = get_block(str(blockchaininfo["bestblockhash"]))
+        hashps = float(bitcoin("getnetworkhashps"))
 
-            # map network names to int (0 = undefined)
-            networks = {"main": 1, "test": 2, "regtest": 3}
-            BITCOIN_NETWORK.set(networks.get(blockchaininfo["chain"], 0))
-            BITCOIN_VERIFICATION_PROGRESS.set(blockchaininfo["verificationprogress"])
-            BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
-            BITCOIN_PEERS.set(networkinfo["connections"])
-            BITCOIN_DIFFICULTY.set(blockchaininfo["difficulty"])
-            BITCOIN_HASHPS.set(hashps)
+        # map network names to int (0 = undefined)
+        networks = {"main": 1, "test": 2, "regtest": 3}
+        BITCOIN_NETWORK.set(networks.get(blockchaininfo["chain"], 0))
+        BITCOIN_VERIFICATION_PROGRESS.set(blockchaininfo["verificationprogress"])
+        BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
+        BITCOIN_PEERS.set(networkinfo["connections"])
+        BITCOIN_DIFFICULTY.set(blockchaininfo["difficulty"])
+        BITCOIN_HASHPS.set(hashps)
 
-            if networkinfo["warnings"]:
-                BITCOIN_WARNINGS.inc()
+        if networkinfo["warnings"]:
+            BITCOIN_WARNINGS.inc()
 
-            BITCOIN_NUM_CHAINTIPS.set(chaintips)
+        BITCOIN_NUM_CHAINTIPS.set(chaintips)
 
-            BITCOIN_MEMPOOL_BYTES.set(mempool["bytes"])
-            BITCOIN_MEMPOOL_SIZE.set(mempool["size"])
+        BITCOIN_MEMPOOL_BYTES.set(mempool["bytes"])
+        BITCOIN_MEMPOOL_SIZE.set(mempool["size"])
 
-            BITCOIN_TOTAL_BYTES_RECV.set(nettotals["totalbytesrecv"])
-            BITCOIN_TOTAL_BYTES_SENT.set(nettotals["totalbytessent"])
+        BITCOIN_TOTAL_BYTES_RECV.set(nettotals["totalbytesrecv"])
+        BITCOIN_TOTAL_BYTES_SENT.set(nettotals["totalbytessent"])
 
-            if latest_block is not None:
-                BITCOIN_LATEST_BLOCK_SIZE.set(latest_block["size"])
-                BITCOIN_LATEST_BLOCK_TXS.set(len(latest_block["tx"]))
-                inputs, outputs = 0, 0
+        if latest_block is not None:
+            BITCOIN_LATEST_BLOCK_SIZE.set(latest_block["size"])
+            BITCOIN_LATEST_BLOCK_TXS.set(len(latest_block["tx"]))
+            inputs, outputs = 0, 0
 
-                if TXINDEX_ENABLED:
-                    for tx in latest_block["tx"]:
+            if TXINDEX_ENABLED:
+                # We disable pylint complaining about 'tx', since it's a fine name for a Bitcoin tx:
+                # pylint: disable=invalid-name
+                for tx in latest_block["tx"]:
 
-                        if get_raw_tx(tx) is not None:
-                            rawtx = get_raw_tx(tx)
-                            i = len(rawtx["vin"])
-                            inputs += i
-                            o = len(rawtx["vout"])
-                            outputs += o
+                    if get_raw_tx(tx) is not None:
+                        rawtx = get_raw_tx(tx)
+                        i = len(rawtx["vin"])
+                        inputs += i
+                        o = len(rawtx["vout"])
+                        outputs += o
 
-                BITCOIN_LATEST_BLOCK_INPUTS.set(inputs)
-                BITCOIN_LATEST_BLOCK_OUTPUTS.set(outputs)
+            BITCOIN_LATEST_BLOCK_INPUTS.set(inputs)
+            BITCOIN_LATEST_BLOCK_OUTPUTS.set(outputs)
 
-        time.sleep(5)
+    time.sleep(5)
 
 
 if __name__ == "__main__":
