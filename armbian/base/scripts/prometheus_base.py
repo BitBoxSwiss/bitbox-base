@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-# This script is called by the prometheus-base.service
-# to provide system metrics to Prometheus.
-#
+"""
+This script is called by the prometheus-base.service
+to provide system metrics to Prometheus.
+"""
 
 import json
 import time
