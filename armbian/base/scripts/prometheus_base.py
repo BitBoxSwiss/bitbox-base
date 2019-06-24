@@ -38,10 +38,10 @@ def read_file(filepath):
         The contents of the file, as str.
     """
     args = [filepath]
+    result = None
     with open(filepath) as f:
-        value = f.readline()
-
-    return value
+        result = f.read()
+    return result
 
 
 def getSystemInfo():
