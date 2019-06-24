@@ -82,7 +82,8 @@ def get_systemd_status(unit):
 
 
 def main():
-    # Start up the server to expose the metrics.
+    """Run server to expose the metrics.
+    """
     start_http_server(8400)
     while True:
         BASE_SYSTEM_INFO.info(get_system_info())
