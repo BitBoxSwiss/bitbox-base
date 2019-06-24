@@ -14,12 +14,11 @@ from prometheus_client import start_http_server, Gauge, Counter
 # CONFIG
 #   counting transaction inputs and outputs requires that bitcoind is configured with txindex=1, which may also
 #     necessitate reindex=1 in bitcoin.conf; set True or False, according to your bicoind configuration
-txindex_enabled = False
+TXINDEX_ENABLED = False
 
 #   when using a non-standard path for bitcoin.conf, set it here as cli argument (e.g. "-conf=/btc/bitcoin.conf")
 #     or leave empty
-bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
-
+BITCOIND_CONF = "-conf=/etc/bitcoin/bitcoin.conf"
 
 # Create Prometheus metrics to track bitcoind stats.
 BITCOIN_NETWORK = Gauge("bitcoin_network", "Bitcoin network (1=main/2=test/3=reg")
@@ -56,8 +55,8 @@ BITCOIN_CLI_PATH = str(find_bitcoin_cli())
 
 def bitcoin(cmd):
     args = [cmd]
-    if len(bitcoind_conf) > 0:
-        args = [bitcoind_conf] + args
+    if len(BITCOIND_CONF) > 0:
+        args = [BITCOIND_CONF] + args
     bitcoin = subprocess.Popen(
         [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -67,8 +66,8 @@ def bitcoin(cmd):
 
 def bitcoincli(cmd):
     args = [cmd]
-    if len(bitcoind_conf) > 0:
-        args = [bitcoind_conf] + args
+    if len(BITCOIND_CONF) > 0:
+        args = [BITCOIND_CONF] + args
     bitcoin = subprocess.Popen(
         [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -78,8 +77,8 @@ def bitcoincli(cmd):
 
 def get_block(block_height):
     args = ["getblock", block_height]
-    if len(bitcoind_conf) > 0:
-        args = [bitcoind_conf] + args
+    if len(BITCOIND_CONF) > 0:
+        args = [BITCOIND_CONF] + args
 
     try:
         block = subprocess.check_output([BITCOIN_CLI_PATH] + args)
@@ -92,8 +91,8 @@ def get_block(block_height):
 
 def get_raw_tx(txid):
     args = ["getrawtransaction", txid, "1"]
-    if len(bitcoind_conf) > 0:
-        args = [bitcoind_conf] + args
+    if len(BITCOIND_CONF) > 0:
+        args = [BITCOIND_CONF] + args
 
     try:
         rawtx = subprocess.check_output([BITCOIN_CLI_PATH])
@@ -148,7 +147,7 @@ def main():
                 BITCOIN_LATEST_BLOCK_TXS.set(len(latest_block["tx"]))
                 inputs, outputs = 0, 0
 
-                if txindex_enabled:
+                if TXINDEX_ENABLED:
                     for tx in latest_block["tx"]:
 
                         if get_raw_tx(tx) is not None:
