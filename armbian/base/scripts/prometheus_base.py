@@ -29,7 +29,14 @@ BASE_SYSTEMD_PROMETHEUS = Gauge("base_systemd_prometheus", "Systemd unit status 
 BASE_SYSTEMD_GRAFANA = Gauge("base_systemd_grafana", "Systemd unit status for Grafana")
 
 
-def readFile(filepath):
+def read_file(filepath):
+    """Read specified file from disk.
+
+    Args:
+        filepath: Path to the file to read, as str.
+    Returns:
+        The contents of the file, as str.
+    """
     args = [filepath]
     with open(filepath) as f:
         value = f.readline()
@@ -62,8 +69,8 @@ def main():
     start_http_server(8400)
     while True:
         BASE_SYSTEM_INFO.info(getSystemInfo())
-        BASE_CPU_TEMP.set(readFile("/sys/class/thermal/thermal_zone0/temp"))
-        BASE_FAN_SPEED.set(readFile("/sys/class/hwmon/hwmon0/pwm1"))
+        BASE_CPU_TEMP.set(read_file("/sys/class/thermal/thermal_zone0/temp"))
+        BASE_FAN_SPEED.set(read_file("/sys/class/hwmon/hwmon0/pwm1"))
 
         BASE_SYSTEMD_BITCOIND.set(int(getSystemdStatus("bitcoind")))
         BASE_SYSTEMD_ELECTRS.set(int(getSystemdStatus("electrs")))
