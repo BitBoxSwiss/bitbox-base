@@ -5,11 +5,9 @@ This script is called by the prometheus-base.service
 to provide system metrics to Prometheus.
 """
 
-import json
 import time
 import subprocess
-import sys
-from prometheus_client import start_http_server, Gauge, Counter, Info
+from prometheus_client import start_http_server, Gauge, Info
 
 SYSCONFIG_PATH = "/opt/shift/sysconfig/"
 
