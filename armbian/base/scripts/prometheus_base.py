@@ -44,6 +44,16 @@ def read_file(filepath):
 
 
 def get_system_info():
+    """Retrieve information about the system running this script.
+
+    The SYSCONFIG_PATH variable is used to read some well-known files that are
+    expected to exist under that path, such as HOSTNAME.
+
+    Returns:
+        Dict of config value to value stored under that config file. For example:
+
+        {'HOSTNAME': 'eve', 'BUILD_DATE': '2019-06-05'}
+    """
     configfiles = ["HOSTNAME", "BUILD_DATE", "BUILD_TIME", "BUILD_COMMIT"]
     info = {}
     for filename in configfiles:
@@ -55,6 +65,14 @@ def get_system_info():
 
 
 def get_systemd_status(unit):
+    """Return True if specified systemd unit is running.
+
+    Args:
+        unit: Systemd unit to check status of, as str.
+    Returns:
+        True if specified systemd unit is running, the return status
+        of the systemctl command as int otherwise.
+    """
     try:
         subprocess.check_output(["systemctl", "is-active", unit])
         return 0
