@@ -76,9 +76,9 @@ def get_systemd_status(unit):
     try:
         subprocess.check_output(["systemctl", "is-active", unit])
         return 0
-    except subprocess.CalledProcessError as e:
-        print(unit, e.returncode, e.output)
-        return e.returncode
+    except subprocess.CalledProcessError as cpe:
+        print(unit, cpe.returncode, cpe.output)
+        return cpe.returncode
 
 
 def main():
