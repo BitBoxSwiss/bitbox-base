@@ -43,6 +43,11 @@ BITCOIN_LATEST_BLOCK_OUTPUTS = Gauge(
 
 
 def find_bitcoin_cli():
+    """Find the path to bitcoin-cli.
+
+    Returns:
+        The path to the bitcoin-cli command.
+    """
     if sys.version_info[0] < 3:
         from whichcraft import which
     if sys.version_info[0] >= 3:
@@ -54,6 +59,13 @@ BITCOIN_CLI_PATH = str(find_bitcoin_cli())
 
 
 def bitcoin(cmd):
+    """Run specified command with bitcoin-cli.
+
+    Args:
+        cmd: The command to run, as str.
+    Returns:
+        The output of the command, if any, as JSON-decoded object.
+    """
     args = [cmd]
     if len(BITCOIND_CONF) > 0:
         args = [BITCOIND_CONF] + args
@@ -76,6 +88,13 @@ def bitcoincli(cmd):
 
 
 def get_block(block_height):
+    """Fetch block at specified height from bitcoin-cli.
+
+    Args:
+        block_height: The height of the block to fetch, as int.
+    Returns:
+        The block, as JSON-decoded object.
+    """
     args = ["getblock", block_height]
     if len(BITCOIND_CONF) > 0:
         args = [BITCOIND_CONF] + args
@@ -90,6 +109,13 @@ def get_block(block_height):
 
 
 def get_raw_tx(txid):
+    """Retrieves the raw transaction from bitcoin-cli.
+
+    Args:
+        txid: The unique id of the transaction, as str.
+    Returns:
+        The transaction, as JSON-decoded object.
+    """
     args = ["getrawtransaction", txid, "1"]
     if len(BITCOIND_CONF) > 0:
         args = [BITCOIND_CONF] + args
@@ -104,7 +130,8 @@ def get_raw_tx(txid):
 
 
 def main():
-    # Start up the server to expose the metrics.
+    """Run server to expose the metrics.
+    """
     start_http_server(8334)
     while True:
         try:
