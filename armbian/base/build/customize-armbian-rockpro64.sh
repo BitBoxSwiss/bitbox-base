@@ -636,7 +636,7 @@ Description=Prometheus base exporter
 After=network-online.target
 
 [Service]
-ExecStart=/opt/shift/scripts/prometheus-base.py
+ExecStart=/opt/shift/scripts/prometheus_base.py
 KillMode=process
 User=node_exporter
 Group=system
