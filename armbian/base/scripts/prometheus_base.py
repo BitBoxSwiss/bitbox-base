@@ -37,10 +37,9 @@ def read_file(filepath):
     Returns:
         The contents of the file, as str.
     """
-    args = [filepath]
     result = None
-    with open(filepath) as f:
-        result = f.read()
+    with open(filepath) as input_file:
+        result = input_file.read()
     return result
 
 
