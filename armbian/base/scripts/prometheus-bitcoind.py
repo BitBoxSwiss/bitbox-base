@@ -12,11 +12,12 @@ import sys
 from prometheus_client import start_http_server, Gauge, Counter
 
 # CONFIG
-#   counting transaction inputs and outputs requires that bitcoind is configured with txindex=1, which may also necessitate reindex=1 in bitcoin.conf
-#   set True or False, according to your bicoind configuration
+#   counting transaction inputs and outputs requires that bitcoind is configured with txindex=1, which may also
+#     necessitate reindex=1 in bitcoin.conf; set True or False, according to your bicoind configuration
 txindex_enabled = False
 
-#   when using a non-standard path for bitcoin.conf, set it here as cli argument (e.g. "-conf=/btc/bitcoin.conf") or leave empty
+#   when using a non-standard path for bitcoin.conf, set it here as cli argument (e.g. "-conf=/btc/bitcoin.conf")
+#     or leave empty
 bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
 
 
