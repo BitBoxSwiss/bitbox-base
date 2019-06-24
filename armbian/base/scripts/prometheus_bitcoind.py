@@ -69,10 +69,10 @@ def bitcoin(cmd):
     args = [cmd]
     if len(BITCOIND_CONF) > 0:
         args = [BITCOIND_CONF] + args
-    bitcoin = subprocess.Popen(
+    bitcoin_cmd = subprocess.Popen(
         [BITCOIN_CLI_PATH] + args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    output = bitcoin.communicate()[0]
+    output = bitcoin_cmd.communicate()[0]
     return json.loads(output.decode("utf-8"))
 
 
