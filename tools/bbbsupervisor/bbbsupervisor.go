@@ -45,14 +45,27 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
+
+	"github.com/prometheus/client_golang/api"
+	prometheus "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 )
 
 type (
+	// follower represents a client that follows some external resource, like a log.
+	follower interface {
+		// follow starts following the external resource, and continues forever, unless
+		// there is an error.
+		follow()
+	}
 	// logFollower follows service logs.
 	logFollower struct {
 		unit string // systemd unit to follow, e.g 'bitcoind.service'
@@ -60,8 +73,20 @@ type (
 		logs chan string // lines of log output are sent through this chan
 		errs chan error  // lines of stderr output are sent through this chan
 	}
-	// logFollowers represents several logFollower objects.
-	logFollowers []logFollower
+
+	// prometheusFollower follows metrics exposed by a Prometheus server.
+	prometheusFollower struct {
+		// api is the prometheus API to connect to
+		api prometheus.API
+		// expression is the PQL expression to query for
+		expression string
+		// lines of log output are sent through this chan
+		logs chan string
+		// lines of stderr output are sent through this chan
+		errs chan error
+	}
+	// followers represents several follower objects.
+	followers []follower
 	// chanStringWriter implements io.Writer and writes all contents as string into the wrapped chan.
 	chanStringWriter struct{ logs chan string }
 	// chanErrWriter implements io.Writer and writes all contents as error into the wrapped chan.
@@ -105,8 +130,55 @@ func (lf logFollower) follow() {
 	errWriter.Write([]byte(fmt.Sprintf("command %v unexpectedly exited", fullCmd)))
 }
 
+// follow implements follower interface by following Prometheus server and querying for values forever.
+func (pl prometheusFollower) follow() {
+	for {
+		fmt.Printf("prometheusFollower querying for %q\n", pl.expression)
+		pl.query()
+		time.Sleep(30000 * time.Millisecond)
+	}
+}
+
+// query queries the Prometheus server once.
+func (pl prometheusFollower) query() {
+	ctx := context.Background()
+	value, err := pl.api.Query(ctx, pl.expression, time.Now())
+	if err != nil {
+		pl.errs <- fmt.Errorf("failed to query prometheus server: %v\n", err)
+	}
+
+	// note: the v is of type model.Value (defined by "github.com/prometheus/common/model"),
+	// we can cast it to model.Vector, which via logging by %T we can tell is the concrete
+	// type
+	fmt.Printf("xx: value from prometheus: %+v (%T)\n", value, value)
+
+	switch v := value.(type) {
+	case model.Vector:
+		vector, ok := value.(model.Vector)
+		if !ok {
+			log.Fatalf("failed to assert that value is model.Vector: %v (%T)\n", value, value)
+		}
+		for i, v := range vector {
+			// since the model.Vector type is an alias for []*model.Sample, each
+			// v here is a *model.Sample
+			pl.logs <- fmt.Sprintf("value of %v was %v at %v", v.Metric, v.Value, v.Timestamp)
+		}
+	default:
+		pl.errs <- fmt.Errorf("unknown type of value: %v (%T)", v, v)
+	}
+}
+
 func main() {
 	versionNum := 0.1
+
+	conf := api.Config{Address: "http://localhost:9090"}
+	client, err := api.NewClient(conf)
+	if err != nil {
+		log.Fatalf("failed to create prometheus API client: %v\n", err)
+	}
+	api := prometheus.NewAPI(client)
+
+	// Query(ctx context.Context, query string, ts time.Time) (model.Value, api.Warnings, error)
 
 	// parse command line arguments
 	version := flag.Bool("version", false, "return program version")
@@ -124,10 +196,11 @@ func main() {
 
 	// start following systemd services in separate goroutines
 	fmt.Println("starting log followers..")
-	followers := logFollowers{
-		{unit: "NetworkManager.service", logs: logs, errs: errs},
-		{unit: "bitcoind.service", logs: logs, errs: errs},
-		{unit: "electrs.service", logs: logs, errs: errs},
+	followers := followers{
+		logFollower{unit: "NetworkManager.service", logs: logs, errs: errs},
+		logFollower{unit: "bitcoind.service", logs: logs, errs: errs},
+		logFollower{unit: "electrs.service", logs: logs, errs: errs},
+		prometheusFollower{expression: "lightning_funds_output", api: api, logs: logs, errs: errs},
 	}
 	for _, lf := range followers {
 		go lf.follow()
@@ -137,10 +210,10 @@ func main() {
 		select {
 		// journald log messages
 		case message := <-logs:
-			fmt.Printf("log follower passed on output: %q\n", message)
+			fmt.Printf("follower passed on output: %q\n", message)
 
 		case err := <-errs:
-			fmt.Printf("fatal: error from log readers: %v\n", err)
+			fmt.Printf("fatal: error from follower: %v\n", err)
 			os.Exit(1)
 			// logfile messages
 			// TODO(Stadicus): tail logfiles on filesystem (if necessary)
