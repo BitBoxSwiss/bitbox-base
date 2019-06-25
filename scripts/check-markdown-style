@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# This script checks style of Markdown (.md) files.
+#
+
+# Fail if undefined variables are referenced.
+set -u
+# Fail on error.
+set -e
+
+# Exit on pipe fail.
+set -o pipefail
+
+command -v markdownlint >/dev/null 2>&1 || { echo >&2 "markdownlint is missing"; exit 1; }
+
+# grep will exit with 1 if no lines are found
+FILES=$(git --no-pager diff --diff-filter=d --name-only origin/master | grep -v "old/" | grep -E ".md\$" || exit 0)
+if [ -z "${FILES}" ] ; then
+       exit 0
+fi
+
+markdownlint ${FILES}

@@ -1,0 +1,13 @@
+#
+# The docker image produced by this config provides the build environment
+# for BitBox Base.
+#
+# note: sha256 value is current hash for alpine:3.10.0
+FROM alpine@sha256:ca1c944a4f8486a153024d9965aafbe24f5723c1d5c02f4964c045a16d19dc54
+
+RUN apk add --no-cache bash git npm && \
+    npm install -g markdownlint-cli
+
+WORKDIR /opt/repo_host
+ENTRYPOINT ["./scripts/check-markdown-style"]
+

@@ -2,6 +2,7 @@
 HAS_DOCKER := $(shell which docker 2>/dev/null)
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PYTHON_CI_IMAGE_VERSION=0.1.0
+MARKDOWN_CI_IMAGE_VERSION=0.1.0
 
 check-docker:
 ifndef HAS_DOCKER
@@ -32,8 +33,9 @@ ci: dockerinit
 build-docker-image: check-docker
 	docker build --tag digitalbitbox/bitbox-base -f scripts/Dockerfile .
 
-build-docker-ci-image: check-docker
-	docker build --tag base-ci:$(PYTHON_CI_IMAGE_VERSION) -f scripts/Dockerfile-python-ci .
+build-docker-ci-images: check-docker
+	docker build --tag base-ci-py:$(PYTHON_CI_IMAGE_VERSION) -f scripts/Dockerfile-python-ci .
+	docker build --tag base-ci-md:$(MARKDOWN_CI_IMAGE_VERSION) -f scripts/Dockerfile-markdown-ci .
 
 docker-build-go: build-docker-image
 	@echo "Building tools and middleware inside Docker container.."
@@ -50,9 +52,16 @@ docker-jekyll: dockerinit
 	rm -rf armbian/armbian-build/packages/bsp/common/usr/
 	docker run --rm -it -p 4000:4000 -v $(REPO_ROOT):/srv/jekyll jekyll/jekyll:pages jekyll serve --watch --incremental
 
-python-style-check: build-docker-ci-image
+python-style-check: build-docker-ci-images
 	docker run \
 	       --rm \
 	       --tty \
 	       -v $(REPO_ROOT)/:/opt/repo_host \
-	       base-ci:$(PYTHON_CI_IMAGE_VERSION)
+	       base-ci-py:$(PYTHON_CI_IMAGE_VERSION)
+
+markdown-style-check: build-docker-ci-images
+	docker run \
+	       --rm \
+	       --tty \
+	       -v $(REPO_ROOT)/:/opt/repo_host \
+	       base-ci-md:$(MARKDOWN_CI_IMAGE_VERSION)
