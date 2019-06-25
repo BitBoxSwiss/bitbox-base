@@ -11,3 +11,4 @@ TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR:-"$(pwd)"}
 # https://github.com/digitalbitbox/bitbox-base/issues/39#issuecomment-501343881
 make docker-build-go
 make python-style-check
+make markdown-style-check
