@@ -162,11 +162,7 @@ apt purge -y ntp network-manager
 apt update
 apt upgrade -y
 
-# development
-apt install -y  git tmux qrencode
-
-# system
-apt install -y  openssl net-tools fio libnss-mdns \
+apt install -y  git openssl net-tools fio libnss-mdns \
                 avahi-daemon avahi-discover avahi-utils \
                 fail2ban acl ifmetric
 
@@ -480,8 +476,17 @@ Description=Electrs server daemon
 Wants=bitcoind.service
 After=bitcoind.service
 [Service]
+EnvironmentFile=/etc/electrs/electrs.conf
+EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/opt/shift/scripts/systemd-electrs-start.sh
+ExecStart=/usr/bin/electrs \
+    --network ${NETWORK} \
+    --db-dir ${DB_DIR} \
+    --daemon-dir ${DAEMON_DIR} \
+    --cookie "__cookie__:${RPCPASSWORD}" \
+    --monitoring-addr ${MONITORING_ADDR} \
+    -${VERBOSITY}
+
 RuntimeDirectory=electrs
 User=electrs
 Group=bitcoin
@@ -924,10 +929,28 @@ EOF
 
 # FINALIZE ---------------------------------------------------------------------
 
+## Remove unnecessary packages
+apt -y remove git
+apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
+              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
+              libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
+              locales* man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
+              unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+
+## Delete unnecessary local files
+rm -rf /usr/share/doc/*
+rm -rf /var/lib/apt/lists/*
+rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
+find /var/log -maxdepth 1 -type f -delete
+
 ## Clean up
 apt install -f
 apt clean
-apt autoremove -y
+apt -y autoremove
 rm -rf /usr/local/src/*
 
 ## Enable services
