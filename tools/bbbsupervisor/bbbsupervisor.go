@@ -45,14 +45,23 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type (
+	// follower represents a client that follows some external resource, like a log.
+	follower interface {
+		// follow starts following the external resource, and continues forever, unless
+		// there is an error.
+		follow()
+	}
 	// logFollower follows service logs.
 	logFollower struct {
 		unit string // systemd unit to follow, e.g 'bitcoind.service'
@@ -60,8 +69,20 @@ type (
 		logs chan string // lines of log output are sent through this chan
 		errs chan error  // lines of stderr output are sent through this chan
 	}
-	// logFollowers represents several logFollower objects.
-	logFollowers []logFollower
+
+	// prometheusFollower follows metrics exposed by a Prometheus server.
+	prometheusFollower struct {
+		// server is the address of the prometheus server to connect to
+		server string
+		// expression is the PQL expression to query for
+		expression string
+		// lines of log output are sent through this chan
+		logs chan string
+		// lines of stderr output are sent through this chan
+		errs chan error
+	}
+	// followers represents several follower objects.
+	followers []follower
 	// chanStringWriter implements io.Writer and writes all contents as string into the wrapped chan.
 	chanStringWriter struct{ logs chan string }
 	// chanErrWriter implements io.Writer and writes all contents as error into the wrapped chan.
@@ -105,6 +126,63 @@ func (lf logFollower) follow() {
 	errWriter.Write([]byte(fmt.Sprintf("command %v unexpectedly exited", fullCmd)))
 }
 
+// follow implements follower interface by following Prometheus server and querying for values forever.
+func (pf prometheusFollower) follow() {
+	for {
+		fmt.Printf("prometheusFollower querying for %q\n", pf.expression)
+		pf.query()
+		time.Sleep(30 * time.Second)
+	}
+}
+
+// query queries the Prometheus server once.
+func (pf prometheusFollower) query() {
+	httpResp, err := http.Get(pf.server + "/api/v1/query?query=" + pf.expression)
+	if err != nil {
+		pf.errs <- fmt.Errorf("failed to fetch %q from prometheus server: %v", pf.expression, err)
+		return
+	}
+	defer httpResp.Body.Close()
+	type Response struct {
+		Status string `json:"status"`
+		Data   struct {
+			ResultType string `json:"resultType"`
+			Result     []struct {
+				Value []interface{} `json:"value"`
+			} `json:"result"`
+		} `data:"data"`
+	}
+
+	var resp Response
+	if err := json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
+		pf.errs <- fmt.Errorf("failed to read response body from prometheus request for %q: %v", pf.expression, err)
+		return
+	}
+	fmt.Printf("xx: decoded json: %+v\n", resp)
+	if resp.Status != "success" {
+		pf.errs <- fmt.Errorf("prometheus request for %q returned non-success: %v", pf.expression, resp)
+		return
+	}
+	if len(resp.Data.Result) > 1 {
+		pf.errs <- fmt.Errorf("unexpectedly got %d results from prometheus request for %q: %+v", len(resp.Data.Result), pf.expression, resp)
+	}
+	firstResult := resp.Data.Result[0]
+	if len(firstResult.Value) != 2 {
+		// note: timestamp and value
+		pf.errs <- fmt.Errorf("unexpectedly got %d values from prometheus request for %q: %+v", len(firstResult.Value), pf.expression, resp)
+	}
+	timestamp := firstResult.Value[0]
+	value := firstResult.Value[1]
+	fmt.Printf("xx: parsed value %+v (%T) at time %v (%T)\n", value, value, timestamp, timestamp)
+	switch v := value.(type) {
+	case string:
+		pf.logs <- fmt.Sprintf("value of %q: %+v", pf.expression, v)
+	default:
+		pf.errs <- fmt.Errorf("unknown type of value %v (%T)", v, v)
+
+	}
+}
+
 func main() {
 	versionNum := 0.1
 
@@ -124,10 +202,11 @@ func main() {
 
 	// start following systemd services in separate goroutines
 	fmt.Println("starting log followers..")
-	followers := logFollowers{
-		{unit: "NetworkManager.service", logs: logs, errs: errs},
-		{unit: "bitcoind.service", logs: logs, errs: errs},
-		{unit: "electrs.service", logs: logs, errs: errs},
+	followers := followers{
+		logFollower{unit: "NetworkManager.service", logs: logs, errs: errs},
+		logFollower{unit: "bitcoind.service", logs: logs, errs: errs},
+		logFollower{unit: "electrs.service", logs: logs, errs: errs},
+		prometheusFollower{expression: "lightning_funds_output", server: "http://localhost:9090", logs: logs, errs: errs},
 	}
 	for _, lf := range followers {
 		go lf.follow()
@@ -137,10 +216,10 @@ func main() {
 		select {
 		// journald log messages
 		case message := <-logs:
-			fmt.Printf("log follower passed on output: %q\n", message)
+			fmt.Printf("follower passed on output: %q\n", message)
 
 		case err := <-errs:
-			fmt.Printf("fatal: error from log readers: %v\n", err)
+			fmt.Printf("fatal: error from follower: %v\n", err)
 			os.Exit(1)
 			// logfile messages
 			// TODO(Stadicus): tail logfiles on filesystem (if necessary)
