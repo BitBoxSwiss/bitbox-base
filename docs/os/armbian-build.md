@@ -88,3 +88,19 @@ Now the operating system image can be built. The whole BitBox Base configuration
 The build needs several gigabytes of disk space.
 
 On Linux, the Docker data directory is `/var/lib/docker` by default, so this directory needs to be on a filesystem with sufficient space.
+
+### Missing /bin/bash
+
+We have received [reports](https://github.com/digitalbitbox/bitbox-base/issues/83) from some users that the Armbian build can fail with a symptom like the following:
+
+```bash
+chroot: failed to run command `/bin/bash`: No such file or directory
+```
+
+The users who experienced the issue were on Ubuntu Linux, and mention that installing the following [QEMU](https://www.qemu.org/) packages made the issue go away for them:
+
+```bash
+sudo apt-get install qemu binfmt-support qemu-user-static
+```
+
+Since the Armbian build takes place inside a Docker container, so it's not clear to us why these system packages would be necessary, as we are unaware of any direct or indirect dependency on QEMU in our build system.
