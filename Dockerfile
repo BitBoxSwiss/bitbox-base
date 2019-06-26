@@ -32,8 +32,6 @@ RUN make -C "tools"
 
 # Final
 FROM golang:1.12.5-stretch as final
-ARG builder_uid
-RUN adduser --disabled-password --gecos "" --uid ${builder_uid} builder
-USER builder
+
 COPY --from=middleware-builder /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
 COPY --from=middleware-tools /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
