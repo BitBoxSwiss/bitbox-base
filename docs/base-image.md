@@ -28,3 +28,19 @@ Unpacking the steps above, what happens when you type `make` is:
 1. [`make build-all`](https://github.com/digitalbitbox/bitbox-base/blob/master/Makefile#L20): the default target if `make` is called, and depends on `make docker-build-go`, and after that performs the main Armbian image build
     1. [`cd armbian && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/Makefile): builds the Armbian `.img` file, using the Go binaries in `build/` as inputs
     1. finally, the `.img` file is moved to the `build/` directory
+
+### Overriding user for containerized builds
+
+By default, the `make` commands that use Docker to perform the builds will use a user with the same id as the calling user on the host.
+This behavior allows the build to produce outputs to the host `build/` directory without making it owned by the super-user (with id `0`), which could cause permission issues if the non-privileged host user attempts to delete files in the `build/` directory.
+Unfortunately, for users who choose to require `sudo` to run `docker` commands, this means that a command like `sudo make` will run as the super-user, so there is no way for the `make` command to find the non-privileged user's id.
+As a workaround, such users can either:
+
+1. run `make` and similar commands as usual, and deal with `build/` being owned by the super-user, i.e user with id `0`
+1. specify the non-privileged user explicitly when calling `make`:
+
+```bash
+sudo make BUILDER_UID=$(id -u)
+```
+
+Since the `id -u` is invoked before `sudo` has switched to the super-user, it will return the non-privileged user's id, making it available to the `Makefile`.

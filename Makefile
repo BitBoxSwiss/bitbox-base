@@ -1,6 +1,7 @@
 .DEFAULT_GOAL=build-all
 HAS_DOCKER := $(shell which docker 2>/dev/null)
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+BUILDER_UID=$(shell id -u)
 
 check-docker:
 ifndef HAS_DOCKER
@@ -26,11 +27,10 @@ clean:
 	docker rmi digitalbitbox/bitbox-base
 
 dockerinit: check-docker
-	docker build --tag digitalbitbox/bitbox-base .
+	docker build --build-arg builder_uid=$(BUILDER_UID) --tag digitalbitbox/bitbox-base .
 
 docker-build-go: dockerinit
 	@echo "Building tools and middleware inside Docker container.."
-	docker build --tag digitalbitbox/bitbox-base .
 	docker run \
 	       --rm \
 	       --tty \
