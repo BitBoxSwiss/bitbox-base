@@ -444,14 +444,14 @@ EOF
 
 
 # ELECTRS ----------------------------------------------------------------------
-BIN_DEPS_TAG="v0.0.1-alpha"
-ELECTRS_VERSION="0.6.2"
+BIN_DEPS_TAG="v0.0.2-alpha"
+ELECTRS_VERSION="0.7.0"
 
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
 # temporary storage of 'electrs' until official binary releases are available
 curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
-if ! echo "291e05c33c83002245b5805574001424f6f45be926fef81a2d74b12c5002509f  electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
+if ! echo "77343603d763d5edf31269984551a7aa092afe23127d11b4e6e491522cc029e5  electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
   echo "sha256sum for precompiled 'electrs' failed" >&2
   exit 1
 fi
