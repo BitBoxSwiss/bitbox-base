@@ -28,6 +28,8 @@ possible commands:
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
+  exec      <bitcoind_reindex>
+
 "
 }
 
@@ -233,6 +235,28 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
+        esac
+        ;;
+
+    exec)
+        case "${SETTING}" in
+            BITCOIND_REINDEX)
+                systemctl stop bitcoind
+
+                if ! /bin/systemctl -q is-active bitcoind.service; then 
+                    # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
+                    rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+
+                    # set optioin reindex-chainstate, restart bitcoind and remove option
+                    sed -i '/reindex-chainstate/Ic\reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+                    systemctl start bitcoind
+                    sleep 10
+                    sed -i '/reindex-chainstate/Ic\#reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+
+                else
+                    echo "bitcoind is still running, cannot delete chainstate"
+                    exit 1
+                fi
         esac
         ;;
 
