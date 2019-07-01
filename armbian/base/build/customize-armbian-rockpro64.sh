@@ -185,11 +185,15 @@ SYSCONFIG_PATH="/opt/shift/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
-# store build information
+## store build information
 echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
+## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
+sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
+sysctl vm.swappiness=10
 
 # OS CONFIG --------------------------------------------------------------------
 # customize MOTD
