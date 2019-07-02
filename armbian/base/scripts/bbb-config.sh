@@ -144,7 +144,6 @@ case "${COMMAND}" in
                         sed -i '/RPCPORT=/Ic\RPCPORT=8332' /etc/electrs/electrs.conf
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
-                        sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
                         echo "BITCOIN_NETWORK=mainnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
@@ -160,7 +159,6 @@ case "${COMMAND}" in
                         sed -i '/RPCPORT=/Ic\RPCPORT=18332' /etc/electrs/electrs.conf
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
-                        sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
                         echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 

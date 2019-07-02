@@ -161,7 +161,7 @@ apt purge -y ntp network-manager
 # DEPENDENCIES -----------------------------------------------------------------
 apt update
 apt upgrade -y
-
+apt install -y  tmux
 apt install -y  git openssl net-tools fio libnss-mdns \
                 avahi-daemon avahi-discover avahi-utils \
                 fail2ban acl ifmetric
@@ -870,42 +870,6 @@ fi
 # mDNS services
 sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
 
-cat << EOF > /etc/avahi/services/bitcoind.service
-<?xml version="1.0" standalone='no'?>
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-<service-group>
-  <name>bitcoin</name>
-  <service>
-    <type>_bitcoin._tcp</type>
-    <port>18333</port>
-  </service>
-</service-group>
-EOF
-
-cat << 'EOF' > /etc/avahi/services/electrs.service
-<?xml version="1.0" standalone='no'?>
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-<service-group>
-  <name>bitcoin electrum server</name>
-  <service>
-    <type>_electrumx-tls._tcp</type>
-    <port>50002</port>
-  </service>
-</service-group>
-EOF
-
-cat << 'EOF' > /etc/avahi/services/lightning.service
-<?xml version="1.0" standalone='no'?>
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-<service-group>
-  <name>lightning</name>
-  <service>
-    <type>_lightning._tcp</type>
-    <port>9735</port>
-  </service>
-</service-group>
-EOF
-
 cat << 'EOF' > /etc/avahi/services/bitboxbase.service
 <?xml version="1.0" standalone='no'?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
@@ -942,7 +906,7 @@ apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config
               gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
               iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
               libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-              locales* man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
+              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
               unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 
 ## Delete unnecessary local files
@@ -950,6 +914,7 @@ rm -rf /usr/share/doc/*
 rm -rf /var/lib/apt/lists/*
 rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
 find /var/log -maxdepth 1 -type f -delete
+locale-gen en_US.UTF-8
 
 ## Clean up
 apt install -f
