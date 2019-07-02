@@ -154,30 +154,28 @@ if ! mountpoint /mnt/ssd -q; then
   chmod 700 /mnt/ssd
 fi
 
-apt remove -y ntp network-manager
-apt purge -y ntp network-manager
 
-
-# DEPENDENCIES -----------------------------------------------------------------
+# SOFTWARE PACKAGE MGMT --------------------------------------------------------
+## update system
 apt update
 apt upgrade -y
-apt install -y  tmux
-apt install -y  git openssl net-tools fio libnss-mdns \
-                avahi-daemon avahi-discover avahi-utils \
-                fail2ban acl ifmetric
 
+## remove unnecessary packages
+apt -y remove git
+apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
+              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
+              libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
+              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
+              unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 
-# STARTUP CHECKS ---------------------------------------------------------------
-cat << 'EOF' > /etc/systemd/system/startup-checks.service
-[Unit]
-Description=BitBox Base startup checks
-After=network-online.target
-[Service]
-ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
-Type=simple
-[Install]
-WantedBy=multi-user.target
-EOF
+# install dependecies
+apt install -y --no-install-recommends \
+  tmux git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl
+apt install -y --no-install-recommends ifmetric
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
@@ -195,8 +193,19 @@ sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
 
-# OS CONFIG --------------------------------------------------------------------
-# customize MOTD
+## startup checks
+cat << 'EOF' > /etc/systemd/system/startup-checks.service
+[Unit]
+Description=BitBox Base startup checks
+After=network-online.target
+[Service]
+ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
+Type=simple
+[Install]
+WantedBy=multi-user.target
+EOF
+
+## customize ssh login message
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
 cat << EOF > /etc/update-motd.d/20-shift
 #!/bin/bash
@@ -210,13 +219,13 @@ echo "Configured for Bitcoin TESTNET"; echo
 EOF
 chmod 755 /etc/update-motd.d/20-shift
 
-# set hostname
+## set hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
-# prepare SSD mount point
+## prepare SSD mount point
 mkdir -p /mnt/ssd/
 
-# add shortcuts
+## add shortcuts
 cat << EOF > /home/base/.bashrc-custom
 export LS_OPTIONS='--color=auto'
 alias l='ls $LS_OPTIONS -l'
@@ -232,9 +241,6 @@ alias llog='sudo journalctl -f -u lightningd'
 
 # Electrum
 alias elog='sudo journalctl -n 100 -f -u electrs'
-
-export PATH=$PATH:/usr/local/go/bin
-export GOPATH=$HOME/go
 EOF
 
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
@@ -250,10 +256,10 @@ lightning       9735/tcp
 middleware      8845/tcp
 EOF
 
-# retain journal logs between reboots 
+## retain journal logs between reboots 
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
-# make bbb scripts executable with sudo
+## make bbb scripts executable with sudo
 sudo ln -s /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
 sudo ln -s /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
@@ -268,17 +274,13 @@ fi
 apt update
 apt -y install tor --no-install-recommends
 
-# allow user 'bitcoin' to access Tor proxy socket
+## allow user 'bitcoin' to access Tor proxy socket
 usermod -a -G debian-tor bitcoin
 
 cat << EOF > /etc/tor/torrc
 ControlPort 9051                                          #TOR#
 CookieAuthentication 1                                    #TOR#
 CookieAuthFileGroupReadable 1                             #TOR#
-
-HiddenServiceDir /var/lib/tor/hidden_service_bitcoind/    #BITCOIND#
-HiddenServiceVersion 3                                    #BITCOIND#
-HiddenServicePort 18333 127.0.0.1:18333                   #BITCOIND#
 
 HiddenServiceDir /var/lib/tor/hidden_service_ssh/         #SSH#
 HiddenServiceVersion 3                                    #SSH#
@@ -287,9 +289,6 @@ HiddenServicePort 22 127.0.0.1:22                         #SSH#
 HiddenServiceDir /var/lib/tor/hidden_service_electrum/    #ELECTRUM#
 HiddenServiceVersion 3                                    #ELECTRUM#
 HiddenServicePort 50002 127.0.0.1:50002                   #ELECTRUM#
-
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/      #LN2#
-HiddenServicePort 9375 127.0.0.1:9735                     #LN2#
 
 HiddenServiceDir /var/lib/tor/lightningd-service_v3/      #LN#
 HiddenServiceVersion 3                                    #LN#
@@ -395,7 +394,7 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
 
 else
   cd /usr/local/src/
-  # temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
+  ## temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
   curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION}-1_arm64.deb
   if ! echo "52be094f8162749acb207bf9ad08125d25288a9d03eb25690f364ba42fcff3c4  lightningd_0.7.0-1_arm64.deb" | sha256sum -c -; then
     echo "sha256sum for precompiled 'lightningd' failed" >&2
@@ -403,7 +402,7 @@ else
   fi
   dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
 
-  # symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
+  ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
   ln -s /usr/bin/lightningd /usr/local/bin/lightningd
   
 fi
@@ -453,7 +452,7 @@ ELECTRS_VERSION="0.6.2"
 
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
-# temporary storage of 'electrs' until official binary releases are available
+## temporary storage of 'electrs' until official binary releases are available
 curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz
 if ! echo "291e05c33c83002245b5805574001424f6f45be926fef81a2d74b12c5002509f  electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz" | sha256sum -c -; then
   echo "sha256sum for precompiled 'electrs' failed" >&2
@@ -823,12 +822,12 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
 EOF
 
-  # start x-server on user 'hdmi' login
+  ## start x-server on user 'hdmi' login
   cat << 'EOF' > /home/hdmi/.bashrc
 startx -- -nocursor && exit
 EOF
 
-  # enable autologin for user 'hdmi'
+  ## enable autologin for user 'hdmi'
   if [[ "${BASE_DASHBOARD_HDMI_ENABLED}" == "true" ]]; then
     /opt/shift/scripts/bbb-config.sh enable dashboard_hdmi
   fi
@@ -836,22 +835,6 @@ EOF
 fi
 
 # NETWORK ----------------------------------------------------------------------
-cat << 'EOF' > /etc/NetworkManager/NetworkManager.conf
-[main]
-plugins=ifupdown,keyfile
-
-[ifupdown]
-managed=false
-EOF
-
-cat << 'EOF' > /etc/systemd/network/ethernet.network
-[Match]
-Name=eth*
-
-[Network]
-DHCP=yes
-EOF
-
 cat << 'EOF' > /etc/systemd/resolved.conf
 [Resolve]
 FallbackDNS=1.1.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844
@@ -859,7 +842,7 @@ DNSSEC=yes
 Cache=yes
 EOF
 
-# include Wifi credentials, if specified
+## include Wifi credentials, if specified (experimental)
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
   sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
   sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
@@ -867,7 +850,7 @@ if [[ -n "${BASE_WIFI_SSID}" ]]; then
   echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
 fi
 
-# mDNS services
+## mDNS services
 sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
 
 cat << 'EOF' > /etc/avahi/services/bitboxbase.service
@@ -882,7 +865,7 @@ cat << 'EOF' > /etc/avahi/services/bitboxbase.service
 </service-group>
 EOF
 
-# firewall: restore iptables rules on startup
+## firewall: restore iptables rules on startup
 cat << 'EOF' > /etc/systemd/system/iptables-restore.service
 [Unit]
 Description=BitBox Base: restore iptables rules
@@ -897,17 +880,8 @@ EOF
 
 # FINALIZE ---------------------------------------------------------------------
 
-## Remove unnecessary packages
+## Remove build-only packages
 apt -y remove git
-apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
-              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
-              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
-              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
-              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
-              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
-              libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
-              unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 
 ## Delete unnecessary local files
 rm -rf /usr/share/doc/*
@@ -939,7 +913,7 @@ systemctl enable grafana-server.service
 systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
-# Set to mainnet if configured
+## Set to mainnet if configured
 if [ "${BASE_BITCOIN_NETWORK}" == "mainnet" ]; then
   /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
 fi
