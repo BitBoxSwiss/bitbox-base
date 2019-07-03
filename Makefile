@@ -14,8 +14,16 @@ build-go:
 	$(MAKE) -C middleware
 
 build-all: docker-build-go
-	@echo "Building armbian.."
+	@echo "Building Armbian.."
 	$(MAKE) -C armbian
+
+build-update: docker-build-go
+	@echo "Updating Armbian build.."
+	$(MAKE) update -C armbian
+
+mender-artefacts:
+	@echo "Creating Mender update artefacts.."
+	$(MAKE) mender-artefacts -C armbian
 
 clean:
 	$(MAKE) -C armbian clean
