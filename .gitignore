@@ -22,6 +22,8 @@
 /.jekyll-metadata
 /_site/
 
-# Ignore the build outputs and privisioning disk images.
-/build
-/provisioning
+# Ignore the build outputs and privisioning disk images (except READMEs)
+/build/*
+!/build/README.md
+/provisioning/*
+!/provisioning/README.md
