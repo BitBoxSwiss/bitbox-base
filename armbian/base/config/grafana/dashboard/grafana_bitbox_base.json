@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1559726386323,
+  "iteration": 1561969474956,
   "links": [],
   "panels": [
     {
@@ -930,7 +930,7 @@
             "h": 2,
             "w": 3,
             "x": 0,
-            "y": 10
+            "y": 6
           },
           "id": 87,
           "links": [],
@@ -960,7 +960,7 @@
             "h": 8,
             "w": 10,
             "x": 3,
-            "y": 10
+            "y": 6
           },
           "id": 24,
           "legend": {
@@ -1084,7 +1084,7 @@
             "h": 8,
             "w": 11,
             "x": 13,
-            "y": 10
+            "y": 6
           },
           "id": 50,
           "legend": {
@@ -1187,7 +1187,7 @@
             "h": 2,
             "w": 3,
             "x": 0,
-            "y": 12
+            "y": 8
           },
           "id": 88,
           "links": [],
@@ -1212,7 +1212,7 @@
             "h": 2,
             "w": 3,
             "x": 0,
-            "y": 14
+            "y": 10
           },
           "id": 90,
           "links": [],
@@ -1240,7 +1240,7 @@
             "h": 8,
             "w": 10,
             "x": 3,
-            "y": 18
+            "y": 14
           },
           "id": 52,
           "legend": {
@@ -1367,7 +1367,7 @@
             "h": 8,
             "w": 11,
             "x": 13,
-            "y": 18
+            "y": 14
           },
           "id": 32,
           "legend": {
@@ -1460,6 +1460,310 @@
               "max": null,
               "min": null,
               "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {
+            "Apps": "#629E51",
+            "Buffers": "#614D93",
+            "Cache": "#6D1F62",
+            "Cached": "#511749",
+            "Committed": "#508642",
+            "Free": "#0A437C",
+            "Harware Corrupted - Amount of RAM that the kernel identified as corrupted / not working": "#CFFAFF",
+            "Inactive": "#584477",
+            "PageTables": "#0A50A1",
+            "Page_Tables": "#0A50A1",
+            "RAM_Free": "#E0F9D7",
+            "SWAP Used": "#BF1B00",
+            "Slab": "#806EB7",
+            "Slab_Cache": "#E0752D",
+            "Swap": "#BF1B00",
+            "Swap Used": "#BF1B00",
+            "Swap_Cache": "#C15C17",
+            "Swap_Free": "#2F575E",
+            "Unused": "#EAB839"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "Prometheus",
+          "decimals": 2,
+          "description": "Basic memory usage",
+          "fill": 4,
+          "gridPos": {
+            "h": 10,
+            "w": 10,
+            "x": 0,
+            "y": 22
+          },
+          "id": 96,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "sideWidth": 350,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "maxPerRow": 6,
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "RAM Total",
+              "color": "#E0F9D7",
+              "fill": 0,
+              "stack": false
+            },
+            {
+              "alias": "RAM Cache + Buffer",
+              "color": "#052B51"
+            },
+            {
+              "alias": "RAM Free",
+              "color": "#7EB26D"
+            },
+            {
+              "alias": "Avaliable",
+              "color": "#DEDAF7",
+              "fill": 0,
+              "stack": false
+            }
+          ],
+          "spaceLength": 10,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "node_memory_MemTotal_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "RAM Total",
+              "refId": "A",
+              "step": 240
+            },
+            {
+              "expr": "node_memory_MemTotal_bytes{instance=~\"$node:$port\",job=~\"$job\"} - node_memory_MemFree_bytes{instance=~\"$node:$port\",job=~\"$job\"} - (node_memory_Cached_bytes{instance=~\"$node:$port\",job=~\"$job\"} + node_memory_Buffers_bytes{instance=~\"$node:$port\",job=~\"$job\"})",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "RAM Used",
+              "refId": "D",
+              "step": 240
+            },
+            {
+              "expr": "node_memory_Cached_bytes{instance=~\"$node:$port\",job=~\"$job\"} + node_memory_Buffers_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "intervalFactor": 2,
+              "legendFormat": "RAM Cache + Buffer",
+              "refId": "B",
+              "step": 240
+            },
+            {
+              "expr": "node_memory_MemFree_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "intervalFactor": 2,
+              "legendFormat": "RAM Free",
+              "refId": "F",
+              "step": 240
+            },
+            {
+              "expr": "(node_memory_SwapTotal_bytes{instance=~\"$node:$port\",job=~\"$job\"} - node_memory_SwapFree_bytes{instance=~\"$node:$port\",job=~\"$job\"})",
+              "format": "time_series",
+              "intervalFactor": 2,
+              "legendFormat": "SWAP Used",
+              "refId": "G",
+              "step": 240
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "RAM memory",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {
+            "Apps": "#629E51",
+            "Buffers": "#614D93",
+            "Cache": "#6D1F62",
+            "Cached": "#511749",
+            "Committed": "#508642",
+            "Free": "#0A437C",
+            "Harware Corrupted - Amount of RAM that the kernel identified as corrupted / not working": "#CFFAFF",
+            "Inactive": "#584477",
+            "PageTables": "#0A50A1",
+            "Page_Tables": "#0A50A1",
+            "RAM_Free": "#E0F9D7",
+            "Slab": "#806EB7",
+            "Slab_Cache": "#E0752D",
+            "Swap": "#BF1B00",
+            "Swap_Cache": "#C15C17",
+            "Swap_Free": "#2F575E",
+            "Unused": "#EAB839"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "Prometheus",
+          "decimals": 2,
+          "fill": 2,
+          "gridPos": {
+            "h": 10,
+            "w": 14,
+            "x": 10,
+            "y": 22
+          },
+          "id": 92,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": true,
+            "rightSide": false,
+            "show": true,
+            "sideWidth": 350,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "maxPerRow": 6,
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "node_memory_Inactive_file_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Inactive_file - File-backed memory on inactive LRU list",
+              "refId": "A",
+              "step": 4
+            },
+            {
+              "expr": "node_memory_Inactive_anon_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Inactive_anon - Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)",
+              "refId": "D",
+              "step": 4
+            },
+            {
+              "expr": "node_memory_Active_file_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Active_file - File-backed memory on active LRU list",
+              "refId": "B",
+              "step": 4
+            },
+            {
+              "expr": "node_memory_Active_anon_bytes{instance=~\"$node:$port\",job=~\"$job\"}",
+              "format": "time_series",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Active_anon - Anonymous and swap cache on active least-recently-used (LRU) list, including tmpfs",
+              "refId": "C",
+              "step": 4
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "RAM Memory Active / Inactive",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": "Bytes",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "bytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
             }
           ],
           "yaxis": {
@@ -3899,7 +4203,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -3926,5 +4230,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 19
+  "version": 20
 }

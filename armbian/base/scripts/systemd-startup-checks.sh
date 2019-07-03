@@ -19,6 +19,35 @@ ifmetric eth0 10
 timedatectl set-ntp true
 echo "180" > /sys/class/hwmon/hwmon0/pwm1
 
+# disable serial output on UART0
+if ! grep -Fiq "console=display" /boot/armbianEnv.txt; then
+  if ! grep -Fiq "console=" /boot/armbianEnv.txt; then
+    echo "console=display" >> /boot/armbianEnv.txt
+  else
+    sed -i '/console=/Ic\console=display' /boot/armbianEnv.txt
+  fi
+  mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr > /opt/shift/config/uartconfig.log
+
+  source /opt/shift/sysconfig/UART_REBOOT
+  if [ ${UART_REBOOT} -eq 1 ]; then 
+    echo "ERR: previous UART_REBOOT not successful, check system"
+  else
+    echo "UART_REBOOT=1" > /opt/shift/sysconfig/UART_REBOOT
+    reboot
+  fi
+
+else
+  echo "UART_REBOOT=0" > /opt/shift/sysconfig/UART_REBOOT
+fi
+
+# check if swapfile exists on ssd
+if [ ! -f /mnt/ssd/swapfile ]; then
+  fallocate --length 2GiB /mnt/ssd/swapfile
+  chmod 600 /mnt/ssd/swapfile
+  mkswap /mnt/ssd/swapfile
+  swapon /mnt/ssd/swapfile
+fi
+
 # check if SSD mount is configured in /etc/fstab
 if ! grep -q '/mnt/ssd' /etc/fstab ; then
 
@@ -50,18 +79,21 @@ if ! grep -q '/mnt/ssd' /etc/fstab ; then
     fi
   fi
 
-  mount -a
-
 else
   echo "/mnt/ssd is already specified in /etc/fstab, no action required"
 
 fi
+
+sudo mount -a
 
 # abort check if SSD mount is not successful
 if ! mountpoint /mnt/ssd -q; then 
   echo "Mounting of SSD failed"
   exit 1
 fi
+
+# mount potentially updated /etc/fstab or new swap file
+mount -a
 
 # create missing directories & always set correct owner
 # access control lists (setfacl) are used to control permissions of newly created files 

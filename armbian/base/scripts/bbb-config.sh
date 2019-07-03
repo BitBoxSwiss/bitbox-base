@@ -28,6 +28,8 @@ possible commands:
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
+  exec      <bitcoind_reindex>
+
 "
 }
 
@@ -142,7 +144,6 @@ case "${COMMAND}" in
                         sed -i '/RPCPORT=/Ic\RPCPORT=8332' /etc/electrs/electrs.conf
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
-                        sed -i '/<PORT>18333/Ic\<port>8333</port>' /etc/avahi/services/bitcoind.service
                         echo "BITCOIN_NETWORK=mainnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
@@ -158,7 +159,6 @@ case "${COMMAND}" in
                         sed -i '/RPCPORT=/Ic\RPCPORT=18332' /etc/electrs/electrs.conf
                         sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
                         sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
-                        sed -i '/<PORT>8333/Ic\<port>18333</port>' /etc/avahi/services/bitcoind.service
                         echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
@@ -233,6 +233,28 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
+        esac
+        ;;
+
+    exec)
+        case "${SETTING}" in
+            BITCOIND_REINDEX)
+                systemctl stop bitcoind
+
+                if ! /bin/systemctl -q is-active bitcoind.service; then 
+                    # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
+                    rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+
+                    # set optioin reindex-chainstate, restart bitcoind and remove option
+                    sed -i '/reindex-chainstate/Ic\reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+                    systemctl start bitcoind
+                    sleep 10
+                    sed -i '/reindex-chainstate/Ic\#reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+
+                else
+                    echo "bitcoind is still running, cannot delete chainstate"
+                    exit 1
+                fi
         esac
         ;;
 
