@@ -169,12 +169,12 @@ apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config
               gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
               iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
               libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
+              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
               unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 
 # install dependecies
 apt install -y --no-install-recommends \
-  tmux git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl
+  tmux git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync
 apt install -y --no-install-recommends ifmetric
 
 
@@ -258,6 +258,8 @@ middleware      8845/tcp
 EOF
 
 ## retain journal logs between reboots 
+## /etc/default/armbian-zram-config
+/usr/lib/armbian/armbian-ramlog write
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## make bbb scripts executable with sudo
