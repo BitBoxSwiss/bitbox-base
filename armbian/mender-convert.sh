@@ -37,7 +37,7 @@ case ${ACTION} in
 		DEVICE_TYPE="rockpro64"
 		RAW_DISK_IMAGE="input/${SOURCE_NAME}.img"
 		ARTIFACT_NAME="${TARGET_NAME}"
-		MENDER_DISK_IMAGE="${TARGET_NAME}.img"
+		MENDER_DISK_IMAGE="${TARGET_NAME}"
 
 		# retrieve latest Armbian image
 		if [ ! -f "../../provisioning/${SOURCE_NAME}.img" ]; then
@@ -60,7 +60,7 @@ case ${ACTION} in
 		mv output/${SOURCE_NAME}* ../../provisioning/
 
 		echo "Mender files ready for provisioning:"
-		stat -c "%y %s %n" provisioning/${TARGET_NAME}*
+		stat -c "%y %s %n" ../../provisioning/${TARGET_NAME}*
 		echo 
 		echo "Write to eMMC with the following command (check target device /dev/sdb first!):"
 		echo "dd if=./provisioning/${TARGET_NAME}.sdimg of=/dev/sdb bs=4M conv=sync status=progress"
