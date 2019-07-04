@@ -24,13 +24,13 @@ fi
 case ${ACTION} in
 	build)
 		# initialize conversion environment
-		if [ ! -d "mender-conversion-tools" ]; then
-			git clone https://github.com/mirzak/mender-conversion-tools -b rockpro
-			cd mender-conversion-tools
+		if [ ! -d "mender-convert" ]; then
+			git clone https://github.com/mendersoftware/mender-convert
+			cd mender-convert
 			./docker-build arm64
 			mkdir -p input
 		else
-			cd mender-conversion-tools
+			cd mender-convert
 		fi
 
 		# conversion settings
