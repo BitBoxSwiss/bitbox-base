@@ -57,6 +57,7 @@ case ${ACTION} in
 		# move converted images and update artefacts to /provisioning
 		echo "Cleaning up..."
 		rm "input/${SOURCE_NAME}.img"
+		rm "output/${TARGET_NAME}.ext4"
 		mv output/${SOURCE_NAME}* ../../provisioning/
 
 		echo "Mender files ready for provisioning:"
