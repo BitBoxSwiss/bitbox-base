@@ -44,6 +44,7 @@ case ${ACTION} in
 			echo "Error: Armbian source file 'provisioning/${SOURCE_NAME}.img' missing."
 			exit 1
 		fi
+		echo "Copying ./provisioning/${SOURCE_NAME}.img..."
 		cp -f "../../provisioning/${SOURCE_NAME}.img" "input/"
 
 		./docker-mender-convert from-raw-disk-image \
@@ -54,7 +55,14 @@ case ${ACTION} in
 			--bootloader-toolchain aarch64-linux-gnu
 
 		# move converted images and update artefacts to /provisioning
+		echo "Cleaning up..."
 		rm "input/${SOURCE_NAME}.img"
 		mv output/${SOURCE_NAME}* ../../provisioning/
+
+		echo "Mender files ready for provisioning:"
+		stat -c "%y %s %n" provisioning/${TARGET_NAME}*
+		echo 
+		echo "Write to eMMC with the following command (check target device /dev/sdb first!):"
+		echo "dd if=./provisioning/${TARGET_NAME}.sdimg of=/dev/sdb bs=4M conv=sync status=progress"
         ;;
 esac
