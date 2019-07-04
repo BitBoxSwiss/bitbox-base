@@ -138,6 +138,7 @@ chmod -R 750 /mnt/ssd/electrs/
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
+ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
 ## no way to specify where to expect the bitcoin cookie for c-lightning, so let's
