@@ -240,6 +240,8 @@ alias llog='sudo journalctl -f -u lightningd'
 
 # Electrum
 alias elog='sudo journalctl -n 100 -f -u electrs'
+
+export PATH=$PATH:/sbin:/usr/local/sbin
 EOF
 
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
