@@ -9,5 +9,8 @@ update:
 	bash $(MAKE_PATH)/build.sh update
 	bash $(MAKE_PATH)/../scripts/move-armbian-image.sh
 
+mender-artefacts:
+	bash $(MAKE_PATH)/mender-convert.sh
+
 clean:
 	rm -rf $(MAKE_PATH)/armbian/armbian-build

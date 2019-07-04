@@ -12,11 +12,11 @@ This documentation is aimed at project members, contributors and intersted peopl
 ## Table of Content
 
 1. [About](about.md)
+1. [Getting Started](start.md)
 1. Hardware
    1. [Specifications Overview](hw/spec-overview.md)
    1. [Platform Choice](hw/platform-choice.md)
    1. [CAD Concept Schematics](hw/cad-concept-schematics.md)
-1. [Creating the Base image](base-image.md)
 1. Go applications
    1. [Building Go binaries](go/build.md)
    1. [Middleware](go/middleware.md)

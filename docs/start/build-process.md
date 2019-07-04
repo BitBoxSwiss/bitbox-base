@@ -1,21 +1,19 @@
 ---
 layout: default
-title: Base Image
-nav_order: 300
-has_children: true
-permalink: /base-image
+title: Build process
+parent: Getting started
+nav_order: 100
 ---
-## BitBox Base: Creating the Base image
+## Build process
 
-This document provides a high-level overview of the overall build process.
-The main output of the build is an Armbian image that can be used to boot the BitBox Base.
-See also [Building the Armbian base image](/os/armbian-build.md) and related pages for more details.
+*(TODO)Stadicus: extend and include Mender.io*
+
 The build process contains the following steps, all of which can be initiated by running `make` in the root of the repository.
 
 The steps involved are:
 
 1. build the Go applications
-1. build the Armbian image
+2. build the Armbian image
 
 Unpacking the steps above, what happens when you type `make` is:
 

@@ -1,16 +1,29 @@
 # Ignore the github.com/armbian/build repo we check out during builds.
 /armbian/armbian-build
+
+# Ignore the github.com/mendersoftware/mender-convert repo we check out to convert disk images
+/armbian/mender-conversion-tools
+/armbian/mender-convert
+
 # Ignore the local configuration overrides for Armbian build.
 /armbian/base/build/build-local.conf
+
 # Ignore the generated file holding current git commit for Armbian build.
 /armbian/base/config/latest_commit
+
 # Ignore compiled Go binaries.
 /tools/bbbfancontrol/bbbfancontrol
 /tools/bbbsupervisor/bbbsupervisor
+
 # Ignore vim swap files.
 *.sw?
+
 # Ignore Jekyll-generated files.
 /.jekyll-metadata
 /_site/
-# Ignore the build outputs.
-/build
+
+# Ignore the build outputs and privisioning disk images (except READMEs)
+/build/*
+!/build/README.md
+/provisioning/*
+!/provisioning/README.md
