@@ -48,6 +48,11 @@ if [ ! -f /mnt/ssd/swapfile ]; then
   swapon /mnt/ssd/swapfile
 fi
 
+# check if swapfile is configured in /etc/fstab, and add it if necessary
+if ! grep -q '/mnt/ssd/swapfile' /etc/fstab ; then
+  echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
+fi
+
 # check if SSD mount is configured in /etc/fstab
 if ! grep -q '/mnt/ssd' /etc/fstab ; then
 

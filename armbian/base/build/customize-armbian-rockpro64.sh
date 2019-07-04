@@ -191,7 +191,6 @@ echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
-echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
 
 ## startup checks
 cat << 'EOF' > /etc/systemd/system/startup-checks.service
