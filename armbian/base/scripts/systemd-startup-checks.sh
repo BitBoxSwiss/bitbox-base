@@ -97,10 +97,15 @@ fi
 # ------------------------------------------------------------------------------
 ## check if swapfile exists on ssd
 if [ ! -f /mnt/ssd/swapfile ]; then
-  fallocate --length 2GiB /mnt/ssd/swapfile
-  chmod 600 /mnt/ssd/swapfile
-  mkswap /mnt/ssd/swapfile
-  swapon /mnt/ssd/swapfile
+  if [ mountpoint /mnt/ssd -q ]; then
+    echo "Creating /mnt/ssd/swapfile."
+    fallocate --length 2GiB /mnt/ssd/swapfile
+    chmod 600 /mnt/ssd/swapfile
+    mkswap /mnt/ssd/swapfile
+    swapon /mnt/ssd/swapfile
+  else
+    echo "ERR: No swapfile found, but SSD not mounted."
+  fi
 fi
 
 ## check if swapfile is configured in /etc/fstab, and add it if necessary
