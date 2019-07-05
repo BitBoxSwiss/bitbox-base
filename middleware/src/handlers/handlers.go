@@ -2,12 +2,13 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
+	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
 	noisemanager "github.com/digitalbitbox/bitbox-base/middleware/src/noise"
-	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -15,19 +16,17 @@ import (
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
-	Start() <-chan interface{}
-	// GetSystemEnv returns a system Environment instance containing host system services information.
-	GetSystemEnv() system.Environment
+	Start() <-chan []byte
+	SystemEnv() []byte
 }
 
 // Handlers provides a web api
 type Handlers struct {
 	Router *mux.Router
 	//upgrader takes an http request and upgrades the connection with its origin to websocket
-	upgrader   websocket.Upgrader
-	middleware Middleware
-	//TODO(TheCharlatan): Starting from the generic interface, flesh out restrictive types over time as the code implements more services.
-	middlewareEvents <-chan interface{}
+	upgrader         websocket.Upgrader
+	middleware       Middleware
+	middlewareEvents <-chan []byte
 
 	noiseConfig *noisemanager.NoiseConfig
 }
@@ -44,7 +43,6 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
-	handlers.Router.HandleFunc("/getenv", handlers.getEnvHandler).Methods("GET")
 
 	handlers.middlewareEvents = handlers.middleware.Start()
 	return handlers
@@ -55,21 +53,6 @@ func (handlers *Handlers) rootHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("OK!!\n"))
 	if err != nil {
 		log.Println(err.Error() + " Failed to write response bytes in root handler")
-	}
-}
-
-func (handlers *Handlers) getEnvHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := json.Marshal(handlers.middleware.GetSystemEnv())
-	if err != nil {
-		log.Println(err.Error() + " Failed to serialize GetSystemEnv data to json in getEnvHandler")
-		http.Error(w, "Something went wrong, I cannot read these hieroglyphs.", http.StatusInternalServerError)
-		return
-	}
-	_, err = w.Write(data)
-	if err != nil {
-		log.Println(err.Error() + " Failed to write response bytes in getNetwork handler")
-		http.Error(w, "Something went wrong, I cannot read these hieroglyphs", http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -87,22 +70,27 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendChan, _, _, remoteHasQuitChan := handlers.runWebsocket(ws)
+	sendChan, _, receiveChan, remoteHasQuitChan := handlers.runWebsocket(ws)
 	go func() {
 		for {
 			select {
+			case message := <-receiveChan:
+				incoming := &basemessages.BitBoxBaseIn{}
+				if err := proto.Unmarshal(message, incoming); err != nil {
+					log.Println("protobuf unmarshal of incoming packet failed")
+				}
+
+				_, ok := incoming.BitBoxBaseIn.(*basemessages.BitBoxBaseIn_BaseSystemEnvIn)
+				if !ok {
+					log.Println("protobuf parsing into middlewareInfo failed")
+				}
+				sendChan <- handlers.middleware.SystemEnv()
+
 			case <-remoteHasQuitChan:
 				return
 			case event := <-handlers.middlewareEvents:
-				log.Println("sending middleware event")
-				data, err := json.Marshal(event)
-				if err != nil {
-					log.Println(err.Error() + " Failed to serialize data to json for runWebsocket")
-					return
-				}
-				sendChan <- data
+				sendChan <- event
 			}
 		}
 	}()
-
 }

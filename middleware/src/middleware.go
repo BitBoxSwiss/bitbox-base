@@ -3,12 +3,17 @@ package middleware
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
+	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
-	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
+
+	"github.com/golang/protobuf/proto"
 )
+
+//go:generate protoc --go_out=import_path=messages:. messages/bbb.proto
 
 // SampleInfo holds sample information from c-lightning and bitcoind. It is temporary for testing purposes.
 type SampleInfo struct {
@@ -21,14 +26,16 @@ type SampleInfo struct {
 type Middleware struct {
 	info        SampleInfo
 	environment system.Environment
-	events      chan interface{}
+	events      chan []byte
+	mu          sync.RWMutex
 }
 
 // NewMiddleware returns a new instance of the middleware
 func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network string) *Middleware {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network),
-		events:      make(chan interface{}),
+		//TODO(TheCharlatan) find a better way to increase the channel size
+		events: make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
 		info: SampleInfo{
 			Blocks:         0,
 			Difficulty:     0.0,
@@ -81,27 +88,55 @@ func (middleware *Middleware) demoCLightningRPC() {
 	nodeinfo, err := ln.Call("getinfo")
 	if err != nil {
 		log.Println(err.Error() + " Lightningd getinfo called failed.")
-	} else {
-		middleware.info.LightningAlias = nodeinfo.Get("alias").String()
+		return
 	}
+	middleware.info.LightningAlias = nodeinfo.Get("alias").String()
 }
 
+//TODO rpcLoop just sends an event to the first client that catches it. In future, this information should properly fan out to all connected clients.
 func (middleware *Middleware) rpcLoop() {
 	for {
 		middleware.demoBitcoinRPC()
 		middleware.demoCLightningRPC()
-		middleware.events <- &middleware.info
+		outgoing := &basemessages.BitBoxBaseOut{
+			BitBoxBaseOut: &basemessages.BitBoxBaseOut_BaseMiddlewareInfoOut{
+				BaseMiddlewareInfoOut: &basemessages.BaseMiddlewareInfoOut{
+					Blocks:         middleware.info.Blocks,
+					Difficulty:     float32(middleware.info.Difficulty),
+					LightningAlias: middleware.info.LightningAlias,
+				},
+			},
+		}
+		response, err := proto.Marshal(outgoing)
+		if err != nil {
+			log.Println("Just print some generic error, because this will take some time to get right")
+		}
+		middleware.events <- response
 		time.Sleep(5 * time.Second)
 	}
 }
 
 // Start gives a trigger for the handler to start the rpc event loop
-func (middleware *Middleware) Start() <-chan interface{} {
+func (middleware *Middleware) Start() <-chan []byte {
 	go middleware.rpcLoop()
 	return middleware.events
 }
 
-// GetSystemEnv implements a getter for the system environment.
-func (middleware *Middleware) GetSystemEnv() system.Environment {
-	return middleware.environment
+// SystemEnv returns a protobuf serialized system environment information object
+func (middleware *Middleware) SystemEnv() []byte {
+	middleware.mu.Lock()
+	defer middleware.mu.Unlock()
+	outgoing := &basemessages.BitBoxBaseOut{
+		BitBoxBaseOut: &basemessages.BitBoxBaseOut_BaseSystemEnvOut{
+			BaseSystemEnvOut: &basemessages.BaseSystemEnvOut{
+				Network:        middleware.environment.Network,
+				ElectrsRPCPort: middleware.environment.ElectrsRPCPort,
+			},
+		},
+	}
+	response, err := proto.Marshal(outgoing)
+	if err != nil {
+		log.Println("Just print some generic error, because this will take some time to get right")
+	}
+	return response
 }
