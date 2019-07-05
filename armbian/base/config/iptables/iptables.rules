@@ -35,6 +35,9 @@
 -A INPUT -p tcp --dport 8333 -j ACCEPT
 -A INPUT -p tcp --dport 18333 -j ACCEPT
 
+# Allow inbound TCP traffic to Base Middleware port.
+-A INPUT -p tcp --dport 8845 -j ACCEPT
+
 # Allow inbound TCP traffic to Tor port.
 -A INPUT -p tcp --dport 9001 -j ACCEPT
 -A INPUT -p tcp --sport 9001 -j ACCEPT
