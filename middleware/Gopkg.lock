@@ -61,6 +61,14 @@
   revision = "32408eef037bd3d3553e466eda7a39f99ba905da"
 
 [[projects]]
+  branch = "master"
+  digest = "1:f2f806cf86ec4291da63d9ffa88af9b4be3c4ee4bbfb9ec2b1109f8ba2d38d1b"
+  name = "github.com/flynn/noise"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2492fe189ae688d7edbeae0fd575de2f1c5fec8e"
+
+[[projects]]
   digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
   name = "github.com/gorilla/mux"
   packages = ["."]
@@ -102,11 +110,28 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1fa95129371749532e2ac8b93a0016c549ebe77f25c6fad296b6ee271fae2fd6"
+  digest = "1:f9058127cac032a2c924e0dd5c51f6b68e5570dd570b0cbb29e988efda361b1b"
   name = "golang.org/x/crypto"
-  packages = ["ripemd160"]
+  packages = [
+    "blake2b",
+    "blake2s",
+    "chacha20poly1305",
+    "curve25519",
+    "internal/chacha20",
+    "internal/subtle",
+    "poly1305",
+    "ripemd160",
+  ]
   pruneopts = "UT"
   revision = "cbcb750295291b33242907a04be40e80801d0cfc"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9289797869517c73400e7b5a93beefbfc86e06f56e3ab03f38fb0d575e685277"
+  name = "golang.org/x/sys"
+  packages = ["cpu"]
+  pruneopts = "UT"
+  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -114,6 +139,7 @@
   input-imports = [
     "github.com/btcsuite/btcd/rpcclient",
     "github.com/fiatjaf/lightningd-gjson-rpc",
+    "github.com/flynn/noise",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
   ]
