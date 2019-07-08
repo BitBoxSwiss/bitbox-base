@@ -9,7 +9,10 @@ set -eu
 
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
-	echo "Usage: ${0} [build|update]"
+	echo "Usage: ${0} [build|update|ondevice]"
+	echo
+	echo "running the setup directly ondevice currently support"
+	echo "Armbian releases Debian Buster and Ubuntu Bionic"
 }
 
 ACTION=${1:-"build"}

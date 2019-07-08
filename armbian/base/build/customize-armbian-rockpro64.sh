@@ -47,16 +47,24 @@ CONFIGURATION:
 ================================================================================
 BUILD OPTIONS:
     BUILD MODE:         ${BASE_BUILDMODE}
+    LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
     BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
+# get Linux distribution and version
+# (works explicitly only on Armbian Debian Buster and Ubuntu Bionic, Debian Stretch is default)
+cat /etc/os-release
+source /etc/os-release
+BASE_DISTRIBUTION=${VERSION_CODENAME}
+
 # Load build configuration, set defaults
 source /opt/shift/build/build.conf || true
 source /opt/shift/build/build-local.conf || true
 
 BASE_BUILDMODE=${1:-"armbian-build"}
+BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"stretch"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
@@ -77,6 +85,12 @@ BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
   exit 1
+fi
+
+# configuration checks
+if [[ "${BASE_DISTRIBUTION}" =~ ^(bionic|buster)$ ]] && [[ "${BASE_BUILD_LIGHTNINGD}" != "true" ]]; then
+  echo "ERR: precomplied binaries for c-lightning are not compatible with Debian Buster or Ubuntu Bionic at the moment,"
+  echo "     please use the option BASE_BUILD_LIGHTNINGD='true' in build.conf"
 fi
 
 # Disable Armbian script on first boot
@@ -112,7 +126,7 @@ echo "root:${BASE_ROOTPW}" | chpasswd
 passwd -l root
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
-adduser --ingroup system --disabled-password --gecos "" base
+adduser --ingroup system --disabled-password --gecos "" base || true
 usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
@@ -140,13 +154,13 @@ if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
 fi
 
 # add service users 
-adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
+adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin || true
 usermod -a -G system bitcoin
-adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
+adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs || true
 usermod -a -G system electrs
-adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi
-adduser --system --ingroup system --disabled-login --no-create-home               prometheus
-adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
+adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi || true
+adduser --system --ingroup system --disabled-login --no-create-home               prometheus || true
+adduser --system --ingroup system --disabled-login --no-create-home               node_exporter || true
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
@@ -160,8 +174,9 @@ fi
 
 # SOFTWARE PACKAGE MGMT --------------------------------------------------------
 ## update system
-apt update -y
-apt upgrade -y
+apt -y update
+apt -y upgrade
+apt -y --fix-broken install
 
 ## remove unnecessary packages
 apt -y remove git
@@ -279,7 +294,7 @@ sudo ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then 
-  echo "deb https://deb.torproject.org/torproject.org stretch main" >> /etc/apt/sources.list
+  echo "deb https://deb.torproject.org/torproject.org ${BASE_DISTRIBUTION} main" >> /etc/apt/sources.list
 fi
 
 apt update
