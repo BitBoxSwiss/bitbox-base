@@ -120,6 +120,7 @@ mount -a
 # ------------------------------------------------------------------------------
 ## create missing directories & always set correct owner
 ## access control lists (setfacl) are used to control permissions of newly created files 
+chown bitcoin:system /mnt/ssd/
 chown bitcoin:system /mnt/ssd/bitcoin 
 
 ## bitcoin data storage
