@@ -62,5 +62,5 @@ case ${ACTION} in
     	# copy built Go binaries and their associated .service files to filesystem
     	cp -aR base/build /opt/shift
 
-		base/build/customize-armbian-rockpro64.sh
+		base/build/customize-armbian-rockpro64.sh ondevice
 esac

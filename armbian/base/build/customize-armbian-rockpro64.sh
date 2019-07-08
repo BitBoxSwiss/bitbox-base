@@ -46,6 +46,7 @@ CONFIGURATION:
 
 ================================================================================
 BUILD OPTIONS:
+    BUILD MODE:         ${BASE_BUILDMODE}
     BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
@@ -55,6 +56,7 @@ BUILD OPTIONS:
 source /opt/shift/build/build.conf || true
 source /opt/shift/build/build-local.conf || true
 
+BASE_BUILDMODE=${1:-"armbian-build"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
@@ -188,6 +190,11 @@ echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
+
+# generate selfsigned NGINX key when run script is run on device
+if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+fi
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
@@ -387,6 +394,8 @@ apt install -y libsodium-dev
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
                   libsqlite3-dev python python3 net-tools zlib1g-dev asciidoc-base
+
+  rm -rf /usr/local/src/lightning
 
   cd /usr/local/src/
   git clone https://github.com/ElementsProject/lightning.git
