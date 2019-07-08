@@ -52,8 +52,8 @@ BUILD OPTIONS:
 "
 }
 # Load build configuration, set defaults
-source /tmp/overlay/build/build.conf || true
-source /tmp/overlay/build/build-local.conf || true
+source /opt/shift/build/build.conf || true
+source /opt/shift/build/build-local.conf || true
 
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
@@ -80,6 +80,7 @@ fi
 # Disable Armbian script on first boot
 rm -f /root/.not_logged_in_yet
 
+mkdir -p /opt/shift/config/
 echoArguments "Starting build process."
 echoArguments "Starting build process." > /opt/shift/config/buildargs.log
 
@@ -116,9 +117,9 @@ echo "base:${BASE_ROOTPW}" | chpasswd
 # Add trusted SSH keys for login
 mkdir -p /root/.ssh 
 mkdir -p /home/base/.ssh
-if [ -f /tmp/overlay/build/authorized_keys ]; then
-  cp -f /tmp/overlay/build/authorized_keys /root/.ssh/
-  cp -f /tmp/overlay/build/authorized_keys /home/base/.ssh/
+if [ -f /opt/shift/build/authorized_keys ]; then
+  cp -f /opt/shift/build/authorized_keys /root/.ssh/
+  cp -f /opt/shift/build/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/build/authorized_keys), password login only."
 fi
@@ -157,20 +158,20 @@ fi
 
 # SOFTWARE PACKAGE MGMT --------------------------------------------------------
 ## update system
-apt update
+apt update -y
 apt upgrade -y
 
 ## remove unnecessary packages
 apt -y remove git
-apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
-              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
-              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
-              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
-              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
-              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
-              libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
-              unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+# apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
+#               alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+#               console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+#               dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+#               gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+#               iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
+#               libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
+#               man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
+#               unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 
 # install dependecies
 apt install -y --no-install-recommends \
@@ -263,8 +264,8 @@ EOF
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## make bbb scripts executable with sudo
-sudo ln -s /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
-sudo ln -s /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
+sudo ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+sudo ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
 # TOR --------------------------------------------------------------------------
@@ -312,8 +313,8 @@ curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /tmp/overlay/build/laanwj-releases.asc
-gpg --refresh-keys || true
+gpg --import /opt/shift/build/laanwj-releases.asc
+#gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
 tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
@@ -385,7 +386,7 @@ apt install -y libsodium-dev
 ## either compile c-lightning from source (default), or use prebuilt binary
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                  libsqlite3-dev python python3 net-tools zlib1g-dev
+                  libsqlite3-dev python python3 net-tools zlib1g-dev asciidoc-base
 
   cd /usr/local/src/
   git clone https://github.com/ElementsProject/lightning.git
@@ -406,7 +407,7 @@ else
   dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
 
   ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
-  ln -s /usr/bin/lightningd /usr/local/bin/lightningd
+  ln -sf /usr/bin/lightningd /usr/local/bin/lightningd
   
 fi
 
@@ -515,15 +516,22 @@ EOF
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
-cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
-cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
+if [ -f /tmp/overlay/bbbfancontrol ]; then
+  cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
+  cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
+  systemctl enable bbbfancontrol.service
+else
+  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
+  echo "WARN: bbbfancontrol not found."
+fi
 
 ## base-middleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-cp /tmp/overlay/base-middleware /usr/local/sbin/
+if [ -f /tmp/overlay/base-middleware ]; then
+  cp /tmp/overlay/base-middleware /usr/local/sbin/
 
-mkdir -p /etc/base-middleware/
-cat << EOF > /etc/base-middleware/base-middleware.conf
+  mkdir -p /etc/base-middleware/
+  cat << EOF > /etc/base-middleware/base-middleware.conf
 BITCOIN_RPCUSER=__cookie__
 BITCOIN_RPCPORT=18332
 LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
@@ -546,6 +554,13 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
+
+  systemctl enable base-middleware.service
+else
+  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
+  echo "WARN: base-middleware not found."
+fi
+
 
 # PROMETHEUS -------------------------------------------------------------------
 PROMETHEUS_VERSION="2.9.2"
@@ -907,13 +922,11 @@ systemctl enable systemd-timesyncd.service
 systemctl enable bitcoind.service
 systemctl enable lightningd.service
 systemctl enable electrs.service
-systemctl enable bbbfancontrol.service
 systemctl enable prometheus.service
 systemctl enable prometheus-node-exporter.service
 systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
-systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
 ## Set to mainnet if configured
