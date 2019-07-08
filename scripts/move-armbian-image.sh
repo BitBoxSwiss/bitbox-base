@@ -7,8 +7,8 @@ set -eu
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # TODO(hkjn): Consider defining these config values somewhere higher-level than inside this script.
-KERNEL_VERSION="${KERNEL_VERSION:-4.4.176}"
-ARMBIAN_VERSION="${ARMBIAN_VERSION:-5.77}"
+KERNEL_VERSION="${KERNEL_VERSION:-4.4.182}"
+ARMBIAN_VERSION="${ARMBIAN_VERSION:-5.90}"
 IMG_FILE="${SCRIPT_DIR}/../armbian/armbian-build/output/images/Armbian_${ARMBIAN_VERSION}_Rockpro64_Debian_stretch_default_${KERNEL_VERSION}.img"
 TARGET_FILE="BitBoxBase_Armbian_RockPro64.img"
 

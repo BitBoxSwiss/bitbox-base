@@ -43,7 +43,8 @@ case ${ACTION} in
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
 		BOARD=${BOARD:-rockpro64}
-		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no LIB_TAG=sunxi-4.20"
+		#BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no LIB_TAG=sunxi-4.20"
+		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=stretch BRANCH=default BUILD_DESKTOP=no WIREGUARD=no"
 		if ! [ "${ACTION}" == "build" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache PROGRESS_LOG_TO_FILE=yes"
 		fi
