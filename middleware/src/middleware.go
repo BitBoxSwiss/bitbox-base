@@ -9,6 +9,7 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
+	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 
 	"github.com/golang/protobuf/proto"
 )
