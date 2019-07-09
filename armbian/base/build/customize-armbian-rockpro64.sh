@@ -178,17 +178,19 @@ apt -y update
 apt -y upgrade
 apt -y --fix-broken install
 
-## remove unnecessary packages
-apt -y remove git
-# apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
-#               alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
-#               console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
-#               dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
-#               gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
-#               iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
-#               libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-#               man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
-#               unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+## remove unnecessary packages (only when building image, not ondevice)
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  apt -y remove git
+  apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
+                alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+                console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+                dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+                gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+                iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
+                libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
+                man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
+                unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+fi
 
 # install dependecies
 apt install -y --no-install-recommends \
@@ -205,6 +207,15 @@ echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
+
+## enable kernel failure dumps
+mkdir -p /var/crash
+cat << 'EOF' >> /etc/sysctl.conf
+kernel.core_pattern = /var/crash/core.%t.%p
+kernel.panic=10
+#kernel.unknown_nmi_panic=1
+EOF
+
 
 # generate selfsigned NGINX key when run script is run on device
 if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
@@ -561,7 +572,7 @@ BITCOIN_RPCPORT=18332
 LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 EOF
 
-cat << 'EOF' > /etc/systemd/system/base-middleware.service
+  cat << 'EOF' > /etc/systemd/system/base-middleware.service
 [Unit]
 Description=BitBox Base Middleware
 Wants=bitcoind.service lightningd.service electrs.service
@@ -963,4 +974,8 @@ if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
 fi
 
 set +x
-echoArguments "Armbian build process finished. Login using SSH Keys or root password."
+if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  echoArguments "Setup script finished. Please reboot device and login as user 'base'."
+else
+  echoArguments "Armbian build process finished. Login using SSH Keys or root password."
+fi

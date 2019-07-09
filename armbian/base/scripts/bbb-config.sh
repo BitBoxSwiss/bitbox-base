@@ -28,7 +28,7 @@ possible commands:
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
-  exec      <bitcoind_reindex>
+  exec      <bitcoin_reindex>
 
 "
 }
