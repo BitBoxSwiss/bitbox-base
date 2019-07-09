@@ -20,6 +20,7 @@ possible commands:
 
   set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
             bitcoin_network     <mainnet|testnet>
+            bitcoin_dbcache     int (MB)
             other arguments     string
 
   get       any 'enable' or 'set' argument, or
@@ -178,6 +179,26 @@ case "${COMMAND}" in
                         exit 1
                 esac
                 echo "System configuration ${SETTING} will be enabled on next boot."
+                ;;
+
+            BITCOIN_DBCACHE)
+                if [[ "${3}" -ge 50 ]] && [[ "${3}" -le 3000 ]]; then
+                    # configure bitcoind
+                    sed -i "/DBCACHE=/Ic\dbcache=${3}" /etc/bitcoin/bitcoin.conf
+                    
+                    # check if service restart is necessary
+                    BITCOIN_DBCACHE=0
+                    source "${SYSCONFIG_PATH}/BITCOIN_DBCACHE" || true
+                    if [[ "${3}" -ne "${BITCOIN_DBCACHE}" ]]; then
+                        echo "Service 'bitcoind' is being restarted..."
+                        systemctl restart bitcoind
+                    fi
+                    echo "BITCOIN_DBCACHE=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
+                else
+                    echo "Invalid argument: '${3}' must be an integer in MB between 50 and 3000."
+                    exit 1
+                fi
+                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             HOSTNAME)
