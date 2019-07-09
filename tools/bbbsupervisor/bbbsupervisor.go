@@ -48,46 +48,103 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 )
 
-type (
-	// follower represents a client that follows some external resource, like a log.
-	follower interface {
-		// follow starts following the external resource, and continues forever, unless
-		// there is an error.
-		follow()
-	}
-	// logFollower follows service logs.
-	logFollower struct {
-		unit string // systemd unit to follow, e.g 'bitcoind.service'
-		// TODO(hkjn): change to more structured type for the chan below for relevant log events the supervisor cares about
-		logs chan string // lines of log output are sent through this chan
-		errs chan error  // lines of stderr output are sent through this chan
+//follower represents a client that follows some external resource, like a log.
+type follower interface {
+	// follow starts following the external resource, and continues forever, unless
+	// there is an error.
+	follow(chan serviceEvent, chan error)
+}
+
+// trigger is something specific that can happen for a service
+type trigger int
+
+// serviceEvent represents an actionable event from a systemd service that we are following
+// e.g. that bitcoin or electrs has fully synced, or a service os not reachable
+type serviceEvent struct {
+	unit    string  // unit represents systemd unit name, e.g. 'bitcoind'
+	trigger trigger // event could be 'fully synced', 'unit down' or 'measureUpdate'
+	measure string
+	value   float64
+}
+
+// logFollower follows service logs.
+type logFollower struct {
+	unit string            // systemd unit to follow, e.g 'bitcoind.service'
+	logs chan serviceEvent // when detecting a specific trigger, a service event is sent through this chan
+	errs chan error        // lines of stderr output are sent through this chan
+}
+
+// prometheusFollower follows metrics exposed by a Prometheus server.
+type prometheusFollower struct {
+	// unit is the systemd unit that the measure belongs to (e.g. 'bitcoind')
+	unit string
+	// measure is the name of the datapoint
+	measure string
+	// expression is the PQL expression to query for
+	// if empty, measure is used
+	expression string
+	// server is the address of the prometheus server to connect to
+	server string
+	// datapoints as measures sent through this chan
+	logs chan serviceEvent
+	// lines of stderr output are sent through this chan
+	errs chan error
+}
+
+// followers represents several follower objects.
+type followers []follower
+
+// chanStringWriter implements io.Writer and writes all contents as string into the wrapped chan.
+type chanServiceEventWriter struct {
+	logs chan serviceEvent
+	unit string
+}
+
+// chanErrWriter implements io.Writer and writes all contents as error into the wrapped chan.
+type chanErrWriter struct{ errs chan error }
+
+// list of possible service events
+const (
+	fullySynced trigger = 1 + iota
+	unitDown
+	measureUpdate
+)
+
+var triggers = [...]string{
+	"fullySynced",
+	"unitDown",
+	"measureUpdate",
+}
+
+func (t trigger) String() string {
+	if fullySynced <= t && int(t) < len(triggers) {
+		return triggers[t-1]
 	}
 
-	// prometheusFollower follows metrics exposed by a Prometheus server.
-	prometheusFollower struct {
-		// server is the address of the prometheus server to connect to
-		server string
-		// expression is the PQL expression to query for
-		expression string
-		// lines of log output are sent through this chan
-		logs chan string
-		// lines of stderr output are sent through this chan
-		errs chan error
+	// log.Printf("ERR: unknown trigger '%v' encountered", t)
+	return ""
+	//panic(fmt.Sprintf("Invalid event: %d", int(t)))
+}
+
+// parseEvent checks a string for relevant events and potentially returns an event type
+func parseEvent(p []byte, unit string) *serviceEvent {
+	switch {
+	// fully synched
+	case strings.Contains(string(p), "finished full compaction"):
+		fmt.Printf("parseEvent: 'finished full compaction'\n%q\n\n", p)
+		return &serviceEvent{unit: unit, trigger: fullySynced}
 	}
-	// followers represents several follower objects.
-	followers []follower
-	// chanStringWriter implements io.Writer and writes all contents as string into the wrapped chan.
-	chanStringWriter struct{ logs chan string }
-	// chanErrWriter implements io.Writer and writes all contents as error into the wrapped chan.
-	chanErrWriter struct{ errs chan error }
-)
+	return nil
+}
 
 // Write implements the io.Writer interface by sending the content as string through the wrapped channel.
 func (w chanStringWriter) Write(p []byte) (int, error) {
@@ -127,11 +184,14 @@ func (lf logFollower) follow() {
 }
 
 // follow implements follower interface by following Prometheus server and querying for values forever.
-func (pf prometheusFollower) follow() {
+func (pf prometheusFollower) follow(events chan serviceEvent, errs chan error) {
+	if len(pf.expression) == 0 {
+		pf.expression = pf.measure
+	}
 	for {
 		fmt.Printf("prometheusFollower querying for %q\n", pf.expression)
 		pf.query()
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -176,11 +236,36 @@ func (pf prometheusFollower) query() {
 	fmt.Printf("xx: parsed value %+v (%T) at time %v (%T)\n", value, value, timestamp, timestamp)
 	switch v := value.(type) {
 	case string:
-		pf.logs <- fmt.Sprintf("value of %q: %+v", pf.expression, v)
+		val64, err := strconv.ParseFloat(value.(string), 64)
+		if err != nil {
+			log.Printf("could not convert value %v of type %T into float64", value, value)
+		}
+		log.Printf("returned %v, %v, %v, %v", pf.unit, measureUpdate, pf.measure, val64)
+		//TODO(Stadicus): replace with something like chanServiceEventWriter{events, lf.unit}
+		pf.logs <- serviceEvent{unit: pf.unit, trigger: measureUpdate, measure: pf.measure, value: val64}
+
 	default:
 		pf.errs <- fmt.Errorf("unknown type of value %v (%T)", v, v)
 
 	}
+}
+
+// restartUnit restarts a systemd unit
+func restartUnit(unit string) error {
+	args := []string{
+		"restart",
+		unit,
+	}
+	cmd := exec.Command("/bin/systemctl", args...)
+	fullCmd := "systemctl " + strings.Join(args, " ")
+	err := cmd.Run()
+	if err != nil {
+		log.Print(err)
+		log.Printf("command '%v' unexpectedly exited", fullCmd)
+	} else {
+		log.Printf("restartUnit: command '%v' executed.'", fullCmd)
+	}
+	return err
 }
 
 func main() {
@@ -203,10 +288,11 @@ func main() {
 	// start following systemd services in separate goroutines
 	fmt.Println("starting log followers..")
 	followers := followers{
-		logFollower{unit: "NetworkManager.service", logs: logs, errs: errs},
-		logFollower{unit: "bitcoind.service", logs: logs, errs: errs},
-		logFollower{unit: "electrs.service", logs: logs, errs: errs},
-		prometheusFollower{expression: "lightning_funds_output", server: "http://localhost:9090", logs: logs, errs: errs},
+		logFollower{unit: "bitcoind"},
+		logFollower{unit: "lightningd"},
+		logFollower{unit: "electrs"},
+		//prometheusFollower{unit: "lightningd", measure: "lightning_funds_output", server: "http://bob:9090"},
+		prometheusFollower{unit: "lightningd", measure: "bitcoind_ibd", server: "http://bob:9090"},
 	}
 	for _, lf := range followers {
 		go lf.follow()
@@ -214,9 +300,25 @@ func main() {
 
 	for {
 		select {
-		// journald log messages
-		case message := <-logs:
-			fmt.Printf("follower passed on output: %q\n", message)
+		// serviceEvents from systemd journal or Prometheus updates
+		case message := <-events:
+			fmt.Printf("follower passed on output: %v\n", message)
+
+			switch {
+			// elects: after initial sync, electrs is restarted
+			case message.trigger == fullySynced:
+				switch message.unit {
+				case "electrs":
+					fmt.Printf("Unit %v fully synced: %v\n", message.unit, message.trigger)
+					restartUnit(message.unit)
+
+				default:
+					fmt.Printf("Message %v not defined for unit %v\n", message.trigger, message.unit)
+				}
+
+			case message.trigger == measureUpdate:
+				fmt.Printf("Unit %v update: %v is now %v\n", message.unit, message.measure, message.value)
+			}
 
 		case err := <-errs:
 			fmt.Printf("fatal: error from follower: %v\n", err)
