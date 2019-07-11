@@ -20,7 +20,7 @@ Main() {
                         CustomizeArmbian
                         ;;
                 bionic)
-                        exit 1
+                        CustomizeArmbian
                         ;;
         esac
 } # Main

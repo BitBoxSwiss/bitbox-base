@@ -113,6 +113,9 @@ if ! grep -q '/mnt/ssd/swapfile' /etc/fstab ; then
   echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
 fi
 
+## if overlayroot disabled swapfile on ssd, enable it again
+sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
+
 ## mount potentially updated /etc/fstab
 mount -a
 

@@ -14,7 +14,7 @@ usage: bbb-config.sh [--version] [--help]
 
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor_ssh|tor_electrum>
+             tor_ssh|tor_electrum|overlayroot>
 
   disable   any 'enable' argument
 
@@ -114,6 +114,18 @@ case "${COMMAND}" in
                 fi
                 echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                 systemctl restart tor.service
+                ;;
+
+            OVERLAYROOT)
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
+                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                    echo "Overlay root filesystem will be enabled on next boot."
+                else
+                    overlayroot-chroot /bin/bash -c "echo 'overlayroot=disabled' > /etc/overlayroot.local.conf"
+                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                    echo "Overlay root filesystem will be disabled on next boot."
+                fi
                 ;;
 
             *)

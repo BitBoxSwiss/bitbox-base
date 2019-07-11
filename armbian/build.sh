@@ -40,13 +40,13 @@ case ${ACTION} in
 		cd armbian-build
 
 		mkdir -p output/
-		mkdir -p userpatches/overlay
+		mkdir -p userpatches/overlay/bin
 		cp -aR ../base/* userpatches/overlay/					# copy scripts and configuration items to overlay
-		cp -aR ../../build/* userpatches/overlay/				# copy additional software binaries to overlay
+		cp -aR ../../build/* userpatches/overlay/bin			# copy additional software binaries to overlay
 		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
 
 		BOARD=${BOARD:-rockpro64}
-		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=buster BRANCH=default BUILD_DESKTOP=no WIREGUARD=no"
+		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=bionic BRANCH=default BUILD_DESKTOP=no WIREGUARD=no"
 		if ! [ "${ACTION}" == "build" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache PROGRESS_LOG_TO_FILE=yes"
 		fi

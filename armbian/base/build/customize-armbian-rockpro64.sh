@@ -43,6 +43,7 @@ CONFIGURATION:
     SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
+    OVERLAYROOT:        ${BASE_OVERLAYROOT}
 
 ================================================================================
 BUILD OPTIONS:
@@ -75,6 +76,7 @@ BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
 BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
+BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
 
 # HDMI dashboard only enabled if image is built to support it
 if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
@@ -91,6 +93,7 @@ fi
 if [[ "${BASE_DISTRIBUTION}" =~ ^(bionic|buster)$ ]] && [[ "${BASE_BUILD_LIGHTNINGD}" != "true" ]]; then
   echo "ERR: precomplied binaries for c-lightning are not compatible with Debian Buster or Ubuntu Bionic at the moment,"
   echo "     please use the option BASE_BUILD_LIGHTNINGD='true' in build.conf"
+  exit 1
 fi
 
 # Disable Armbian script on first boot
@@ -180,16 +183,22 @@ apt -y --fix-broken install
 
 ## remove unnecessary packages (only when building image, not ondevice)
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
-  apt -y remove git
-  apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
-                alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
-                console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
-                dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
-                gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
-                iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
-                libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-                man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
-                unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+  pkgToRemove="git libllvmkk build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev
+  alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup*"
+
+for pkg in $pkgToRemove
+do
+  apt -y remove "$pkg" || true
+done
+
+#                 alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
+#                 console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
+#                 dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
+#                 gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
+#                 iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
+#                 libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
+#                 man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* \
+#                 unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
 fi
 
 # install dependecies
@@ -207,15 +216,6 @@ echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
-
-## enable kernel failure dumps
-mkdir -p /var/crash
-cat << 'EOF' >> /etc/sysctl.conf
-kernel.core_pattern = /var/crash/core.%t.%p
-kernel.panic=10
-#kernel.unknown_nmi_panic=1
-EOF
-
 
 # generate selfsigned NGINX key when run script is run on device
 if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
@@ -347,7 +347,7 @@ curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
 gpg --import /opt/shift/build/laanwj-releases.asc
-#gpg --refresh-keys || true
+gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
 tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
@@ -551,9 +551,9 @@ EOF
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
-if [ -f /tmp/overlay/bbbfancontrol ]; then
-  cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
-  cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
+if [ -f /tmp/overlay/bin/bbbfancontrol ]; then
+  cp /tmp/overlay/bin/bbbfancontrol /usr/local/sbin/
+  cp /tmp/overlay/bin/bbbfancontrol.service /etc/systemd/system/
   systemctl enable bbbfancontrol.service
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
@@ -562,8 +562,8 @@ fi
 
 ## base-middleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-if [ -f /tmp/overlay/base-middleware ]; then
-  cp /tmp/overlay/base-middleware /usr/local/sbin/
+if [ -f /tmp/overlay/bin/base-middleware ]; then
+  cp /tmp/overlay/bin/base-middleware /usr/local/sbin/
 
   mkdir -p /etc/base-middleware/
   cat << EOF > /etc/base-middleware/base-middleware.conf
@@ -972,6 +972,16 @@ fi
 if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
   /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
+
+## Freeze /rootfs with overlayroot (Ubuntu only)
+if [ "${BASE_OVERLAYROOT}" == "true" ]; then
+  if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+    echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
+  else
+    echo "ERR: overlayroot is only supported in Ubuntu Bionic."
+  fi
+fi
+
 
 set +x
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
