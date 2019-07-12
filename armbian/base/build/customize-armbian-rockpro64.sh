@@ -204,11 +204,15 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
 fi
 
 
-# install dependecies
+## install dependecies
 apt install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync
 apt install -y --no-install-recommends ifmetric
 apt install -y --no-install-recommends tmux
+
+if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+    apt install -y --no-install-recommends overlayroot
+fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
