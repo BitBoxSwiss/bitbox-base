@@ -195,10 +195,10 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
   man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* 
   unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant* "
 
-for pkg in $pkgToRemove
-do
-  apt -y remove "$pkg" || true
-done
+  for pkg in $pkgToRemove
+  do
+    apt -y remove "$pkg" || true
+  done
 
   apt -y --fix-broken install
 fi
@@ -301,8 +301,8 @@ EOF
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## make bbb scripts executable with sudo
-sudo ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
-sudo ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
+ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
 # TOR --------------------------------------------------------------------------
@@ -865,7 +865,7 @@ EOF
 # DASHBOARD OVER HDMI ----------------------------------------------------------
 if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
 
-  sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+  apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
   cat << 'EOF' > /etc/xdg/openbox/autostart
 # Disable any form of screen saver / screen blanking / power management
