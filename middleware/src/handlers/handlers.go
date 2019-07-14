@@ -4,6 +4,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"sync"
 
 	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
 	noisemanager "github.com/digitalbitbox/bitbox-base/middleware/src/noise"
@@ -29,6 +30,9 @@ type Handlers struct {
 	middlewareEvents <-chan []byte
 
 	noiseConfig *noisemanager.NoiseConfig
+	nClients    int
+	clientsMap  map[int]chan<- []byte
+	mu          sync.Mutex
 }
 
 // NewHandlers returns a handler instance.
@@ -40,12 +44,26 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 		Router:      router,
 		upgrader:    websocket.Upgrader{},
 		noiseConfig: noisemanager.NewNoiseConfig(dataDir),
+		nClients:    0,
+		clientsMap:  make(map[int]chan<- []byte),
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
 
 	handlers.middlewareEvents = handlers.middleware.Start()
+	go handlers.listenEvents()
 	return handlers
+}
+
+func (handlers *Handlers) listenEvents() {
+	for {
+		event := <-handlers.middlewareEvents
+		handlers.mu.Lock()
+		for k := range handlers.clientsMap {
+			handlers.clientsMap[k] <- event
+		}
+		handlers.mu.Unlock()
+	}
 }
 
 // rootHandler provides an endpoint to indicate that the middleware is online and able to handle requests.
@@ -71,6 +89,10 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendChan, _, receiveChan, remoteHasQuitChan := handlers.runWebsocket(ws)
+	handlers.mu.Lock()
+	handlers.clientsMap[0] = sendChan
+	handlers.nClients++
+	handlers.mu.Unlock()
 	go func() {
 		for {
 			select {
@@ -84,12 +106,12 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 				if !ok {
 					log.Println("protobuf parsing into middlewareInfo failed")
 				}
-				sendChan <- handlers.middleware.SystemEnv()
+				go func() {
+					sendChan <- handlers.middleware.SystemEnv()
+				}()
 
 			case <-remoteHasQuitChan:
 				return
-			case event := <-handlers.middlewareEvents:
-				sendChan <- event
 			}
 		}
 	}()
