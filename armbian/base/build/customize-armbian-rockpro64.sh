@@ -536,7 +536,7 @@ After=lightningd.service
 Type=simple
 EnvironmentFile=/etc/base-middleware/base-middleware.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStart=/usr/local/sbin/base-middleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH}
+ExecStart=/usr/local/sbin/base-middleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH} -datadir=/mnt/ssd/system/middleware
 Restart=always
 RestartSec=10
 
