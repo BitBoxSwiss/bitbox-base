@@ -9,8 +9,8 @@ set -eux
 SYSCONFIG_PATH="/opt/shift/sysconfig"
 
 # check for TLS certificate and create it if missing
-if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
 # make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)

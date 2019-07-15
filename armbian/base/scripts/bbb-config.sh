@@ -63,6 +63,7 @@ case "${COMMAND}" in
         case "${SETTING}" in
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
                     mkdir -p /etc/systemd/system/getty@tty1.service.d/
                     cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
@@ -145,7 +146,6 @@ case "${COMMAND}" in
             BITCOIN_NETWORK)
                 case "${3}" in
                     mainnet)
-                        sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin MAINNET"; echo' /etc/update-motd.d/20-shift
                         sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 18333/Ic\HiddenServicePort 8333 127.0.0.1:8333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\#testnet=1' /etc/bitcoin/bitcoin.conf
@@ -160,7 +160,6 @@ case "${COMMAND}" in
                         ;;
 
                     testnet)
-                        sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin TESTNET"; echo' /etc/update-motd.d/20-shift
                         sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 8333/Ic\HiddenServicePort 18333 127.0.0.1:18333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\testnet=1' /etc/bitcoin/bitcoin.conf
@@ -188,6 +187,7 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                     *)
+                        # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                         echo "${3}" > /etc/hostname
                         hostname -F /etc/hostname
                         echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
@@ -196,6 +196,7 @@ case "${COMMAND}" in
                 ;;
 
             ROOT_PW)
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 echo "root:${3}" | chpasswd
                 ;;
 

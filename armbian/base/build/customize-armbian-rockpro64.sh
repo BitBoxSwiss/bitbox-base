@@ -225,12 +225,19 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
+## set hostname
+mkdir -p /data/network
+mv /etc/hostname /data/network/hostname
+ln -sf /data/network/hostname /etc/hostname
+/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
+
 ## set debug console to only use display, not serial console ttyS2 over UART
 echo 'console=display' >> /boot/armbianEnv.txt
 
 ## generate selfsigned NGINX key when run script is run on device
-if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+mkdir -p /data/ssl/
+if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
 ## disable Armbian ramlog if overlayroot is enabled
@@ -258,9 +265,6 @@ EOF
 
 ## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
-
-## set hostname
-/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 ## prepare SSD mount point
 mkdir -p /mnt/ssd/
@@ -299,9 +303,7 @@ middleware      8845/tcp
 EOF
 
 ## retain journal logs between reboots 
-## /etc/default/armbian-zram-config
-/usr/lib/armbian/armbian-ramlog write
-ln -sf /mnt/ssd/system/journal/ /var/log/journal
+ln -sf /mnt/ssd/system/journal /var/log/journal
 
 ## make bbb scripts executable with sudo
 ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
@@ -805,8 +807,8 @@ events {
 }
 
 stream {
-  ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-  ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+  ssl_certificate /data/ssl/nginx-selfsigned.crt;
+  ssl_certificate_key /data/ssl/nginx-selfsigned.key;
   ssl_session_cache shared:SSL:1m;
   ssl_session_timeout 4h;
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
@@ -835,6 +837,7 @@ http {
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
   include /etc/nginx/sites-enabled/*.conf;
+  include /data/nginx/sites-enabled/*.conf;
 }
 EOF
 
@@ -866,8 +869,9 @@ PrivateTmp=true
 EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
-if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
 
+if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
   apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
   cat << 'EOF' > /etc/xdg/openbox/autostart
