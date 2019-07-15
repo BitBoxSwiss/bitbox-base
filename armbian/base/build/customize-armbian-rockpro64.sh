@@ -225,7 +225,10 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
-# generate selfsigned NGINX key when run script is run on device
+## set debug console to only use display, not serial console ttyS2 over UART
+echo 'console=display' >> /boot/armbianEnv.txt
+
+## generate selfsigned NGINX key when run script is run on device
 if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
