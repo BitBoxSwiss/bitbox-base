@@ -256,19 +256,8 @@ Type=simple
 WantedBy=multi-user.target
 EOF
 
-## customize ssh login message
+## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
-cat << EOF > /etc/update-motd.d/20-shift
-#!/bin/bash
-source /etc/os-release
-source /etc/armbian-release
-KERNELID=$(uname -r)
-TERM=linux toilet -f standard -F metal "BitBox Base"
-printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
-if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
-echo "Configured for Bitcoin TESTNET"; echo
-EOF
-chmod 755 /etc/update-motd.d/20-shift
 
 ## set hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
