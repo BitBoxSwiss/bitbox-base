@@ -233,6 +233,13 @@ if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
+## disable Armbian ramlog if overlayroot is enabled
+if [ ! "$BASE_OVERLAYROOT" == "true" ]; then
+  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
+  sed -i 's/log.hdd/log/g' /etc/logrotate.conf
+  sed -i 's/log.hdd/log/g' /etc/logrotate.d/rsyslog
+fi
+
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
