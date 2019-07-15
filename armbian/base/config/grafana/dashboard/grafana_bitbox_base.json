@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1561969474956,
+  "iteration": 1562259807266,
   "links": [],
   "panels": [
     {
@@ -3919,7 +3919,7 @@
       "type": "row"
     }
   ],
-  "refresh": false,
+  "refresh": "10s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [],
@@ -4003,8 +4003,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "HAPPYGLEE",
-          "value": "HAPPYGLEE"
+          "text": "",
+          "value": ""
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -4028,8 +4028,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1",
-          "value": "02e8cc34df4f8d06cd6013c0781626ebefd024c5607a66309610a3fc79be50eee1"
+          "text": "",
+          "value": ""
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -4103,8 +4103,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "carol",
-          "value": "carol"
+          "text": "bitbox-base",
+          "value": "bitbox-base"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, hostname)",
@@ -4128,8 +4128,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "2019-06-05",
-          "value": "2019-06-05"
+          "text": "2019-07-04",
+          "value": "2019-07-04"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_date)",
@@ -4153,8 +4153,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "07:41",
-          "value": "07:41"
+          "text": "14:10",
+          "value": "14:10"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_time)",
@@ -4178,8 +4178,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "f6b62f3",
-          "value": "f6b62f3"
+          "text": "8392b7a",
+          "value": "8392b7a"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_commit)",
@@ -4203,7 +4203,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -4230,5 +4230,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 20
+  "version": 21
 }

@@ -20,7 +20,7 @@ Main() {
                         CustomizeArmbian
                         ;;
                 bionic)
-                        exit 1
+                        CustomizeArmbian
                         ;;
         esac
 } # Main
@@ -37,7 +37,7 @@ CustomizeArmbian() {
     cp -aR /tmp/overlay/config /opt/shift
 
     # copy built Go binaries and their associated .service files to filesystem
-    cp -aR /tmp/overlay/build/* /opt/shift
+    cp -aR /tmp/overlay/build /opt/shift
 
     # run our own customization script
     /bin/bash /tmp/overlay/build/customize-armbian-rockpro64.sh

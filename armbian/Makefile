@@ -12,5 +12,8 @@ update:
 mender-artefacts:
 	bash $(MAKE_PATH)/mender-convert.sh
 
+build-ondevice:
+	bash $(MAKE_PATH)/build.sh ondevice
+
 clean:
 	rm -rf $(MAKE_PATH)/armbian/armbian-build

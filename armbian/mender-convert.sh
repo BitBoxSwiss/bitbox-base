@@ -58,12 +58,14 @@ case ${ACTION} in
 		echo "Cleaning up..."
 		rm "input/${SOURCE_NAME}.img"
 		rm "output/${TARGET_NAME}.ext4"
+		mv "output/${TARGET_NAME}.sdimg" "output/${TARGET_NAME}.img"
 		mv output/${SOURCE_NAME}* ../../provisioning/
 
 		echo "Mender files ready for provisioning:"
 		stat -c "%y %s %n" ../../provisioning/${TARGET_NAME}*
 		echo 
 		echo "Write to eMMC with the following command (check target device /dev/sdb first!):"
-		echo "dd if=./provisioning/${TARGET_NAME}.sdimg of=/dev/sdb bs=4M conv=sync status=progress"
+		echo "dd if=./provisioning/${TARGET_NAME}.sdimg of=/dev/sdb bs=4M conv=sync status=progress && sync"
+		echo
         ;;
 esac

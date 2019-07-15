@@ -43,18 +43,31 @@ CONFIGURATION:
     SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
+    OVERLAYROOT:        ${BASE_OVERLAYROOT}
 
 ================================================================================
 BUILD OPTIONS:
+    BUILD MODE:         ${BASE_BUILDMODE}
+    LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
+    MINIMAL IMAGE:      ${BASE_MINIMAL}
     BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
-# Load build configuration, set defaults
-source /tmp/overlay/build/build.conf || true
-source /tmp/overlay/build/build-local.conf || true
+# get Linux distribution and version
+# (works explicitly only on Armbian Debian Buster and Ubuntu Bionic, Debian Stretch is default)
+cat /etc/os-release
+source /etc/os-release
+BASE_DISTRIBUTION=${VERSION_CODENAME}
 
+# Load build configuration, set defaults
+source /opt/shift/build/build.conf || true
+source /opt/shift/build/build-local.conf || true
+
+BASE_BUILDMODE=${1:-"armbian-build"}
+BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"stretch"}
+BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
@@ -65,6 +78,7 @@ BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
 BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
+BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
 
 # HDMI dashboard only enabled if image is built to support it
 if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
@@ -77,9 +91,17 @@ if [[ ${UID} -ne 0 ]]; then
   exit 1
 fi
 
+# configuration checks
+if [[ "${BASE_DISTRIBUTION}" =~ ^(bionic|buster)$ ]] && [[ "${BASE_BUILD_LIGHTNINGD}" != "true" ]]; then
+  echo "ERR: precomplied binaries for c-lightning are not compatible with Debian Buster or Ubuntu Bionic at the moment,"
+  echo "     please use the option BASE_BUILD_LIGHTNINGD='true' in build.conf"
+  exit 1
+fi
+
 # Disable Armbian script on first boot
 rm -f /root/.not_logged_in_yet
 
+mkdir -p /opt/shift/config/
 echoArguments "Starting build process."
 echoArguments "Starting build process." > /opt/shift/config/buildargs.log
 
@@ -109,16 +131,16 @@ echo "root:${BASE_ROOTPW}" | chpasswd
 passwd -l root
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
-adduser --ingroup system --disabled-password --gecos "" base
+adduser --ingroup system --disabled-password --gecos "" base || true
 usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
 mkdir -p /root/.ssh 
 mkdir -p /home/base/.ssh
-if [ -f /tmp/overlay/build/authorized_keys ]; then
-  cp -f /tmp/overlay/build/authorized_keys /root/.ssh/
-  cp -f /tmp/overlay/build/authorized_keys /home/base/.ssh/
+if [ -f /opt/shift/build/authorized_keys ]; then
+  cp -f /opt/shift/build/authorized_keys /root/.ssh/
+  cp -f /opt/shift/build/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/build/authorized_keys), password login only."
 fi
@@ -137,13 +159,13 @@ if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
 fi
 
 # add service users 
-adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin
+adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin || true
 usermod -a -G system bitcoin
-adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs
+adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs || true
 usermod -a -G system electrs
-adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi
-adduser --system --ingroup system --disabled-login --no-create-home               prometheus
-adduser --system --ingroup system --disabled-login --no-create-home               node_exporter
+adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi || true
+adduser --system --ingroup system --disabled-login --no-create-home               prometheus || true
+adduser --system --ingroup system --disabled-login --no-create-home               node_exporter || true
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
@@ -157,25 +179,36 @@ fi
 
 # SOFTWARE PACKAGE MGMT --------------------------------------------------------
 ## update system
-apt update
-apt upgrade -y
+apt -y update
+apt -y upgrade
+apt -y --fix-broken install
 
-## remove unnecessary packages
-apt -y remove git
-apt -y remove libllvm* build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev \
-              alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup* \
-              console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* \
-              dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* \
-              gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* \
-              iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* \
-              libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* \
-              man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal rsync* screen* shared-mime-info* \
-              unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant*
+## remove unnecessary packages (only when building image, not ondevice)
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]]; then
+  pkgToRemove="git libllvmkk build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev
+  alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup*
+  console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr* 
+  dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services* 
+  gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop* 
+  iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev* 
+  libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev* 
+  man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info* 
+  unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant* "
+
+  for pkg in $pkgToRemove
+  do
+    apt -y remove "$pkg" || true
+  done
+
+  apt -y --fix-broken install
+fi
+
 
 # install dependecies
 apt install -y --no-install-recommends \
-  tmux git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl
+  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync
 apt install -y --no-install-recommends ifmetric
+apt install -y --no-install-recommends tmux
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
@@ -188,10 +221,14 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
+# generate selfsigned NGINX key when run script is run on device
+if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+fi
+
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
-echo "/mnt/ssd/swapfile swap swap defaults 0 0" >> /etc/fstab
 
 ## startup checks
 cat << 'EOF' > /etc/systemd/system/startup-checks.service
@@ -241,6 +278,8 @@ alias llog='sudo journalctl -f -u lightningd'
 
 # Electrum
 alias elog='sudo journalctl -n 100 -f -u electrs'
+
+export PATH=$PATH:/sbin:/usr/local/sbin
 EOF
 
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
@@ -257,18 +296,20 @@ middleware      8845/tcp
 EOF
 
 ## retain journal logs between reboots 
+## /etc/default/armbian-zram-config
+/usr/lib/armbian/armbian-ramlog write
 ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## make bbb scripts executable with sudo
-sudo ln -s /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
-sudo ln -s /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
+ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
 # TOR --------------------------------------------------------------------------
 curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then 
-  echo "deb https://deb.torproject.org/torproject.org stretch main" >> /etc/apt/sources.list
+  echo "deb https://deb.torproject.org/torproject.org ${BASE_DISTRIBUTION} main" >> /etc/apt/sources.list
 fi
 
 apt update
@@ -309,7 +350,7 @@ curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /tmp/overlay/build/laanwj-releases.asc
+gpg --import /opt/shift/build/laanwj-releases.asc
 gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
@@ -382,7 +423,9 @@ apt install -y libsodium-dev
 ## either compile c-lightning from source (default), or use prebuilt binary
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                  libsqlite3-dev python python3 net-tools zlib1g-dev
+                  libsqlite3-dev python python3 net-tools zlib1g-dev asciidoc-base
+
+  rm -rf /usr/local/src/lightning
 
   cd /usr/local/src/
   git clone https://github.com/ElementsProject/lightning.git
@@ -403,7 +446,7 @@ else
   dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
 
   ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
-  ln -s /usr/bin/lightningd /usr/local/bin/lightningd
+  ln -sf /usr/bin/lightningd /usr/local/bin/lightningd
   
 fi
 
@@ -512,21 +555,28 @@ EOF
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
-cp /tmp/overlay/bbbfancontrol /usr/local/sbin/
-cp /tmp/overlay/bbbfancontrol.service /etc/systemd/system/
+if [ -f /tmp/overlay/bin/bbbfancontrol ]; then
+  cp /tmp/overlay/bin/bbbfancontrol /usr/local/sbin/
+  cp /tmp/overlay/bin/bbbfancontrol.service /etc/systemd/system/
+  systemctl enable bbbfancontrol.service
+else
+  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
+  echo "WARN: bbbfancontrol not found."
+fi
 
 ## base-middleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-cp /tmp/overlay/base-middleware /usr/local/sbin/
+if [ -f /tmp/overlay/bin/base-middleware ]; then
+  cp /tmp/overlay/bin/base-middleware /usr/local/sbin/
 
-mkdir -p /etc/base-middleware/
-cat << EOF > /etc/base-middleware/base-middleware.conf
+  mkdir -p /etc/base-middleware/
+  cat << EOF > /etc/base-middleware/base-middleware.conf
 BITCOIN_RPCUSER=__cookie__
 BITCOIN_RPCPORT=18332
 LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 EOF
 
-cat << 'EOF' > /etc/systemd/system/base-middleware.service
+  cat << 'EOF' > /etc/systemd/system/base-middleware.service
 [Unit]
 Description=BitBox Base Middleware
 Wants=bitcoind.service lightningd.service electrs.service
@@ -543,6 +593,13 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
+
+  systemctl enable base-middleware.service
+else
+  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
+  echo "WARN: base-middleware not found."
+fi
+
 
 # PROMETHEUS -------------------------------------------------------------------
 PROMETHEUS_VERSION="2.9.2"
@@ -808,7 +865,7 @@ EOF
 # DASHBOARD OVER HDMI ----------------------------------------------------------
 if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
 
-  sudo apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
+  apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
   cat << 'EOF' > /etc/xdg/openbox/autostart
 # Disable any form of screen saver / screen blanking / power management
@@ -904,13 +961,11 @@ systemctl enable systemd-timesyncd.service
 systemctl enable bitcoind.service
 systemctl enable lightningd.service
 systemctl enable electrs.service
-systemctl enable bbbfancontrol.service
 systemctl enable prometheus.service
 systemctl enable prometheus-node-exporter.service
 systemctl enable prometheus-base.service
 systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
-systemctl enable base-middleware.service
 systemctl enable iptables-restore.service
 
 ## Set to mainnet if configured
@@ -922,5 +977,19 @@ if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
   /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
 
+## Freeze /rootfs with overlayroot (Ubuntu only)
+if [ "${BASE_OVERLAYROOT}" == "true" ]; then
+  if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+    echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
+  else
+    echo "ERR: overlayroot is only supported in Ubuntu Bionic."
+  fi
+fi
+
+
 set +x
-echoArguments "Armbian build process finished. Login using SSH Keys or root password."
+if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  echoArguments "Setup script finished. Please reboot device and login as user 'base'."
+else
+  echoArguments "Armbian build process finished. Login using SSH Keys or root password."
+fi

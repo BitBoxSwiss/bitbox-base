@@ -21,6 +21,7 @@ bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
 
 
 # Create Prometheus metrics to track bitcoind stats.
+BITCOIN_IBD = Gauge("bitcoind_ibd", "Bitcoin is in Initial Block Download mode")
 BITCOIN_NETWORK = Gauge("bitcoin_network", "Bitcoin network (1=main/2=test/3=reg")
 BITCOIN_BLOCKS = Gauge("bitcoin_blocks", "Block height")
 BITCOIN_VERIFICATION_PROGRESS = Gauge(
@@ -139,6 +140,11 @@ def main():
             # map network names to int (0 = undefined)
             networks = {"main": 1, "test": 2, "regtest": 3}
             BITCOIN_NETWORK.set(networks.get(blockchaininfo["chain"], 0))
+            
+            # map ibd numerical values
+            ibd = {True: 1, False: 0}
+            BITCOIN_IBD.set(ibd.get(blockchaininfo["initialblockdownload"], 3))
+
             BITCOIN_VERIFICATION_PROGRESS.set(blockchaininfo["verificationprogress"])
             BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
             BITCOIN_PEERS.set(networkinfo["connections"])

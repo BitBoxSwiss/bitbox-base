@@ -14,7 +14,7 @@ usage: bbb-config.sh [--version] [--help]
 
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor_ssh|tor_electrum>
+             tor_ssh|tor_electrum|overlayroot>
 
   disable   any 'enable' argument
 
@@ -28,7 +28,7 @@ possible commands:
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
-  exec      <bitcoind_reindex>
+  exec      <bitcoin_reindex>
 
 "
 }
@@ -116,6 +116,18 @@ case "${COMMAND}" in
                 systemctl restart tor.service
                 ;;
 
+            OVERLAYROOT)
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
+                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                    echo "Overlay root filesystem will be enabled on next boot."
+                else
+                    overlayroot-chroot /bin/bash -c "echo 'overlayroot=disabled' > /etc/overlayroot.local.conf"
+                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                    echo "Overlay root filesystem will be disabled on next boot."
+                fi
+                ;;
+
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
                 exit 1
@@ -142,8 +154,8 @@ case "${COMMAND}" in
                         sed -i '/LIGHTNING-DIR=/Ic\lightning-dir=/mnt/ssd/bitcoin/.lightning' /etc/lightningd/lightningd.conf
                         sed -i '/NETWORK=/Ic\NETWORK=mainnet' /etc/electrs/electrs.conf
                         sed -i '/RPCPORT=/Ic\RPCPORT=8332' /etc/electrs/electrs.conf
-                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf
-                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf
+                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/base-middleware/base-middleware.conf || true
+                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/base-middleware/base-middleware.conf || true
                         echo "BITCOIN_NETWORK=mainnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
@@ -157,8 +169,8 @@ case "${COMMAND}" in
                         sed -i '/BITCOIN-RPCPORT=/Ic\bitcoin-rpcport=18332' /etc/lightningd/lightningd.conf
                         sed -i '/NETWORK=/Ic\NETWORK=testnet' /etc/electrs/electrs.conf
                         sed -i '/RPCPORT=/Ic\RPCPORT=18332' /etc/electrs/electrs.conf
-                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf
-                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf
+                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/base-middleware/base-middleware.conf || true
+                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/base-middleware/base-middleware.conf || true
                         echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/${SETTING}"
                         ;;
 
@@ -238,23 +250,27 @@ case "${COMMAND}" in
 
     exec)
         case "${SETTING}" in
-            BITCOIND_REINDEX)
+            BITCOIN_REINDEX)
                 systemctl stop bitcoind
 
                 if ! /bin/systemctl -q is-active bitcoind.service; then 
                     # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
 
-                    # set optioin reindex-chainstate, restart bitcoind and remove option
-                    sed -i '/reindex-chainstate/Ic\reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+                    # set option reindex-chainstate, restart bitcoind and remove option
+                    echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
                     systemctl start bitcoind
                     sleep 10
-                    sed -i '/reindex-chainstate/Ic\#reindex-chainstate=1' /etc/bitcoin/bitcoin.conf
+                    sed -i '/reindex/Id' /etc/bitcoin/bitcoin.conf
 
                 else
                     echo "bitcoind is still running, cannot delete chainstate"
                     exit 1
                 fi
+                ;;
+
+            *)
+                echo "Invalid argument: exec command ${SETTING} unknown."
         esac
         ;;
 
