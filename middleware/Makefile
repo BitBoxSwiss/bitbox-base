@@ -8,6 +8,7 @@ check-go-env:
 
 ci:
 	cd $(REPO_ROOT)/middleware/src
+	go test ./...
 	golangci-lint run
 
 envinit:
