@@ -12,16 +12,16 @@ import (
 func TestMiddleware(t *testing.T) {
 	middlewareInstance := middleware.NewMiddleware("user", "password", "8332", "/home/bitcoin/.lightning", "18442", "testnet")
 	marshalled := middlewareInstance.SystemEnv()
-	unmarshalled := &basemessages.Outgoing{}
+	unmarshalled := &basemessages.BitBoxBaseOut{}
 	err := proto.Unmarshal(marshalled, unmarshalled)
 	require.NoError(t, err)
 
-	unmarshalledSystemEnv, ok := unmarshalled.Outgoing.(*basemessages.Outgoing_SystemEnv)
+	unmarshalledSystemEnv, ok := unmarshalled.BitBoxBaseOut.(*basemessages.BitBoxBaseOut_BaseSystemEnvOut)
 	if !ok {
 		t.Error("Protobuf parsing into system env message failed")
 	}
-	port := unmarshalledSystemEnv.SystemEnv.ElectrsRPCPort
+	port := unmarshalledSystemEnv.BaseSystemEnvOut.ElectrsRPCPort
 	require.Equal(t, port, "18442")
-	network := unmarshalledSystemEnv.SystemEnv.Network
+	network := unmarshalledSystemEnv.BaseSystemEnvOut.Network
 	require.Equal(t, network, "testnet")
 }

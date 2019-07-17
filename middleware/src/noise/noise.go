@@ -29,12 +29,14 @@ type NoiseConfig struct {
 	channelHash                 string
 	sendCipher, receiveCipher   *noise.CipherState
 	pairingVerificationRequired bool
+	initialized                 bool
 	dataDir                     string
 }
 
 func NewNoiseConfig(dataDir string) *NoiseConfig {
 	noise := &NoiseConfig{
-		dataDir: dataDir,
+		dataDir:     dataDir,
+		initialized: false,
 	}
 	return noise
 }
@@ -137,7 +139,7 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 		channelHashBase32[5:10],
 		channelHashBase32[10:15],
 		channelHashBase32[15:20])
-
+	noiseConfig.initialized = true
 	return nil
 }
 
@@ -154,6 +156,9 @@ func (noiseConfig *NoiseConfig) CheckVerification() []byte {
 }
 
 func (noiseConfig *NoiseConfig) Encrypt(message []byte) []byte {
+	if !noiseConfig.initialized {
+		return []byte("Error: noise session not initialized")
+	}
 	if noiseConfig.pairingVerificationRequired {
 		message = []byte("Error: encrypted connection not verified")
 	}
@@ -161,6 +166,9 @@ func (noiseConfig *NoiseConfig) Encrypt(message []byte) []byte {
 }
 
 func (noiseConfig *NoiseConfig) Decrypt(message []byte) ([]byte, error) {
+	if !noiseConfig.initialized {
+		return []byte(""), errors.New("noise not initialized")
+	}
 	if noiseConfig.pairingVerificationRequired {
 		return []byte(""), errors.New("pairing verification has not been done with this client")
 	}
