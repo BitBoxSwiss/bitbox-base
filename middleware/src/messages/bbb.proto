@@ -25,12 +25,19 @@ message BaseSystemEnvOut {
     string ElectrsRPCPort = 2;
 }
 
+message BaseResyncOut {
+}
+
 message BaseSystemEnvIn {
+}
+
+message BaseResyncIn {
 }
 
 message BitBoxBaseIn {
     oneof bitBoxBaseIn {
         BaseSystemEnvIn baseSystemEnvIn = 1;
+        BaseResyncIn baseResyncIn = 2;
     }
 }
 
@@ -38,5 +45,6 @@ message BitBoxBaseOut {
     oneof bitBoxBaseOut {
         BaseMiddlewareInfoOut baseMiddlewareInfoOut = 1;
         BaseSystemEnvOut baseSystemEnvOut = 2;
+        BaseResyncOut baseResyncOut = 3;
     }
 }

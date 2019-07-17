@@ -26,7 +26,16 @@ const (
 )
 
 func TestRootHandler(t *testing.T) {
-	middlewareInstance := middleware.NewMiddleware("user", "password", "8332", "/home/bitcoin/.lightning", "18442", "testnet")
+	argumentMap := make(map[string]string)
+	argumentMap["bitcoinRPCUser"] = "user"
+	argumentMap["bitcoinRPCPassword"] = "password"
+	argumentMap["bitcoinRPCPort"] = "8332"
+	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
+	argumentMap["electrsRPCPort"] = "18442"
+	argumentMap["network"] = "testnet"
+	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
+
+	middlewareInstance := middleware.NewMiddleware(argumentMap)
 	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	req, err := http.NewRequest("GET", "/", nil)
 	require.NoError(t, err)
@@ -37,7 +46,16 @@ func TestRootHandler(t *testing.T) {
 }
 
 func TestWebsocketHandler(t *testing.T) {
-	middlewareInstance := middleware.NewMiddleware("user", "password", "8332", "/home/bitcoin/.lightning", "18442", "testnet")
+	argumentMap := make(map[string]string)
+	argumentMap["bitcoinRPCUser"] = "user"
+	argumentMap["bitcoinRPCPassword"] = "password"
+	argumentMap["bitcoinRPCPort"] = "8332"
+	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
+	argumentMap["electrsRPCPort"] = "18442"
+	argumentMap["network"] = "testnet"
+	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
+
+	middlewareInstance := middleware.NewMiddleware(argumentMap)
 	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	rr := httptest.NewServer(handlers.Router)
 	defer rr.Close()
@@ -75,9 +93,9 @@ func TestWebsocketHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(responseBytes), string(responseSuccess))
 
-	outgoing := &basemessages.BitBoxBaseOut{
-		BitBoxBaseOut: &basemessages.BitBoxBaseOut_BaseSystemEnvOut{
-			BaseSystemEnvOut: &basemessages.BaseSystemEnvOut{},
+	outgoing := &basemessages.BitBoxBaseIn{
+		BitBoxBaseIn: &basemessages.BitBoxBaseIn_BaseSystemEnvIn{
+			BaseSystemEnvIn: &basemessages.BaseSystemEnvIn{},
 		},
 	}
 	data, err := proto.Marshal(outgoing)
@@ -88,6 +106,21 @@ func TestWebsocketHandler(t *testing.T) {
 	require.NoError(t, err)
 	_, err = receiveCipher.Decrypt(nil, nil, responseBytes)
 	require.NoError(t, err)
+
+	outgoing = &basemessages.BitBoxBaseIn{
+		BitBoxBaseIn: &basemessages.BitBoxBaseIn_BaseResyncIn{
+			BaseResyncIn: &basemessages.BaseResyncIn{},
+		},
+	}
+	data, err = proto.Marshal(outgoing)
+	require.NoError(t, err)
+	err = ws.WriteMessage(1, sendCipher.Encrypt(nil, nil, data))
+	require.NoError(t, err)
+	_, responseBytes, err = ws.ReadMessage()
+	require.NoError(t, err)
+	_, err = receiveCipher.Decrypt(nil, nil, responseBytes)
+	require.NoError(t, err)
+
 }
 
 // initializeNoise sets up a new noise connection. First a fresh keypair is generated if none is locally found.

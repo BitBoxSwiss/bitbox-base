@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"log"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -32,9 +33,9 @@ type Middleware struct {
 }
 
 // NewMiddleware returns a new instance of the middleware
-func NewMiddleware(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network string) *Middleware {
+func NewMiddleware(argumentMap map[string]string) *Middleware {
 	middleware := &Middleware{
-		environment: system.NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network),
+		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
 		events: make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
 		info: SampleInfo{
@@ -110,7 +111,7 @@ func (middleware *Middleware) rpcLoop() {
 		}
 		response, err := proto.Marshal(outgoing)
 		if err != nil {
-			log.Println("Just print some generic error, because this will take some time to get right")
+			log.Println("Failed to marshal broadcast middlewareinfo outgoing message")
 		}
 		middleware.events <- response
 		time.Sleep(5 * time.Second)
@@ -137,7 +138,26 @@ func (middleware *Middleware) SystemEnv() []byte {
 	}
 	response, err := proto.Marshal(outgoing)
 	if err != nil {
-		log.Println("Just print some generic error, because this will take some time to get right")
+		log.Println("Protobuf failed to marshal system env outgoing message")
+	}
+	return response
+}
+
+// Run resync command
+func (middleware *Middleware) ResyncBitcoin() []byte {
+	cmd := exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error() + " failed to run resync command, script does not exist")
+	}
+	outgoing := &basemessages.BitBoxBaseOut{
+		BitBoxBaseOut: &basemessages.BitBoxBaseOut_BaseResyncOut{
+			BaseResyncOut: &basemessages.BaseResyncOut{},
+		},
+	}
+	response, err := proto.Marshal(outgoing)
+	if err != nil {
+		log.Println("protobuf failed to marshal resyncBitcoin outgoing message")
 	}
 	return response
 }

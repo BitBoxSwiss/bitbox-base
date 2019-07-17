@@ -19,6 +19,7 @@ type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
 	SystemEnv() []byte
+	ResyncBitcoin() []byte
 }
 
 // Handlers provides a web api
@@ -101,15 +102,16 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 				if err := proto.Unmarshal(message, incoming); err != nil {
 					log.Println("protobuf unmarshal of incoming packet failed")
 				}
-
-				_, ok := incoming.BitBoxBaseIn.(*basemessages.BitBoxBaseIn_BaseSystemEnvIn)
-				if !ok {
-					log.Println("protobuf parsing into middlewareInfo failed")
+				switch incoming.BitBoxBaseIn.(type) {
+				case *basemessages.BitBoxBaseIn_BaseSystemEnvIn:
+					go func() {
+						sendChan <- handlers.middleware.SystemEnv()
+					}()
+				case *basemessages.BitBoxBaseIn_BaseResyncIn:
+					go func() {
+						sendChan <- handlers.middleware.ResyncBitcoin()
+					}()
 				}
-				go func() {
-					sendChan <- handlers.middleware.SystemEnv()
-				}()
-
 			case <-remoteHasQuitChan:
 				return
 			}
