@@ -27,7 +27,7 @@ const (
 
 func TestRootHandler(t *testing.T) {
 	middlewareInstance := middleware.NewMiddleware("user", "password", "8332", "/home/bitcoin/.lightning", "18442", "testnet")
-	handlers := handlers.NewHandlers(middlewareInstance)
+	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	req, err := http.NewRequest("GET", "/", nil)
 	require.NoError(t, err)
 	rr := httptest.NewRecorder()
@@ -38,7 +38,7 @@ func TestRootHandler(t *testing.T) {
 
 func TestWebsocketHandler(t *testing.T) {
 	middlewareInstance := middleware.NewMiddleware("user", "password", "8332", "/home/bitcoin/.lightning", "18442", "testnet")
-	handlers := handlers.NewHandlers(middlewareInstance)
+	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	rr := httptest.NewServer(handlers.Router)
 	defer rr.Close()
 
@@ -56,10 +56,8 @@ func TestWebsocketHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	_, _, err = ws.ReadMessage()
-	if err != nil {
-		if !websocket.IsCloseError(err, 1000) {
-			t.Errorf("unexpected close when is close was expecting, since wrigin to an unpaired base")
-		}
+	if err == nil {
+		t.Errorf("No unexpected close when close was expected, since writing to an unpaired base")
 	}
 	ws.Close()
 
@@ -77,9 +75,9 @@ func TestWebsocketHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(responseBytes), string(responseSuccess))
 
-	outgoing := &basemessages.Outgoing{
-		Outgoing: &basemessages.Outgoing_SystemEnv{
-			SystemEnv: &basemessages.SystemEnvOutgoing{},
+	outgoing := &basemessages.BitBoxBaseOut{
+		BitBoxBaseOut: &basemessages.BitBoxBaseOut_BaseSystemEnvOut{
+			BaseSystemEnvOut: &basemessages.BaseSystemEnvOut{},
 		},
 	}
 	data, err := proto.Marshal(outgoing)

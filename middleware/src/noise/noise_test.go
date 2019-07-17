@@ -8,14 +8,14 @@ import (
 )
 
 func TestNoise(t *testing.T) {
-	noiseInstance := noisemanager.NewNoiseConfig()
+	noiseInstance := noisemanager.NewNoiseConfig(".base")
 	response := noiseInstance.CheckVerification()
 	require.Equal(t, string(response), "\x00")
-	_, err := noiseInstance.Encrypt([]byte("test"))
-	if err == nil {
+	msg := noiseInstance.Encrypt([]byte("test"))
+	if string(msg) == "" {
 		t.Error("did not receive error when encrypting from uninitialized noise")
 	}
-	_, err = noiseInstance.Decrypt([]byte("test"))
+	_, err := noiseInstance.Decrypt([]byte("test"))
 	if err == nil {
 		t.Error("did not receive error when decrypting from unitialized noise")
 	}
