@@ -242,12 +242,16 @@ if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevic
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
-## disable Armbian ramlog if overlayroot is enabled
-if [ ! "$BASE_OVERLAYROOT" == "true" ]; then
+## disable Armbian ramlog and limit logsize if overlayroot is enabled
+if [ "$BASE_OVERLAYROOT" == "true" ]; then
   sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
   sed -i 's/log.hdd/log/g' /etc/logrotate.conf
-  sed -i 's/log.hdd/log/g' /etc/logrotate.d/rsyslog
+  cp /opt/shift/config/logrotate/rsyslog /etc/logrotate.d/
 fi
+
+## run logroate every 10 minutes
+cp /opt/shift/config/logrotate/logrotate.service /etc/systemd/system/
+cp /opt/shift/config/logrotate/logrotate.timer /etc/systemd/system/
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
