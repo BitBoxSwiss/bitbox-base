@@ -249,9 +249,28 @@ if [ "$BASE_OVERLAYROOT" == "true" ]; then
   cp /opt/shift/config/logrotate/rsyslog /etc/logrotate.d/
 fi
 
+## configure systemd journal
+cat << 'EOF' > /etc/systemd/journald.conf
+Storage=auto
+Compress=yes
+SplitMode=none
+SyncIntervalSec=5m
+RateLimitIntervalSec=30sn
+RateLimitBurst=10000
+SystemMaxUse=1G
+ForwardToSyslog=no
+ForwardToWall=yes
+MaxLevelWall=emerg
+EOF
+
 ## run logroate every 10 minutes
 cp /opt/shift/config/logrotate/logrotate.service /etc/systemd/system/
 cp /opt/shift/config/logrotate/logrotate.timer /etc/systemd/system/
+systemctl enable logrotate.timer
+
+## retain journal logs between reboots on the SSD
+rm -rf /var/log/journal
+ln -sf /mnt/ssd/system/journal /var/log/journal
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
@@ -307,9 +326,6 @@ bitcoin-rpc     8332/tcp
 lightning       9735/tcp
 middleware      8845/tcp
 EOF
-
-## retain journal logs between reboots 
-ln -sf /mnt/ssd/system/journal /var/log/journal
 
 ## make bbb scripts executable with sudo
 ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
