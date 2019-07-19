@@ -227,6 +227,9 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
+## create systemd trigger directory
+mkdir -p /data/systemd-triggers/
+
 ## set hostname
 mkdir -p /data/network
 mv /etc/hostname /data/network/hostname
@@ -429,7 +432,7 @@ User=bitcoin
 Group=bitcoin
 Type=simple
 Restart=always
-RestartSec=60
+RestartSec=30
 TimeoutSec=300
 PrivateTmp=true
 ProtectSystem=full
@@ -496,7 +499,10 @@ Description=c-lightning daemon
 Wants=bitcoind.service
 After=bitcoind.service
 [Service]
+# make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
+# make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
+ExecStartPre=/usr/bin/test -f /data/systemd-triggers/bitcoind-fully-synced
 ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
 ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
 RuntimeDirectory=lightningd
@@ -504,7 +510,7 @@ User=bitcoin
 Group=bitcoin
 Type=simple
 Restart=always
-RestartSec=10
+RestartSec=30
 TimeoutSec=240
 PrivateTmp=true
 ProtectSystem=full
@@ -551,7 +557,10 @@ After=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+# make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
+# make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
+ExecStartPre=/usr/bin/test -f /data/systemd-triggers/bitcoind-fully-synced
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
@@ -1017,7 +1026,6 @@ if [ "${BASE_OVERLAYROOT}" == "true" ]; then
     echo "ERR: overlayroot is only supported in Ubuntu Bionic."
   fi
 fi
-
 
 set +x
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then

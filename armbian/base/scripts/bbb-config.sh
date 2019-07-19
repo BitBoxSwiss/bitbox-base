@@ -278,6 +278,8 @@ case "${COMMAND}" in
                 if ! /bin/systemctl -q is-active bitcoind.service; then 
                     # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+                    rm -rf /mnt/ssd/electrs/db
+                    rm -rf /data/systemd-triggers/bitcoind-fully-synced
 
                     # set option reindex-chainstate, restart bitcoind and remove option
                     echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
