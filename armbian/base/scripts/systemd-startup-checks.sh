@@ -97,12 +97,11 @@ fi
 # ------------------------------------------------------------------------------
 ## check if swapfile exists on ssd
 if [ ! -f /mnt/ssd/swapfile ]; then
-  if [ mountpoint /mnt/ssd -q ]; then
+  if mountpoint /mnt/ssd -q; then
     echo "Creating /mnt/ssd/swapfile."
     fallocate --length 2GiB /mnt/ssd/swapfile
     chmod 600 /mnt/ssd/swapfile
     mkswap /mnt/ssd/swapfile
-    swapon /mnt/ssd/swapfile
   else
     echo "ERR: No swapfile found, but SSD not mounted."
   fi
@@ -116,8 +115,9 @@ fi
 ## if overlayroot disabled swapfile on ssd, enable it again
 sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
 
-## mount potentially updated /etc/fstab
+## mount potentially updated /etc/fstab, activate swapfile
 mount -a
+swapon /mnt/ssd/swapfile
 
 # Folders & permissions
 # ------------------------------------------------------------------------------
