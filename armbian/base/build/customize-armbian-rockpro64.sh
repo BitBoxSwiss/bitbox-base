@@ -613,13 +613,13 @@ fi
 
 
 # PROMETHEUS -------------------------------------------------------------------
-PROMETHEUS_VERSION="2.9.2"
-NODE_EXPORTER_VERSION="0.17.0"
+PROMETHEUS_VERSION="2.11.1"
+PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
 
 ## Prometheus
 mkdir -p /usr/local/src/prometheus && cd "$_"
 curl --retry 5 -SLO https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz
-if ! echo "85b85a35bbf413e17bfce2bf86e13bd37a9e2c753745821b4472833dc5a85b52  prometheus-2.9.2.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
+if ! echo "${PROMETHEUS_CHKSUM}  prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
 tar --strip-components 1 -xzf prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz
 
 mkdir -p /etc/prometheus /var/lib/prometheus
@@ -674,8 +674,11 @@ WantedBy=multi-user.target
 EOF
 
 ## Prometheus Node Exporter
+NODE_EXPORTER_VERSION="0.18.1"
+NODE_EXPORTER_CHKSUM="d5a28c46e74f45b9f2158f793a6064fd9fe8fd8da6e0d1e548835ceb7beb1982"
+
 curl --retry 5 -SLO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
-if ! echo "f0d9a8bfed735e93f49a4e8113e96af2dfc90db759164a785b862c704f633569  node_exporter-0.17.0.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
+if ! echo "${NODE_EXPORTER_CHKSUM}  node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
 tar --strip-components 1 -xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
 cp node_exporter /usr/local/bin
 
