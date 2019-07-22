@@ -273,6 +273,9 @@ case "${COMMAND}" in
     exec)
         case "${SETTING}" in
             BITCOIN_REINDEX)
+                # stop systemd services
+                systemctl stop electrs
+                systemctl stop lightningd
                 systemctl stop bitcoind
 
                 if ! /bin/systemctl -q is-active bitcoind.service; then 
