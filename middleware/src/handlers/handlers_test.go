@@ -3,10 +3,7 @@ package handlers_test
 import (
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
-	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
 	"github.com/stretchr/testify/require"
-
-	"github.com/golang/protobuf/proto"
 
 	"github.com/flynn/noise"
 
@@ -84,43 +81,15 @@ func TestWebsocketHandler(t *testing.T) {
 	defer ws.Close()
 
 	//initialize noise
-	receiveCipher, sendCipher := initializeNoise(ws, t)
+	_, _ = initializeNoise(ws, t)
 
 	//do the pairing verificaion
 	err = ws.WriteMessage(1, []byte(opICanHasPairinVerificashun))
 	require.NoError(t, err)
 	_, responseBytes, err := ws.ReadMessage()
+	t.Logf("But this is too much!")
 	require.NoError(t, err)
 	require.Equal(t, string(responseBytes), string(responseSuccess))
-
-	outgoing := &basemessages.BitBoxBaseIn{
-		BitBoxBaseIn: &basemessages.BitBoxBaseIn_BaseSystemEnvIn{
-			BaseSystemEnvIn: &basemessages.BaseSystemEnvIn{},
-		},
-	}
-	data, err := proto.Marshal(outgoing)
-	require.NoError(t, err)
-	err = ws.WriteMessage(1, sendCipher.Encrypt(nil, nil, data))
-	require.NoError(t, err)
-	_, responseBytes, err = ws.ReadMessage()
-	require.NoError(t, err)
-	_, err = receiveCipher.Decrypt(nil, nil, responseBytes)
-	require.NoError(t, err)
-
-	outgoing = &basemessages.BitBoxBaseIn{
-		BitBoxBaseIn: &basemessages.BitBoxBaseIn_BaseResyncIn{
-			BaseResyncIn: &basemessages.BaseResyncIn{},
-		},
-	}
-	data, err = proto.Marshal(outgoing)
-	require.NoError(t, err)
-	err = ws.WriteMessage(1, sendCipher.Encrypt(nil, nil, data))
-	require.NoError(t, err)
-	_, responseBytes, err = ws.ReadMessage()
-	require.NoError(t, err)
-	_, err = receiveCipher.Decrypt(nil, nil, responseBytes)
-	require.NoError(t, err)
-
 }
 
 // initializeNoise sets up a new noise connection. First a fresh keypair is generated if none is locally found.

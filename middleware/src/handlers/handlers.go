@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"sync"
 
-	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
+	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	noisemanager "github.com/digitalbitbox/bitbox-base/middleware/src/noise"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcserver"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -18,8 +18,9 @@ import (
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
-	SystemEnv() []byte
-	ResyncBitcoin() []byte
+	SystemEnv() middleware.GetEnvResponse
+	SampleInfo() middleware.SampleInfoResponse
+	ResyncBitcoin() middleware.ResyncBitcoinResponse
 }
 
 // Handlers provides a web api
@@ -52,6 +53,7 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
 
 	handlers.middlewareEvents = handlers.middleware.Start()
+
 	go handlers.listenEvents()
 	return handlers
 }
@@ -65,6 +67,12 @@ func (handlers *Handlers) listenEvents() {
 		}
 		handlers.mu.Unlock()
 	}
+}
+
+func (handlers *Handlers) removeClient(clientID int) {
+	handlers.mu.Lock()
+	delete(handlers.clientsMap, clientID)
+	handlers.mu.Unlock()
 }
 
 // rootHandler provides an endpoint to indicate that the middleware is online and able to handle requests.
@@ -88,33 +96,12 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error() + "Noise connection failed to initialize")
 		return
 	}
+	server := rpcserver.NewRPCServer(handlers.middleware)
 
-	sendChan, _, receiveChan, remoteHasQuitChan := handlers.runWebsocket(ws)
 	handlers.mu.Lock()
-	handlers.clientsMap[0] = sendChan
+	handlers.clientsMap[handlers.nClients] = server.RPCConnection.WriteChan()
+	handlers.runWebsocket(ws, server.RPCConnection.ReadChan(), server.RPCConnection.WriteChan(), handlers.nClients)
 	handlers.nClients++
 	handlers.mu.Unlock()
-	go func() {
-		for {
-			select {
-			case message := <-receiveChan:
-				incoming := &basemessages.BitBoxBaseIn{}
-				if err := proto.Unmarshal(message, incoming); err != nil {
-					log.Println("protobuf unmarshal of incoming packet failed")
-				}
-				switch incoming.BitBoxBaseIn.(type) {
-				case *basemessages.BitBoxBaseIn_BaseSystemEnvIn:
-					go func() {
-						sendChan <- handlers.middleware.SystemEnv()
-					}()
-				case *basemessages.BitBoxBaseIn_BaseResyncIn:
-					go func() {
-						sendChan <- handlers.middleware.ResyncBitcoin()
-					}()
-				}
-			case <-remoteHasQuitChan:
-				return
-			}
-		}
-	}()
+	go server.Serve()
 }
