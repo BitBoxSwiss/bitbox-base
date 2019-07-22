@@ -407,7 +407,7 @@ printtoconsole=1
 rpcconnect=127.0.0.1
 
 # performance
-dbcache=2000
+dbcache=300
 maxmempool=50
 maxconnections=40
 maxuploadtarget=5000
