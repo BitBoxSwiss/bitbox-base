@@ -252,6 +252,10 @@ if [ "$BASE_OVERLAYROOT" == "true" ]; then
   cp /opt/shift/config/logrotate/rsyslog /etc/logrotate.d/
 fi
 
+## retain less NGINX logs
+sed -i 's/daily/size 1M/g' /etc/logrotate.d/nginx || true
+sed -i '/\trotate/Ic\\trotate 14' /etc/logrotate.d/nginx || true
+
 ## configure systemd journal
 cat << 'EOF' > /etc/systemd/journald.conf
 Storage=auto
@@ -868,7 +872,7 @@ stream {
 http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
-  access_log /var/log/nginx/access.log;
+  access_log off;
   error_log /var/log/nginx/error.log;
   include /etc/nginx/sites-enabled/*.conf;
   include /data/nginx/sites-enabled/*.conf;
