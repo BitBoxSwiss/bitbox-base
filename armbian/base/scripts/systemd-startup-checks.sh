@@ -6,7 +6,19 @@
 
 set -eux
 
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+SYSCONFIG_PATH="/data/sysconfig"
+
+# check if /data directory is already set up
+if [ ! -f /data/triggers/datadir_set_up ]; then
+  # if /data is separate partition, data is copied
+  if mountpoint /data -q; then
+    cp -r /data_source/* /data
+ 
+  # otherwise create symlink
+  else
+    ln -sf /data_source /data
+  fi
+fi
 
 # check for TLS certificate and create it if missing
 if [ ! -f /data/ssl/nginx-selfsigned.key ]; then

@@ -218,7 +218,14 @@ fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+
+## create data directory
+## standard build links from /data to /data_source, but Mender build mounts /data as own partition, data needs to be copied on first boot
+mkdir -p /data_source/
+touch /data_source/linked_from_data_directory
+ln -sf /data_source /data
+
+SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
@@ -227,8 +234,9 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
-## create systemd trigger directory
+## create triggers directory
 mkdir -p /data/triggers/
+touch /data/triggers/datadir_set_up
 
 ## set hostname
 mkdir -p /data/network
