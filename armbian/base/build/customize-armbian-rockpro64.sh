@@ -561,10 +561,8 @@ After=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-# make sure bitcoind is already started
-ExecStartPre=/bin/systemctl is-active bitcoind.service
-# make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
-ExecStartPre=/usr/bin/test -f /data/systemd-triggers/bitcoind-fully-synced
+# make sure bitcoind started and fully indexed
+ExecStartPre=/opt/shift/scripts/systemd-electrs-startchecks.sh
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
