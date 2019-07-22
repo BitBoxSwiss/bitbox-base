@@ -11,7 +11,7 @@ import subprocess
 import sys
 from prometheus_client import start_http_server, Gauge, Counter, Info
 
-SYSCONFIG_PATH="/opt/shift/sysconfig/"
+SYSCONFIG_PATH="/data/sysconfig/"
 
 # Create Prometheus metrics to track Base stats.
 ## metadata

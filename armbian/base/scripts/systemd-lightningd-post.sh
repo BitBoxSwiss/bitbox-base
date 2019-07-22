@@ -4,7 +4,7 @@
 #
 
 # make available lightningd socket to group "bitcoin"
-source /opt/shift/sysconfig/BITCOIN_NETWORK
+source /data/sysconfig/BITCOIN_NETWORK
 
 # wait for c-lightning to warm up
 sleep 10

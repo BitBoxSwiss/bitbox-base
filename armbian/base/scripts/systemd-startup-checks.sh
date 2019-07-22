@@ -49,12 +49,12 @@ echo "180" > /sys/class/hwmon/hwmon0/pwm1
 #   if [ ${UART_REBOOT} -eq 1 ]; then 
 #     echo "ERR: previous UART_REBOOT not successful, check system"
 #   else
-#     echo "UART_REBOOT=1" > /opt/shift/sysconfig/UART_REBOOT
+#     echo "UART_REBOOT=1" > /data/sysconfig/UART_REBOOT
 #     reboot
 #   fi
 
 # else
-#   echo "UART_REBOOT=0" > /opt/shift/sysconfig/UART_REBOOT
+#   echo "UART_REBOOT=0" > /data/sysconfig/UART_REBOOT
 # fi
 
 # SSD configuration

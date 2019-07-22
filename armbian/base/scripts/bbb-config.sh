@@ -4,7 +4,7 @@ set -eu
 # BitBox Base: system configuration utility
 #
 
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "$SYSCONFIG_PATH"
 
 function usage() {

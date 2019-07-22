@@ -11,7 +11,7 @@ Mostly for convenience during development, there are several helper scripts incl
 
 * [**bbb-config.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-config.sh)  
   General system configuration utility. 
-  Settings are stored in individual files in `/opt/shift/sysconfig/` as key/value pair. 
+  Settings are stored in individual files in `/data/sysconfig/` as key/value pair. 
   For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`. 
   It can be sourced by any script, so that the variable `BITCOIN_NETWORK` is available immediately.
   ```
