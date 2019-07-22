@@ -228,7 +228,7 @@ echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
 ## create systemd trigger directory
-mkdir -p /data/systemd-triggers/
+mkdir -p /data/triggers/
 
 ## set hostname
 mkdir -p /data/network
@@ -506,7 +506,7 @@ After=bitcoind.service
 # make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
 # make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
-ExecStartPre=/usr/bin/test -f /data/systemd-triggers/bitcoind-fully-synced
+ExecStartPre=/usr/bin/test -f /data/triggers/bitcoind-fully-synced
 ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
 ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
 RuntimeDirectory=lightningd
