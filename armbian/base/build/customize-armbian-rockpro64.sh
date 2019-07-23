@@ -221,8 +221,11 @@ fi
 ## create data directory
 ## standard build links from /data to /data_source on first boot, but 
 ## Mender build mounts /data as own partition, data needs to be copied on first boot
+## 
+## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
-touch /data_source/linked_from_data_directory
+ln -sf /data_source /data
+touch /data/linked_from_data_directory
 
 SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
@@ -246,7 +249,7 @@ ln -sf /data/network/hostname /etc/hostname
 ## set debug console to only use display, not serial console ttyS2 over UART
 echo 'console=display' >> /boot/armbianEnv.txt
 
-## generate selfsigned NGINX key when run script is run on device
+## generate selfsigned NGINX key when run script is run on device, plus symlink to /data
 mkdir -p /data/ssl/
 if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
   openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
@@ -1034,6 +1037,11 @@ if [ "${BASE_OVERLAYROOT}" == "true" ]; then
   else
     echo "ERR: overlayroot is only supported in Ubuntu Bionic."
   fi
+fi
+
+## remove temporary symlink /data --> /data_source, unless building on the device
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  rm /data
 fi
 
 set +x
