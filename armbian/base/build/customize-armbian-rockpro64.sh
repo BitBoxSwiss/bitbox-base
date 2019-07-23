@@ -220,10 +220,10 @@ fi
 # SYSTEM CONFIGURATION ---------------------------------------------------------
 
 ## create data directory
-## standard build links from /data to /data_source, but Mender build mounts /data as own partition, data needs to be copied on first boot
+## standard build links from /data to /data_source on first boot, but 
+## Mender build mounts /data as own partition, data needs to be copied on first boot
 mkdir -p /data_source/
 touch /data_source/linked_from_data_directory
-ln -sf /data_source /data
 
 SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
