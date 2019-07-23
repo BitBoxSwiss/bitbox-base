@@ -282,7 +282,7 @@ case "${COMMAND}" in
                     # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
                     rm -rf /mnt/ssd/electrs/db
-                    rm -rf /data/triggers/bitcoind-fully-synced
+                    rm -rf /data/triggers/bitcoind_fully_synced
 
                     # set option reindex-chainstate, restart bitcoind and remove option
                     echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf

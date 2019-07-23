@@ -203,7 +203,6 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
   apt -y --fix-broken install
 fi
 
-
 ## install dependecies
 apt install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools
@@ -514,7 +513,7 @@ After=bitcoind.service
 # make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
 # make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
-ExecStartPre=/usr/bin/test -f /data/triggers/bitcoind-fully-synced
+ExecStartPre=/usr/bin/test -f /data/triggers/bitcoind_fully_synced
 ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
 ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
 RuntimeDirectory=lightningd

@@ -13,7 +13,7 @@ if ! systemctl is-active bitcoind.service; then
 fi
 
 
-if [ ! -f /data/triggers/bitcoind-fully-synced ]; then
-    echo "systemd-electrs-startchecks.sh failed: file /data/triggers/bitcoind-fully-synced not present, thus bitcoind not fully synced. Not starting electrs.service."
+if [ ! -f /data/triggers/bitcoind_fully_synced ]; then
+    echo "systemd-electrs-startchecks.sh failed: file /data/triggers/bitcoind_fully_synced not present, thus bitcoind not fully synced. Not starting electrs.service."
     exit 1
 fi
