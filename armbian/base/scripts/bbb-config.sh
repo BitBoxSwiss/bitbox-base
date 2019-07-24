@@ -20,6 +20,7 @@ possible commands:
 
   set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
             bitcoin_network     <mainnet|testnet>
+            bitcoin_ibd         <true|false>
             bitcoin_dbcache     int (MB)
             other arguments     string
 
@@ -181,11 +182,38 @@ case "${COMMAND}" in
                 echo "System configuration ${SETTING} will be enabled on next boot."
                 ;;
 
+            BITCOIN_IBD)
+                case "${3}" in
+                    true)
+                        echo "Setting bitcoind configuration for 'active initial sync'."
+                        bbb-config.sh set bitcoin_dbcache 2000
+                        rm -f /data/triggers/bitcoind_fully_synced
+                        echo "Service 'lightningd' and 'electrs' are being stopped..."
+                        systemctl stop lightningd.service
+                        systemctl stop electrs.service
+                        ;;
+
+                    false)
+                        echo "Setting bitcoind configuration for 'fully synced'."
+                        bbb-config.sh set bitcoin_dbcache 300
+                        touch /data/triggers/bitcoind_fully_synced
+                        echo "Service 'lightningd' and 'electrs' are being started..."
+                        systemctl start lightningd.service
+                        systemctl start electrs.service
+                        ;;
+
+                    *)
+                        echo "Invalid argument: '${3}' must be either 'true' or 'false'."
+                        exit 1
+                        ;;
+                esac
+                ;;
+
             BITCOIN_DBCACHE)
                 if [[ "${3}" -ge 50 ]] && [[ "${3}" -le 3000 ]]; then
                     # configure bitcoind
                     sed -i "/DBCACHE=/Ic\dbcache=${3}" /etc/bitcoin/bitcoin.conf
-                    
+
                     # check if service restart is necessary
                     BITCOIN_DBCACHE=0
                     source "${SYSCONFIG_PATH}/BITCOIN_DBCACHE" || true
