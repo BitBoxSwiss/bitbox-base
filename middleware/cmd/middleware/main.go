@@ -19,7 +19,17 @@ func main() {
 	electrsRPCPort := flag.String("electrsport", "51002", "Electrs rpc port")
 	dataDir := flag.String("datadir", ".base", "Directory where middleware persistent data like noise keys is stored")
 	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
+	bbbConfigScript := flag.String("bbbconfigscript", "/opt/shift/scripts/bbb-config.sh", "Path to the bbb-config file that allows setting system configuration")
 	flag.Parse()
+
+	argumentMap := make(map[string]string)
+	argumentMap["bitcoinRPCUser"] = *bitcoinRPCUser
+	argumentMap["bitcoinRPCPassword"] = *bitcoinRPCPassword
+	argumentMap["bitcoinRPCPort"] = *bitcoinRPCPort
+	argumentMap["lightningRPCPath"] = *lightningRPCPath
+	argumentMap["electrsRPCPort"] = *electrsRPCPort
+	argumentMap["network"] = *network
+	argumentMap["bbbConfigScript"] = *bbbConfigScript
 
 	logBeforeExit := func() {
 		// Recover from all panics and log error before panicking again.
@@ -30,7 +40,7 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
-	middleware := middleware.NewMiddleware(*bitcoinRPCUser, *bitcoinRPCPassword, *bitcoinRPCPort, *lightningRPCPath, *electrsRPCPort, *network)
+	middleware := middleware.NewMiddleware(argumentMap)
 	log.Println("--------------- Started middleware --------------")
 
 	handlers := handlers.NewHandlers(middleware, *dataDir)
