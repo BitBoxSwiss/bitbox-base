@@ -24,6 +24,7 @@ bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
 BITCOIN_IBD = Gauge("bitcoind_ibd", "Bitcoin is in Initial Block Download mode")
 BITCOIN_NETWORK = Gauge("bitcoin_network", "Bitcoin network (1=main/2=test/3=reg")
 BITCOIN_BLOCKS = Gauge("bitcoin_blocks", "Block height")
+BITCOIN_HEADERS = Gauge("bitcoin_headers", "Block headers")
 BITCOIN_VERIFICATION_PROGRESS = Gauge(
     "bitcoin_verification_progress", "Verification progress of blockchain in percent"
 )
@@ -147,6 +148,7 @@ def main():
 
             BITCOIN_VERIFICATION_PROGRESS.set(blockchaininfo["verificationprogress"])
             BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
+            BITCOIN_HEADERS.set(blockchaininfo["headers"])
             BITCOIN_PEERS.set(networkinfo["connections"])
             BITCOIN_DIFFICULTY.set(blockchaininfo["difficulty"])
             BITCOIN_HASHPS.set(hashps)
