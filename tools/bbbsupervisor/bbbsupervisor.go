@@ -133,7 +133,7 @@ func (t trigger) String() string {
 
 // Write implements the io.Writer interface by sending the content as a parsed event through the event channel.
 func (ew eventWriter) Write(p []byte) (int, error) {
-	fmt.Printf("chanServiceEventWriter: %q\n", p)
+	fmt.Printf("chanServiceEventWriter: %q\n", p) //TODO: this is debug output an can be removed in the future.
 	event := parseEvent(p, ew.unit)
 	if event != nil {
 		ew.events <- *event
@@ -319,7 +319,10 @@ func handleElectrsFullySynced(event serviceEvent) {
 	switch event.unit {
 	case "electrs":
 		fmt.Printf("Electrs fully synced: %v\n", event.trigger)
-		restartUnit("electrs")
+		err := restartUnit("electrs")
+		if err != nil {
+			fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
+		}
 	default:
 		fmt.Printf("Message %v not defined for unit %v\n", event.trigger, event.unit)
 	}
@@ -332,20 +335,18 @@ func restartUnit(unit string) error {
 	cmdAsString := "systemctl " + strings.Join(args, " ")
 	err := cmd.Run()
 	if err != nil {
-		fmt.Errorf("Command '%v' threw an error %v", cmdAsString, err)
-	} else {
-		fmt.Printf("restartUnit: command '%v' executed.'", cmdAsString)
+		return fmt.Errorf("Command  threw an error %v", cmdAsString, err)
 	}
-	return err
+	fmt.Printf("restartUnit: command '%v' executed.'", cmdAsString)
+	return nil
 }
 
 func handleElectrsNoBitcoindConnectivity(event serviceEvent) {
-	fmt.Printf("PLACEHOLDER: handling %s event should happen now.\n", event.trigger.String())
-
-	/* TODO:
-	recreate bitcoind cookie env file /mnt/ssd/bitcoin/.bitcoin/.cookie.env
-	restartUnit("electrs")
-	*/
+	fmt.Printf("Handling trigger %s: restarting Electrs to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
+	err := restartUnit("electrs")
+	if err != nil {
+		fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
+	}
 }
 
 func main() {
