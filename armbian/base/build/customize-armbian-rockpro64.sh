@@ -511,6 +511,7 @@ cat << 'EOF' >/etc/systemd/system/lightningd.service
 Description=c-lightning daemon
 Wants=bitcoind.service
 After=bitcoind.service
+PartOf=bitcoind.service
 [Service]
 # make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
@@ -567,6 +568,7 @@ cat << 'EOF' > /etc/systemd/system/electrs.service
 Description=Electrs server daemon
 Wants=bitcoind.service
 After=bitcoind.service
+PartOf=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
