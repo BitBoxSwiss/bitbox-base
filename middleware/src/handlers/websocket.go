@@ -76,6 +76,9 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 				return
 			default:
 				select {
+				case <-closeChan:
+					log.Println("Read Loop break, closing write loop")
+					return
 
 				case message, ok := <-writeChan:
 					if !ok {
@@ -89,9 +92,6 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 						_ = client.WriteMessage(websocket.CloseMessage, []byte{})
 						return
 					}
-				case <-closeChan:
-					log.Println("Read Loop break, closing write loop")
-					return
 				}
 			}
 		}

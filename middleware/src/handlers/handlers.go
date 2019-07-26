@@ -18,9 +18,10 @@ import (
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
-	SystemEnv() middleware.GetEnvResponse
-	SampleInfo() middleware.SampleInfoResponse
-	ResyncBitcoin() middleware.ResyncBitcoinResponse
+	SystemEnv() (middleware.GetEnvResponse, error)
+	SampleInfo() (middleware.SampleInfoResponse, error)
+	ResyncBitcoin() (middleware.ResyncBitcoinResponse, error)
+	VerificationProgress() (middleware.VerificationProgressResponse, error)
 }
 
 // Handlers provides a web api

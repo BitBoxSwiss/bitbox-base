@@ -44,9 +44,10 @@ func (conn *rpcConn) Close() error {
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
-	SystemEnv() middleware.GetEnvResponse
-	ResyncBitcoin() middleware.ResyncBitcoinResponse
-	SampleInfo() middleware.SampleInfoResponse
+	SystemEnv() (middleware.GetEnvResponse, error)
+	ResyncBitcoin() (middleware.ResyncBitcoinResponse, error)
+	SampleInfo() (middleware.SampleInfoResponse, error)
+	VerificationProgress() (middleware.VerificationProgressResponse, error)
 }
 
 // RPCServer provides rpc calls to the middleware
@@ -71,25 +72,37 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
 func (server *RPCServer) GetSystemEnv(args int, reply *middleware.GetEnvResponse) error {
-	*reply = server.middleware.SystemEnv()
+	var err error
+	*reply, err = server.middleware.SystemEnv()
 	log.Printf("sent reply %v: ", reply)
-	return nil
+	return err
 }
 
 // ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
 func (server *RPCServer) ResyncBitcoin(args int, reply *middleware.ResyncBitcoinResponse) error {
-	*reply = server.middleware.ResyncBitcoin()
+	var err error
+	*reply, err = server.middleware.ResyncBitcoin()
 	log.Printf("sent reply %v: ", reply)
-	return nil
+	return err
 }
 
 // GetSampleInfo send the middleware's SampleInfoResponse over rpc
 func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoResponse) error {
-	*reply = server.middleware.SampleInfo()
+	var err error
+	*reply, err = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
-	return nil
+	return err
 }
 
+// GetSampleInfo send the middleware's SampleInfoResponse over rpc
+func (server *RPCServer) GetVerificationProgress(args int, reply *middleware.VerificationProgressResponse) error {
+	var err error
+	*reply, err = server.middleware.VerificationProgress()
+	log.Printf("sent reply %v: ", reply)
+	return err
+}
+
+// Serve starts a gob rpc server
 func (server *RPCServer) Serve() {
 	rpc.ServeConn(server.RPCConnection)
 }
