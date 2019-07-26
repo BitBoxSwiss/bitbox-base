@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
-	basemessages "github.com/digitalbitbox/bitbox-base/middleware/src/messages"
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,25 +18,10 @@ func TestMiddleware(t *testing.T) {
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
-	marshalled := middlewareInstance.SystemEnv()
-	unmarshalled := &basemessages.BitBoxBaseOut{}
-	err := proto.Unmarshal(marshalled, unmarshalled)
-	require.NoError(t, err)
 
-	unmarshalledSystemEnv, ok := unmarshalled.BitBoxBaseOut.(*basemessages.BitBoxBaseOut_BaseSystemEnvOut)
-	if !ok {
-		t.Error("Protobuf parsing into system env message failed")
-	}
-	port := unmarshalledSystemEnv.BaseSystemEnvOut.ElectrsRPCPort
-	require.Equal(t, port, "18442")
-	network := unmarshalledSystemEnv.BaseSystemEnvOut.Network
-	require.Equal(t, network, "testnet")
-
-	marshalled = middlewareInstance.ResyncBitcoin()
-	err = proto.Unmarshal(marshalled, unmarshalled)
-	require.NoError(t, err)
-	_, ok = unmarshalled.BitBoxBaseOut.(*basemessages.BitBoxBaseOut_BaseResyncOut)
-	if !ok {
-		t.Error("Protobuf parsing into resync bitcoin message failed")
-	}
+	systemEnvResponse := middlewareInstance.SystemEnv()
+	require.Equal(t, systemEnvResponse.ElectrsRPCPort, "18442")
+	require.Equal(t, systemEnvResponse.Network, "testnet")
+	resyncBitcoinResponse := middlewareInstance.ResyncBitcoin()
+	require.Equal(t, resyncBitcoinResponse.Success, false)
 }
