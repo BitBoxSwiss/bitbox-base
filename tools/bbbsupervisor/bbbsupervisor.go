@@ -103,7 +103,7 @@ type eventWriter struct {
 // the state values are filled over time
 type supervisorState struct {
 	triggerLastExecuted    map[trigger]int64 // implements a state (timestamps) when a trigger was fired (to mitigate trigger flooding)
-	prometheusLastStateIBD float64           // implements a state for the last `bitcoind_ibd` measurement value (to detect switches idb <-> no-idb)
+	prometheusLastStateIBD float64           // implements a state for the last `bitcoin_ibd` measurement value (to detect switches idb <-> no-idb)
 }
 
 // trigger is something specific that can happen for a service
@@ -280,7 +280,7 @@ func setupWatchers(events chan watcherEvent, errs chan error) (ws watchers) {
 		logWatcher{"bitcoind", events, errs},
 		logWatcher{"lightningd", events, errs},
 		logWatcher{"electrs", events, errs},
-		prometheusWatcher{unit: "bitcoind", expression: "bitcoind_ibd", server: prometheusURL, interval: 10 * time.Second, trigger: triggerPrometheusBitcoindIDB, events: events, errs: errs},
+		prometheusWatcher{unit: "bitcoind", expression: "bitcoin_ibd", server: prometheusURL, interval: 10 * time.Second, trigger: triggerPrometheusBitcoindIDB, events: events, errs: errs},
 	}
 }
 
