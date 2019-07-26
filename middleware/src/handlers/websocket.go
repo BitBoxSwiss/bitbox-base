@@ -71,21 +71,28 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 		}()
 		for {
 			select {
-			case message, ok := <-writeChan:
-				if !ok {
-					log.Printf("Error receiving from writeChan %q", string(message))
-					_ = client.WriteMessage(websocket.CloseMessage, []byte{})
-					return
-				}
-				err := client.WriteMessage(websocket.TextMessage, handlers.noiseConfig.Encrypt(message))
-				if err != nil {
-					log.Println("Error, websocket closed unexpectedly in the writing loop")
-					_ = client.WriteMessage(websocket.CloseMessage, []byte{})
-					return
-				}
 			case <-closeChan:
 				log.Println("Read Loop break, closing write loop")
 				return
+			default:
+				select {
+
+				case message, ok := <-writeChan:
+					if !ok {
+						log.Printf("Error receiving from writeChan %q", string(message))
+						_ = client.WriteMessage(websocket.CloseMessage, []byte{})
+						return
+					}
+					err := client.WriteMessage(websocket.TextMessage, handlers.noiseConfig.Encrypt(message))
+					if err != nil {
+						log.Println("Error, websocket closed unexpectedly in the writing loop")
+						_ = client.WriteMessage(websocket.CloseMessage, []byte{})
+						return
+					}
+				case <-closeChan:
+					log.Println("Read Loop break, closing write loop")
+					return
+				}
 			}
 		}
 	}
