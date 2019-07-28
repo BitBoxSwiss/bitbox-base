@@ -34,7 +34,7 @@ func (conn *rpcConn) Read(p []byte) (n int, err error) {
 }
 
 func (conn *rpcConn) Write(p []byte) (n int, err error) {
-	conn.writeChan <- append([]byte("r"), p...)
+	conn.writeChan <- p
 	return len(p), nil
 }
 
@@ -49,16 +49,22 @@ type Middleware interface {
 	SampleInfo() middleware.SampleInfoResponse
 }
 
+type Electrum interface {
+	Send(msg []byte) error
+}
+
 // RPCServer provides rpc calls to the middleware
 type RPCServer struct {
 	middleware    Middleware
+	electrum      Electrum
 	RPCConnection *rpcConn
 }
 
 // NewRPCServer returns a new RPCServer
-func NewRPCServer(middleware Middleware) *RPCServer {
+func NewRPCServer(middleware Middleware, electrum Electrum) *RPCServer {
 	server := &RPCServer{
 		middleware:    middleware,
+		electrum:      electrum,
 		RPCConnection: newRPCConn(),
 	}
 	err := rpc.Register(server)
@@ -88,6 +94,13 @@ func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoRes
 	*reply = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
+}
+
+// ElectrumSend sends a message to Electrum on the connection owned by the client.
+func (server *RPCServer) ElectrumSend(
+	args struct{ Msg []byte },
+	reply *struct{}) error {
+	return server.electrum.Send(args.Msg)
 }
 
 func (server *RPCServer) Serve() {

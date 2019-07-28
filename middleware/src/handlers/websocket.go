@@ -16,9 +16,13 @@ const (
 // It takes four arguments, a websocket connection, a read and a write channel.
 //
 // The goroutines close client upon exit or dues to a send/receive error.
-func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- []byte, writeChan <-chan []byte, clientID int) {
+func (handlers *Handlers) runWebsocket(
+	client *websocket.Conn,
+	onMessageReceived func([]byte),
+	writeChan <-chan []byte,
+	clientID int) {
 
-	const maxMessageSize = 512
+	const maxMessageSize = 1024 * 1024
 	// this channel is used to break the write loop, when the read loop breaks
 	closeChan := make(chan struct{})
 
@@ -46,7 +50,7 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 			}
 			if msg[0] == opICanHasPairinVerificashun {
 				msg = handlers.noiseConfig.CheckVerification()
-				err = client.WriteMessage(websocket.TextMessage, msg)
+				err = client.WriteMessage(websocket.BinaryMessage, msg)
 				if err != nil {
 					log.Println("Error, websocket failed to write channel hash verification message")
 				}
@@ -59,7 +63,7 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 				return
 			}
 			log.Println(string(messageDecrypted))
-			readChan <- messageDecrypted
+			onMessageReceived(messageDecrypted)
 		}
 	}
 
@@ -77,7 +81,7 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 					_ = client.WriteMessage(websocket.CloseMessage, []byte{})
 					return
 				}
-				err := client.WriteMessage(websocket.TextMessage, handlers.noiseConfig.Encrypt(message))
+				err := client.WriteMessage(websocket.BinaryMessage, handlers.noiseConfig.Encrypt(message))
 				if err != nil {
 					log.Println("Error, websocket closed unexpectedly in the writing loop")
 					_ = client.WriteMessage(websocket.CloseMessage, []byte{})

@@ -134,7 +134,10 @@ func (middleware *Middleware) ResyncBitcoin() ResyncBitcoinResponse {
 
 // SystemEnv returns a GetEnvResponse struct in response to a rpcserver request
 func (middleware *Middleware) SystemEnv() GetEnvResponse {
-	response := GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
+	response := GetEnvResponse{
+		Network:        middleware.environment.Network,
+		ElectrsRPCPort: middleware.environment.ElectrsRPCPort,
+	}
 	return response
 }
 

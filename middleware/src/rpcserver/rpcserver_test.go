@@ -29,6 +29,17 @@ func (conn *rpcConn) Close() error {
 	return nil
 }
 
+type electrumMock struct {
+	send func([]byte) error
+}
+
+func (e *electrumMock) Send(msg []byte) error {
+	if e.send != nil {
+		return e.send(msg)
+	}
+	return nil
+}
+
 func TestRPCServer(t *testing.T) {
 	argumentMap := make(map[string]string)
 	argumentMap["bitcoinRPCUser"] = "user"
@@ -39,8 +50,7 @@ func TestRPCServer(t *testing.T) {
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
-
-	rpcServer := rpcserver.NewRPCServer(middlewareInstance)
+	rpcServer := rpcserver.NewRPCServer(middlewareInstance, &electrumMock{})
 	serverWriteChan := rpcServer.RPCConnection.WriteChan()
 	serverReadChan := rpcServer.RPCConnection.ReadChan()
 
