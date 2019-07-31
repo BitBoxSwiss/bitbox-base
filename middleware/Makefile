@@ -28,3 +28,14 @@ build:
 aarch64: check-go-env fetch-deps ci
 	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
 	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/build/base-middleware
+
+regtest-up:
+	cd $(REPO_ROOT)/middleware/integration_test ;\
+	docker-compose up -d ;\
+	sudo chown ${USER} volumes/clightning1/lightning-rpc ;\
+	sudo chown ${USER} volumes/clightning2/lightning-rpc ;\
+
+regtest-down:
+	cd $(REPO_ROOT)/middleware/integration_test ;\
+	docker-compose down ;\
+

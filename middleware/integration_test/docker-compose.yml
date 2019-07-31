@@ -1,0 +1,110 @@
+version: "3"
+services:
+  bitcoind:
+    image: nicolasdorier/docker-bitcoin:0.17.0
+    networks:
+      local:
+        ipv4_address: 10.10.0.10
+    environment:
+      EXPOSE_TCP: "true"
+      BITCOIN_EXTRA_ARGS: |
+        regtest=1
+        whitelist=0.0.0.0/0
+        server=1
+        regtest.rpcallowip=10.211.0.0/16
+        regtest.rpcallowip=172.17.0.0/16
+        regtest.rpcallowip=192.168.0.0/16
+        regtest.rpcallowip=0.0.0.0/16
+        regtest.rpcbind=0.0.0.0
+        rpcport=18443
+        rpcuser=rpcuser
+        rpcpassword=rpcpass
+    ports:
+      - 18443:18443
+    volumes:
+      - "./volumes/bitcoin:/data"
+
+  electrs:
+    image: vulpemventures/electrs:latest
+    entrypoint:
+      - /build/electrs
+    command:
+      - -vvvv
+      - --network
+      - regtest
+      - --daemon-dir
+      - /data
+      - --daemon-rpc-addr
+      - 10.10.0.10:18443
+      - --cookie
+      - rpcuser:rpcpass
+      - --electrum-rpc-addr
+      - 0.0.0.0:60401
+      - --cors
+      - "*"
+    networks:
+      local:
+        ipv4_address: 10.10.0.11
+    depends_on:
+      - bitcoind
+    volumes:
+      - "./volumes/bitcoin:/data"
+    restart: unless-stopped
+    ports:
+      - 60401:60401
+
+  clightning_bitcoin1:
+    image: elementsproject/lightningd
+    container_name: lightningd1
+    command:
+      - --bitcoin-rpcconnect=bitcoind
+      - --bitcoin-datadir=/data
+      - --bitcoin-rpcuser=rpcuser
+      - --bitcoin-rpcpassword=rpcpass
+      - --bitcoin-rpcport=18443
+      - --bitcoin-rpcconnect=10.10.0.10
+      - --lightning-dir=/data/.lightning
+      - --network=regtest
+      - --log-level=debug
+    environment:
+      EXPOSE_TCP: "true"
+    volumes:
+      - "./volumes/clightning1:/data/.lightning"
+      - "./volumes/bitcoin:/data"
+    depends_on:
+      - bitcoind
+    networks:
+      local:
+        ipv4_address: 10.10.0.12
+    restart: unless-stopped
+
+  clightning_bitcoin2:
+    image: elementsproject/lightningd
+    container_name: lightningd2
+    command:
+      - --bitcoin-rpcconnect=bitcoind
+      - --bitcoin-datadir=/data
+      - --bitcoin-rpcuser=rpcuser
+      - --bitcoin-rpcpassword=rpcpass
+      - --bitcoin-rpcport=18443
+      - --lightning-dir=/data/.lightning
+      - --network=regtest
+      - --log-level=debug
+    environment:
+      EXPOSE_TCP: "true"
+    volumes:
+      - "./volumes/clightning2:/data/.lightning"
+      - "./volumes/bitcoin:/data"
+    depends_on:
+      - bitcoind
+    networks:
+      local:
+        ipv4_address: 10.10.0.13
+    restart: unless-stopped
+
+networks:
+  local:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24

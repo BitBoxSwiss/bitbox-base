@@ -20,3 +20,4 @@ tags
 [._]*.un~
 
 .base
+integration_test/volumes
