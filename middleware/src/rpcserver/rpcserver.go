@@ -5,6 +5,7 @@ import (
 	"net/rpc"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/electrum"
 )
 
 type rpcConn struct {
@@ -34,7 +35,7 @@ func (conn *rpcConn) Read(p []byte) (n int, err error) {
 }
 
 func (conn *rpcConn) Write(p []byte) (n int, err error) {
-	conn.writeChan <- append([]byte("r"), p...)
+	conn.writeChan <- p
 	return len(p), nil
 }
 
@@ -49,17 +50,27 @@ type Middleware interface {
 	SampleInfo() middleware.SampleInfoResponse
 }
 
+type Electrum interface {
+	Send(msg []byte) error
+}
+
 // RPCServer provides rpc calls to the middleware
 type RPCServer struct {
-	middleware    Middleware
-	RPCConnection *rpcConn
+	middleware                Middleware
+	electrum                  Electrum
+	electrumAddress           string
+	onElectrumMessageReceived func(msg []byte)
+	RPCConnection             *rpcConn
 }
 
 // NewRPCServer returns a new RPCServer
-func NewRPCServer(middleware Middleware) *RPCServer {
+func NewRPCServer(middleware Middleware, electrumAddress string, onElectrumMessageReceived func(msg []byte)) *RPCServer { //, electrum Electrum) *RPCServer {
 	server := &RPCServer{
-		middleware:    middleware,
-		RPCConnection: newRPCConn(),
+		middleware: middleware,
+		//electrum:      electrum,
+		electrumAddress:           electrumAddress,
+		onElectrumMessageReceived: onElectrumMessageReceived,
+		RPCConnection:             newRPCConn(),
 	}
 	err := rpc.Register(server)
 	if err != nil {
@@ -88,6 +99,21 @@ func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoRes
 	*reply = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
+}
+
+// ElectrumSend sends a message to the Electrum server on the connection owned by the client.
+func (server *RPCServer) ElectrumSend(
+	args struct{ Msg []byte },
+	reply *struct{}) error {
+	if server.electrum == nil {
+		electrumClient, err := electrum.NewElectrum(server.electrumAddress, server.onElectrumMessageReceived)
+		server.electrum = electrumClient
+		if err != nil {
+			log.Println(err.Error() + "Electrum connection failed to initialize")
+			return err
+		}
+	}
+	return server.electrum.Send(args.Msg)
 }
 
 func (server *RPCServer) Serve() {

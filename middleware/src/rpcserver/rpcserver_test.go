@@ -39,8 +39,7 @@ func TestRPCServer(t *testing.T) {
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
-
-	rpcServer := rpcserver.NewRPCServer(middlewareInstance)
+	rpcServer := rpcserver.NewRPCServer(middlewareInstance, "localhost:80801", func([]byte) {})
 	serverWriteChan := rpcServer.RPCConnection.WriteChan()
 	serverReadChan := rpcServer.RPCConnection.ReadChan()
 
@@ -63,9 +62,11 @@ func TestRPCServer(t *testing.T) {
 	msgRequest := <-clientWriteChan
 	serverReadChan <- msgRequest
 	msgResponse := <-serverWriteChan
+	//t.Logf("significant byte: %s", string(msgResponse[0]))
 	t.Logf("response message %s", string(msgResponse))
 	// Cut off the significant Byte in the response
-	clientReadChan <- msgResponse[1:]
+	//t.Logf("significant byte: %s", string(msgResponse[1]))
+	clientReadChan <- msgResponse
 	wg.Wait()
 	t.Logf("reply: %v", reply)
 	require.Equal(t, "testnet", reply.Network)
@@ -86,7 +87,7 @@ func TestRPCServer(t *testing.T) {
 	msgResponse = <-serverWriteChan
 	t.Logf("Resync Bitcoin Response %q", string(msgResponse))
 	// Cut off the significant Byte in the response
-	clientReadChan <- msgResponse[1:]
+	clientReadChan <- msgResponse
 	wg.Wait()
 	require.Equal(t, false, resyncReply.Success)
 }

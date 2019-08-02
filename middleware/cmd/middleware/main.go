@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,6 +22,8 @@ func main() {
 	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
 	bbbConfigScript := flag.String("bbbconfigscript", "/opt/shift/scripts/bbb-config.sh", "Path to the bbb-config file that allows setting system configuration")
 	flag.Parse()
+
+	electrsAddress := fmt.Sprintf("localhost:%s", *electrsRPCPort)
 
 	argumentMap := make(map[string]string)
 	argumentMap["bitcoinRPCUser"] = *bitcoinRPCUser
@@ -43,7 +46,7 @@ func main() {
 	middleware := middleware.NewMiddleware(argumentMap)
 	log.Println("--------------- Started middleware --------------")
 
-	handlers := handlers.NewHandlers(middleware, *dataDir)
+	handlers := handlers.NewHandlers(middleware, *dataDir, electrsAddress)
 	log.Println("Binding middleware api to port 8845")
 
 	if err := http.ListenAndServe(":8845", handlers.Router); err != nil {

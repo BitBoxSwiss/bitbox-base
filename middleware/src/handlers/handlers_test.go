@@ -1,6 +1,8 @@
 package handlers_test
 
 import (
+	"fmt"
+
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/stretchr/testify/require"
@@ -33,7 +35,11 @@ func TestRootHandler(t *testing.T) {
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
-	handlers := handlers.NewHandlers(middlewareInstance, ".base")
+	handlers := handlers.NewHandlers(
+		middlewareInstance,
+		".base",
+		fmt.Sprintf("localhost:%s", argumentMap["electrsRPCPort"]),
+	)
 	req, err := http.NewRequest("GET", "/", nil)
 	require.NoError(t, err)
 	rr := httptest.NewRecorder()
@@ -53,7 +59,11 @@ func TestWebsocketHandler(t *testing.T) {
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
-	handlers := handlers.NewHandlers(middlewareInstance, ".base")
+	handlers := handlers.NewHandlers(
+		middlewareInstance,
+		".base",
+		fmt.Sprintf("localhost:%s", argumentMap["electrsRPCPort"]),
+	)
 	rr := httptest.NewServer(handlers.Router)
 	defer rr.Close()
 

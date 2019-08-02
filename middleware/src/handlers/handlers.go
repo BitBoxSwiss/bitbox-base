@@ -14,6 +14,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	opElectrum = byte('e')
+	opRPC      = byte('r')
+)
+
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
@@ -30,6 +35,7 @@ type Handlers struct {
 	upgrader         websocket.Upgrader
 	middleware       Middleware
 	middlewareEvents <-chan []byte
+	electrumAddress  string
 
 	noiseConfig *noisemanager.NoiseConfig
 	nClients    int
@@ -38,16 +44,21 @@ type Handlers struct {
 }
 
 // NewHandlers returns a handler instance.
-func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
+func NewHandlers(
+	middlewareInstance Middleware,
+	dataDir string,
+	electrumAddress string,
+) *Handlers {
 	router := mux.NewRouter()
 
 	handlers := &Handlers{
-		middleware:  middlewareInstance,
-		Router:      router,
-		upgrader:    websocket.Upgrader{},
-		noiseConfig: noisemanager.NewNoiseConfig(dataDir),
-		nClients:    0,
-		clientsMap:  make(map[int]chan<- []byte),
+		middleware:      middlewareInstance,
+		electrumAddress: electrumAddress,
+		Router:          router,
+		upgrader:        websocket.Upgrader{},
+		noiseConfig:     noisemanager.NewNoiseConfig(dataDir),
+		nClients:        0,
+		clientsMap:      make(map[int]chan<- []byte),
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
@@ -96,11 +107,25 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error() + "Noise connection failed to initialize")
 		return
 	}
-	server := rpcserver.NewRPCServer(handlers.middleware)
+	writeChan := make(chan []byte)
+	onElectrumMessageReceived := func(msg []byte) {
+		writeChan <- append([]byte{opElectrum}, msg...)
+	}
 
+	server := rpcserver.NewRPCServer(
+		handlers.middleware,
+		handlers.electrumAddress,
+		onElectrumMessageReceived,
+	)
+	go func() {
+		for {
+			msg := <-server.RPCConnection.WriteChan()
+			writeChan <- append([]byte{opRPC}, msg...)
+		}
+	}()
 	handlers.mu.Lock()
-	handlers.clientsMap[handlers.nClients] = server.RPCConnection.WriteChan()
-	handlers.runWebsocket(ws, server.RPCConnection.ReadChan(), server.RPCConnection.WriteChan(), handlers.nClients)
+	handlers.clientsMap[handlers.nClients] = writeChan
+	handlers.runWebsocket(ws, server.RPCConnection.ReadChan(), writeChan, handlers.nClients)
 	handlers.nClients++
 	handlers.mu.Unlock()
 	go server.Serve()
