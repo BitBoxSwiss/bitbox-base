@@ -18,7 +18,7 @@ const (
 // The goroutines close client upon exit or dues to a send/receive error.
 func (handlers *Handlers) runWebsocket(
 	client *websocket.Conn,
-	onMessageReceived func([]byte),
+	readChan chan<- []byte,
 	writeChan <-chan []byte,
 	clientID int) {
 
@@ -63,7 +63,7 @@ func (handlers *Handlers) runWebsocket(
 				return
 			}
 			log.Println(string(messageDecrypted))
-			onMessageReceived(messageDecrypted)
+			readChan <- messageDecrypted
 		}
 	}
 

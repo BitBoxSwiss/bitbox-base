@@ -18,9 +18,10 @@ const (
 
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
 type Middleware struct {
-	info        SampleInfoResponse
-	environment system.Environment
-	events      chan []byte
+	info           SampleInfoResponse
+	environment    system.Environment
+	events         chan []byte
+	electrumEvents chan []byte
 }
 
 // NewMiddleware returns a new instance of the middleware
@@ -28,7 +29,8 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
-		events: make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
+		events:         make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
+		electrumEvents: make(chan []byte),
 		info: SampleInfoResponse{
 			Blocks:         0,
 			Difficulty:     0.0,

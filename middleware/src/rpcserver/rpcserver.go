@@ -5,6 +5,7 @@ import (
 	"net/rpc"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/electrum"
 )
 
 type rpcConn struct {
@@ -55,17 +56,21 @@ type Electrum interface {
 
 // RPCServer provides rpc calls to the middleware
 type RPCServer struct {
-	middleware    Middleware
-	electrum      Electrum
-	RPCConnection *rpcConn
+	middleware                Middleware
+	electrum                  Electrum
+	electrumAddress           string
+	onElectrumMessageReceived func(msg []byte)
+	RPCConnection             *rpcConn
 }
 
 // NewRPCServer returns a new RPCServer
-func NewRPCServer(middleware Middleware, electrum Electrum) *RPCServer {
+func NewRPCServer(middleware Middleware, electrumAddress string, onElectrumMessageReceived func(msg []byte)) *RPCServer { //, electrum Electrum) *RPCServer {
 	server := &RPCServer{
-		middleware:    middleware,
-		electrum:      electrum,
-		RPCConnection: newRPCConn(),
+		middleware: middleware,
+		//electrum:      electrum,
+		electrumAddress:           electrumAddress,
+		onElectrumMessageReceived: onElectrumMessageReceived,
+		RPCConnection:             newRPCConn(),
 	}
 	err := rpc.Register(server)
 	if err != nil {
@@ -96,10 +101,18 @@ func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoRes
 	return nil
 }
 
-// ElectrumSend sends a message to Electrum on the connection owned by the client.
+// ElectrumSend sends a message to the Electrum server on the connection owned by the client.
 func (server *RPCServer) ElectrumSend(
 	args struct{ Msg []byte },
 	reply *struct{}) error {
+	if server.electrum == nil {
+		electrumClient, err := electrum.NewElectrum(server.electrumAddress, server.onElectrumMessageReceived)
+		server.electrum = electrumClient
+		if err != nil {
+			log.Println(err.Error() + "Electrum connection failed to initialize")
+			return err
+		}
+	}
 	return server.electrum.Send(args.Msg)
 }
 

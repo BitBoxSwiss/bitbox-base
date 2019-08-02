@@ -49,7 +49,6 @@ func TestRootHandler(t *testing.T) {
 }
 
 func TestWebsocketHandler(t *testing.T) {
-	return
 	argumentMap := make(map[string]string)
 	argumentMap["bitcoinRPCUser"] = "user"
 	argumentMap["bitcoinRPCPassword"] = "password"
