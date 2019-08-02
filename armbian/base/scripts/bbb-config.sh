@@ -4,7 +4,7 @@ set -eu
 # BitBox Base: system configuration utility
 #
 
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "$SYSCONFIG_PATH"
 
 function usage() {
@@ -20,6 +20,8 @@ possible commands:
 
   set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
             bitcoin_network     <mainnet|testnet>
+            bitcoin_ibd         <true|false>
+            bitcoin_dbcache     int (MB)
             other arguments     string
 
   get       any 'enable' or 'set' argument, or
@@ -63,6 +65,7 @@ case "${COMMAND}" in
         case "${SETTING}" in
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
                     mkdir -p /etc/systemd/system/getty@tty1.service.d/
                     cp /opt/shift/config/grafana/getty-override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
@@ -145,7 +148,6 @@ case "${COMMAND}" in
             BITCOIN_NETWORK)
                 case "${3}" in
                     mainnet)
-                        sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin MAINNET"; echo' /etc/update-motd.d/20-shift
                         sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 18333/Ic\HiddenServicePort 8333 127.0.0.1:8333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\#testnet=1' /etc/bitcoin/bitcoin.conf
@@ -160,7 +162,6 @@ case "${COMMAND}" in
                         ;;
 
                     testnet)
-                        sed -i '/CONFIGURED FOR/Ic\echo "Configured for Bitcoin TESTNET"; echo' /etc/update-motd.d/20-shift
                         sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'" /home/base/.bashrc-custom
                         sed -i '/HIDDENSERVICEPORT 8333/Ic\HiddenServicePort 18333 127.0.0.1:18333' /etc/tor/torrc
                         sed -i '/TESTNET=/Ic\testnet=1' /etc/bitcoin/bitcoin.conf
@@ -181,6 +182,53 @@ case "${COMMAND}" in
                 echo "System configuration ${SETTING} will be enabled on next boot."
                 ;;
 
+            BITCOIN_IBD)
+                case "${3}" in
+                    true)
+                        echo "Setting bitcoind configuration for 'active initial sync'."
+                        bbb-config.sh set bitcoin_dbcache 2000
+                        rm -f /data/triggers/bitcoind_fully_synced
+                        echo "Service 'lightningd' and 'electrs' are being stopped..."
+                        systemctl stop lightningd.service
+                        systemctl stop electrs.service
+                        ;;
+
+                    false)
+                        echo "Setting bitcoind configuration for 'fully synced'."
+                        bbb-config.sh set bitcoin_dbcache 300
+                        touch /data/triggers/bitcoind_fully_synced
+                        echo "Service 'lightningd' and 'electrs' are being started..."
+                        systemctl start lightningd.service
+                        systemctl start electrs.service
+                        ;;
+
+                    *)
+                        echo "Invalid argument: '${3}' must be either 'true' or 'false'."
+                        exit 1
+                        ;;
+                esac
+                ;;
+
+            BITCOIN_DBCACHE)
+                if [[ "${3}" -ge 50 ]] && [[ "${3}" -le 3000 ]]; then
+                    # configure bitcoind
+                    sed -i "/DBCACHE=/Ic\dbcache=${3}" /etc/bitcoin/bitcoin.conf
+
+                    # check if service restart is necessary
+                    BITCOIN_DBCACHE=0
+                    source "${SYSCONFIG_PATH}/BITCOIN_DBCACHE" || true
+                    if [[ "${3}" -ne "${BITCOIN_DBCACHE}" ]]; then
+                        echo "Service 'bitcoind' is being restarted..."
+                        systemctl restart bitcoind
+                    fi
+                    echo "BITCOIN_DBCACHE=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
+                else
+                    echo "Invalid argument: '${3}' must be an integer in MB between 50 and 3000."
+                    exit 1
+                fi
+                cat "${SYSCONFIG_PATH}/${SETTING}"
+                ;;
+
             HOSTNAME)
                 case "${3}" in
                     [^0-9A-Za-z]*|*[^\-0-9A-Z_a-z]*|*[^0-9A-Za-z]|*-_*|*_-*)
@@ -188,6 +236,7 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                     *)
+                        # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                         echo "${3}" > /etc/hostname
                         hostname -F /etc/hostname
                         echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
@@ -196,6 +245,7 @@ case "${COMMAND}" in
                 ;;
 
             ROOT_PW)
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 echo "root:${3}" | chpasswd
                 ;;
 
@@ -251,11 +301,16 @@ case "${COMMAND}" in
     exec)
         case "${SETTING}" in
             BITCOIN_REINDEX)
+                # stop systemd services
+                systemctl stop electrs
+                systemctl stop lightningd
                 systemctl stop bitcoind
 
                 if ! /bin/systemctl -q is-active bitcoind.service; then 
                     # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+                    rm -rf /mnt/ssd/electrs/db
+                    rm -rf /data/triggers/bitcoind_fully_synced
 
                     # set option reindex-chainstate, restart bitcoind and remove option
                     echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf

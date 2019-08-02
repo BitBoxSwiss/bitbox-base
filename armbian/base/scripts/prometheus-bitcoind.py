@@ -122,6 +122,10 @@ def get_raw_tx(txid):
 def main():
     # Start up the server to expose the metrics.
     start_http_server(8334)
+
+    # set loop delay: slow during IBD, faster afterwards
+    query_loop_delay=360
+
     while True:
         try:
             blockchaininfo = bitcoin("getblockchaininfo")
@@ -145,6 +149,10 @@ def main():
             # map ibd numerical values
             ibd = {True: 1, False: 0}
             BITCOIN_IBD.set(ibd.get(blockchaininfo["initialblockdownload"], 3))
+            if blockchaininfo["initialblockdownload"]:
+                query_loop_delay=360
+            else:
+                query_loop_delay=30
 
             BITCOIN_VERIFICATION_PROGRESS.set(blockchaininfo["verificationprogress"])
             BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
@@ -182,7 +190,7 @@ def main():
                 BITCOIN_LATEST_BLOCK_INPUTS.set(inputs)
                 BITCOIN_LATEST_BLOCK_OUTPUTS.set(outputs)
 
-        time.sleep(5)
+        time.sleep(query_loop_delay)
 
 
 if __name__ == "__main__":

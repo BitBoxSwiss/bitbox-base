@@ -54,27 +54,27 @@ apply     no argument, applies all configuration settings to the system
 ```
 
 ### Storage of configuration values
-Settings are stored in individual files named in `/opt/shift/sysconfig/` as key/value pairs, named like the KEY in uppercase. 
+Settings are stored in individual files named in `/data/sysconfig/` as key/value pairs, named like the KEY in uppercase. 
 For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`. 
 These files are always overwritten completely and can be sourced by any script so that the variable `BITCOIN_NETWORK` is available immediately.
 
 ```
-$ ls -l /opt/shift/sysconfig/
+$ ls -l /data/sysconfig/
   ... AUTOSETUP_SSD
   ... BITCOIN_NETWORK
   ... DASHBOARD_HDMI
   ... DASHBOARD_WEB
   ... WIFI
 
-$ cat /opt/shift/sysconfig/BITCOIN_NETWORK 
+$ cat /data/sysconfig/BITCOIN_NETWORK 
 BITCOIN_NETWORK=mainnet
 
-$ source /opt/shift/sysconfig/BITCOIN_NETWORK 
+$ source /data/sysconfig/BITCOIN_NETWORK 
 $ echo $BITCOIN_NETWORK
 mainnet
 ```
 
-A backup/restore process simply copies all files within `/opt/shift/sysconfig/` to/from a different location. 
+A backup/restore process simply copies all files within `/data/sysconfig/` to/from a different location. 
 To apply a restored configuration, the `bbb-config.sh apply` command is executed.
 
 ### Managing configuration through the BitBox App

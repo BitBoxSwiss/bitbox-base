@@ -6,11 +6,23 @@
 
 set -eux
 
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+SYSCONFIG_PATH="/data/sysconfig"
+
+# check if /data directory is already set up
+if [ ! -f /data/triggers/datadir_set_up ]; then
+  # if /data is separate partition, data is copied
+  if mountpoint /data -q; then
+    cp -r /data_source/* /data
+ 
+  # otherwise create symlink
+  else
+    ln -sf /data_source /data
+  fi
+fi
 
 # check for TLS certificate and create it if missing
-if [ ! -f /etc/ssl/private/nginx-selfsigned.key ]; then
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
 
 # make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
@@ -37,12 +49,12 @@ echo "180" > /sys/class/hwmon/hwmon0/pwm1
 #   if [ ${UART_REBOOT} -eq 1 ]; then 
 #     echo "ERR: previous UART_REBOOT not successful, check system"
 #   else
-#     echo "UART_REBOOT=1" > /opt/shift/sysconfig/UART_REBOOT
+#     echo "UART_REBOOT=1" > /data/sysconfig/UART_REBOOT
 #     reboot
 #   fi
 
 # else
-#   echo "UART_REBOOT=0" > /opt/shift/sysconfig/UART_REBOOT
+#   echo "UART_REBOOT=0" > /data/sysconfig/UART_REBOOT
 # fi
 
 # SSD configuration
@@ -97,12 +109,11 @@ fi
 # ------------------------------------------------------------------------------
 ## check if swapfile exists on ssd
 if [ ! -f /mnt/ssd/swapfile ]; then
-  if [ mountpoint /mnt/ssd -q ]; then
+  if mountpoint /mnt/ssd -q; then
     echo "Creating /mnt/ssd/swapfile."
     fallocate --length 2GiB /mnt/ssd/swapfile
     chmod 600 /mnt/ssd/swapfile
     mkswap /mnt/ssd/swapfile
-    swapon /mnt/ssd/swapfile
   else
     echo "ERR: No swapfile found, but SSD not mounted."
   fi
@@ -116,15 +127,16 @@ fi
 ## if overlayroot disabled swapfile on ssd, enable it again
 sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
 
-## mount potentially updated /etc/fstab
+## mount potentially updated /etc/fstab, activate swapfile
 mount -a
+swapon /mnt/ssd/swapfile
 
 # Folders & permissions
 # ------------------------------------------------------------------------------
 ## create missing directories & always set correct owner
 ## access control lists (setfacl) are used to control permissions of newly created files 
 chown bitcoin:system /mnt/ssd/
-chown bitcoin:system /mnt/ssd/bitcoin 
+
 
 ## bitcoin data storage
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
@@ -142,7 +154,7 @@ chmod -R 750 /mnt/ssd/electrs/
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
-ln -sf /mnt/ssd/system/journal/ /var/log/journal
+ln -sf /mnt/ssd/system/journal /var/log/journal
 
 ## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
 ## no way to specify where to expect the bitcoin cookie for c-lightning, so let's

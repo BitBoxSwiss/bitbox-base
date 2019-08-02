@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1562259807266,
+  "iteration": 1563182374556,
   "links": [],
   "panels": [
     {
@@ -396,8 +396,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 3,
+        "x": 9,
         "y": 1
       },
       "id": 29,
@@ -480,7 +480,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 3,
         "x": 12,
         "y": 1
       },
@@ -564,8 +564,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 16,
+        "w": 3,
+        "x": 15,
         "y": 1
       },
       "id": 14,
@@ -605,16 +605,112 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"})",
+          "expr": "100 - (sum(node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",mountpoint=~\"/|/media/root.*\",fstype!=\"rootfs\"} * 100) / sum(node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",mountpoint=~\"/|/media/root.*\",fstype!=\"rootfs\"}))",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
+          "legendFormat": "rootfs",
           "refId": "A"
+        },
+        {
+          "expr": "",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "thresholds": "80,90",
       "timeFrom": null,
       "timeShift": null,
       "title": "Root FS storage used",
+      "type": "singlestat",
+      "valueFontSize": "100%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPostfix": false,
+      "colorValue": true,
+      "colors": [
+        "#74997e",
+        "#cc914e",
+        "#e63963"
+      ],
+      "decimals": 0,
+      "description": "",
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      },
+      "id": 98,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "%",
+      "postfixFontSize": "30%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "( sum(node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"}) - sum(node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"}) ) / 20000000 ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "rootfs",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "40, 80",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Size TMPFS in memory",
       "type": "singlestat",
       "valueFontSize": "100%",
       "valueMaps": [
@@ -648,8 +744,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 20,
+        "w": 3,
+        "x": 21,
         "y": 1
       },
       "id": 13,
@@ -1260,6 +1356,99 @@
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"} - node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"}",
+              "format": "time_series",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 4,
+              "legendFormat": "{{mountpoint}}",
+              "refId": "A"
+            },
+            {
+              "expr": "node_filesystem_free_bytes",
+              "format": "time_series",
+              "hide": true,
+              "intervalFactor": 1,
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Size RAM-based TMPFS",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": "IO write (-) / read (+)",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 2,
+          "gridPos": {
+            "h": 8,
+            "w": 11,
+            "x": 13,
+            "y": 14
+          },
+          "id": 97,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
           "seriesOverrides": [
             {
               "alias": "/.*Read.*/",
@@ -1333,142 +1522,6 @@
         },
         {
           "aliasColors": {
-            "Recv_bytes_eth2": "#7EB26D",
-            "Recv_bytes_lo": "#0A50A1",
-            "Recv_drop_eth2": "#6ED0E0",
-            "Recv_drop_lo": "#E0F9D7",
-            "Recv_errs_eth2": "#BF1B00",
-            "Recv_errs_lo": "#CCA300",
-            "Trans_bytes_eth2": "#7EB26D",
-            "Trans_bytes_lo": "#0A50A1",
-            "Trans_drop_eth2": "#6ED0E0",
-            "Trans_drop_lo": "#E0F9D7",
-            "Trans_errs_eth2": "#BF1B00",
-            "Trans_errs_lo": "#CCA300",
-            "recv_bytes_lo": "#0A50A1",
-            "recv_drop_eth0": "#99440A",
-            "recv_drop_lo": "#967302",
-            "recv_errs_eth0": "#BF1B00",
-            "recv_errs_lo": "#890F02",
-            "trans_bytes_eth0": "#7EB26D",
-            "trans_bytes_lo": "#0A50A1",
-            "trans_drop_eth0": "#99440A",
-            "trans_drop_lo": "#967302",
-            "trans_errs_eth0": "#BF1B00",
-            "trans_errs_lo": "#890F02"
-          },
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "description": "",
-          "fill": 4,
-          "gridPos": {
-            "h": 8,
-            "w": 11,
-            "x": 13,
-            "y": 14
-          },
-          "id": 32,
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "sort": "current",
-            "sortDesc": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "/.*send.*/",
-              "color": "#cc914e",
-              "transform": "negative-Y"
-            },
-            {
-              "alias": "/.*recv.*/",
-              "color": "#74997e"
-            }
-          ],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(node_network_receive_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
-              "format": "time_series",
-              "intervalFactor": 2,
-              "legendFormat": "recv {{device}}",
-              "refId": "A",
-              "step": 240
-            },
-            {
-              "expr": "rate(node_network_transmit_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
-              "format": "time_series",
-              "interval": "",
-              "intervalFactor": 2,
-              "legendFormat": "send {{device}} ",
-              "refId": "B",
-              "step": 240
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Network Traffic",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "bytes",
-              "label": "send (-) / receive (+)",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "pps",
-              "label": "",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {
             "Apps": "#629E51",
             "Buffers": "#614D93",
             "Cache": "#6D1F62",
@@ -1497,9 +1550,9 @@
           "description": "Basic memory usage",
           "fill": 4,
           "gridPos": {
-            "h": 10,
+            "h": 8,
             "w": 10,
-            "x": 0,
+            "x": 3,
             "y": 22
           },
           "id": 96,
@@ -1636,6 +1689,142 @@
         },
         {
           "aliasColors": {
+            "Recv_bytes_eth2": "#7EB26D",
+            "Recv_bytes_lo": "#0A50A1",
+            "Recv_drop_eth2": "#6ED0E0",
+            "Recv_drop_lo": "#E0F9D7",
+            "Recv_errs_eth2": "#BF1B00",
+            "Recv_errs_lo": "#CCA300",
+            "Trans_bytes_eth2": "#7EB26D",
+            "Trans_bytes_lo": "#0A50A1",
+            "Trans_drop_eth2": "#6ED0E0",
+            "Trans_drop_lo": "#E0F9D7",
+            "Trans_errs_eth2": "#BF1B00",
+            "Trans_errs_lo": "#CCA300",
+            "recv_bytes_lo": "#0A50A1",
+            "recv_drop_eth0": "#99440A",
+            "recv_drop_lo": "#967302",
+            "recv_errs_eth0": "#BF1B00",
+            "recv_errs_lo": "#890F02",
+            "trans_bytes_eth0": "#7EB26D",
+            "trans_bytes_lo": "#0A50A1",
+            "trans_drop_eth0": "#99440A",
+            "trans_drop_lo": "#967302",
+            "trans_errs_eth0": "#BF1B00",
+            "trans_errs_lo": "#890F02"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "Prometheus",
+          "description": "",
+          "fill": 4,
+          "gridPos": {
+            "h": 8,
+            "w": 11,
+            "x": 13,
+            "y": 22
+          },
+          "id": 32,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "/.*send.*/",
+              "color": "#cc914e",
+              "transform": "negative-Y"
+            },
+            {
+              "alias": "/.*recv.*/",
+              "color": "#74997e"
+            }
+          ],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "rate(node_network_receive_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "format": "time_series",
+              "intervalFactor": 2,
+              "legendFormat": "recv {{device}}",
+              "refId": "A",
+              "step": 240
+            },
+            {
+              "expr": "rate(node_network_transmit_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "send {{device}} ",
+              "refId": "B",
+              "step": 240
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Network Traffic",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": "send (-) / receive (+)",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "pps",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {
             "Apps": "#629E51",
             "Buffers": "#614D93",
             "Cache": "#6D1F62",
@@ -1661,10 +1850,10 @@
           "decimals": 2,
           "fill": 2,
           "gridPos": {
-            "h": 10,
-            "w": 14,
-            "x": 10,
-            "y": 22
+            "h": 8,
+            "w": 10,
+            "x": 3,
+            "y": 30
           },
           "id": 92,
           "legend": {
@@ -1698,7 +1887,7 @@
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "Inactive_file - File-backed memory on inactive LRU list",
+              "legendFormat": "Inactive_file - File-backed memory",
               "refId": "A",
               "step": 4
             },
@@ -1707,7 +1896,7 @@
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "Inactive_anon - Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)",
+              "legendFormat": "Inactive_anon - Anonymous and swap cache",
               "refId": "D",
               "step": 4
             },
@@ -1716,7 +1905,7 @@
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "Active_file - File-backed memory on active LRU list",
+              "legendFormat": "Active_file - File-backed memory",
               "refId": "B",
               "step": 4
             },
@@ -1725,7 +1914,7 @@
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "Active_anon - Anonymous and swap cache on active least-recently-used (LRU) list, including tmpfs",
+              "legendFormat": "Active_anon - Anonymous and swap cache",
               "refId": "C",
               "step": 4
             }
@@ -3928,6 +4117,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "node",
           "value": "node"
         },
@@ -3953,6 +4143,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "127.0.0.1",
           "value": "127.0.0.1"
         },
@@ -3978,6 +4169,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "9100",
           "value": "9100"
         },
@@ -4003,8 +4195,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "",
-          "value": ""
+          "text": "HAPPYMAESTRO",
+          "value": "HAPPYMAESTRO"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -4028,8 +4220,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "",
-          "value": ""
+          "text": "0245f7f2b0df21faba7965b0e6365dfe6edcd147bf936a39126f4fef2fe98afdaa",
+          "value": "0245f7f2b0df21faba7965b0e6365dfe6edcd147bf936a39126f4fef2fe98afdaa"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -4128,8 +4320,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "2019-07-04",
-          "value": "2019-07-04"
+          "text": "2019-07-10",
+          "value": "2019-07-10"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_date)",
@@ -4153,8 +4345,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "14:10",
-          "value": "14:10"
+          "text": "13:47",
+          "value": "13:47"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_time)",
@@ -4178,8 +4370,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "8392b7a",
-          "value": "8392b7a"
+          "text": "90d67e5",
+          "value": "90d67e5"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_commit)",
@@ -4230,5 +4422,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 21
+  "version": 23
 }

@@ -203,16 +203,31 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
   apt -y --fix-broken install
 fi
 
-
-# install dependecies
+## install dependecies
 apt install -y --no-install-recommends \
-  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync
+  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools
 apt install -y --no-install-recommends ifmetric
-apt install -y --no-install-recommends tmux
+
+# debug
+apt install -y --no-install-recommends tmux unzip
+
+if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+    apt install -y --no-install-recommends overlayroot
+fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/opt/shift/sysconfig"
+
+## create data directory
+## standard build links from /data to /data_source on first boot, but 
+## Mender build mounts /data as own partition, data needs to be copied on first boot
+## 
+## create symlink for all scripts to work, remove it at the end of build process
+mkdir -p /data_source/
+ln -sf /data_source /data
+touch /data/linked_from_data_directory
+
+SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
 
@@ -221,10 +236,58 @@ echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
 echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
 echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
-# generate selfsigned NGINX key when run script is run on device
-if [ ! -f /etc/ssl/private/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
+## create triggers directory
+mkdir -p /data/triggers/
+touch /data/triggers/datadir_set_up
+
+## set hostname
+mkdir -p /data/network
+mv /etc/hostname /data/network/hostname
+ln -sf /data/network/hostname /etc/hostname
+/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
+
+## set debug console to only use display, not serial console ttyS2 over UART
+echo 'console=display' >> /boot/armbianEnv.txt
+
+## generate selfsigned NGINX key when run script is run on device, plus symlink to /data
+mkdir -p /data/ssl/
+if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
 fi
+
+## disable Armbian ramlog and limit logsize if overlayroot is enabled
+if [ "$BASE_OVERLAYROOT" == "true" ]; then
+  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
+  sed -i 's/log.hdd/log/g' /etc/logrotate.conf
+  cp /opt/shift/config/logrotate/rsyslog /etc/logrotate.d/
+fi
+
+## retain less NGINX logs
+sed -i 's/daily/size 1M/g' /etc/logrotate.d/nginx || true
+sed -i '/\trotate/Ic\\trotate 14' /etc/logrotate.d/nginx || true
+
+## configure systemd journal
+cat << 'EOF' > /etc/systemd/journald.conf
+Storage=auto
+Compress=yes
+SplitMode=none
+SyncIntervalSec=5m
+RateLimitIntervalSec=30sn
+RateLimitBurst=10000
+SystemMaxUse=1G
+ForwardToSyslog=no
+ForwardToWall=yes
+MaxLevelWall=emerg
+EOF
+
+## run logroate every 10 minutes
+cp /opt/shift/config/logrotate/logrotate.service /etc/systemd/system/
+cp /opt/shift/config/logrotate/logrotate.timer /etc/systemd/system/
+systemctl enable logrotate.timer
+
+## retain journal logs between reboots on the SSD
+rm -rf /var/log/journal
+ln -sf /mnt/ssd/system/journal /var/log/journal
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
@@ -242,22 +305,8 @@ Type=simple
 WantedBy=multi-user.target
 EOF
 
-## customize ssh login message
+## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
-cat << EOF > /etc/update-motd.d/20-shift
-#!/bin/bash
-source /etc/os-release
-source /etc/armbian-release
-KERNELID=$(uname -r)
-TERM=linux toilet -f standard -F metal "BitBox Base"
-printf '\nWelcome to \e[0;91mARMBIAN\x1B[0m %s %s %s %s\n' "$VERSION $IMAGE_TYPE $PRETTY_NAME $KERNELID"
-if ! mountpoint /mnt/ssd -q; then printf '\n\e[0;91mMounting of SSD failed.\x1B[0m \n'; fi
-echo "Configured for Bitcoin TESTNET"; echo
-EOF
-chmod 755 /etc/update-motd.d/20-shift
-
-## set hostname
-/opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 ## prepare SSD mount point
 mkdir -p /mnt/ssd/
@@ -294,11 +343,6 @@ bitcoin-rpc     8332/tcp
 lightning       9735/tcp
 middleware      8845/tcp
 EOF
-
-## retain journal logs between reboots 
-## /etc/default/armbian-zram-config
-/usr/lib/armbian/armbian-ramlog write
-ln -sf /mnt/ssd/system/journal/ /var/log/journal
 
 ## make bbb scripts executable with sudo
 ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
@@ -377,8 +421,7 @@ printtoconsole=1
 rpcconnect=127.0.0.1
 
 # performance
-dbcache=2000
-maxmempool=50
+dbcache=300
 maxconnections=40
 maxuploadtarget=5000
 
@@ -402,7 +445,7 @@ User=bitcoin
 Group=bitcoin
 Type=simple
 Restart=always
-RestartSec=60
+RestartSec=30
 TimeoutSec=300
 PrivateTmp=true
 ProtectSystem=full
@@ -468,8 +511,12 @@ cat << 'EOF' >/etc/systemd/system/lightningd.service
 Description=c-lightning daemon
 Wants=bitcoind.service
 After=bitcoind.service
+PartOf=bitcoind.service
 [Service]
+# make sure bitcoind is already started
 ExecStartPre=/bin/systemctl is-active bitcoind.service
+# make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
+ExecStartPre=/usr/bin/test -f /data/triggers/bitcoind_fully_synced
 ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
 ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
 RuntimeDirectory=lightningd
@@ -477,7 +524,7 @@ User=bitcoin
 Group=bitcoin
 Type=simple
 Restart=always
-RestartSec=10
+RestartSec=30
 TimeoutSec=240
 PrivateTmp=true
 ProtectSystem=full
@@ -521,10 +568,12 @@ cat << 'EOF' > /etc/systemd/system/electrs.service
 Description=Electrs server daemon
 Wants=bitcoind.service
 After=bitcoind.service
+PartOf=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStartPre=/bin/systemctl is-active bitcoind.service
+# make sure bitcoind started and fully indexed
+ExecStartPre=/opt/shift/scripts/systemd-electrs-startchecks.sh
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
@@ -602,13 +651,13 @@ fi
 
 
 # PROMETHEUS -------------------------------------------------------------------
-PROMETHEUS_VERSION="2.9.2"
-NODE_EXPORTER_VERSION="0.17.0"
+PROMETHEUS_VERSION="2.11.1"
+PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
 
 ## Prometheus
 mkdir -p /usr/local/src/prometheus && cd "$_"
 curl --retry 5 -SLO https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz
-if ! echo "85b85a35bbf413e17bfce2bf86e13bd37a9e2c753745821b4472833dc5a85b52  prometheus-2.9.2.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
+if ! echo "${PROMETHEUS_CHKSUM}  prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
 tar --strip-components 1 -xzf prometheus-${PROMETHEUS_VERSION}.linux-arm64.tar.gz
 
 mkdir -p /etc/prometheus /var/lib/prometheus
@@ -663,8 +712,11 @@ WantedBy=multi-user.target
 EOF
 
 ## Prometheus Node Exporter
+NODE_EXPORTER_VERSION="0.18.1"
+NODE_EXPORTER_CHKSUM="d5a28c46e74f45b9f2158f793a6064fd9fe8fd8da6e0d1e548835ceb7beb1982"
+
 curl --retry 5 -SLO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
-if ! echo "f0d9a8bfed735e93f49a4e8113e96af2dfc90db759164a785b862c704f633569  node_exporter-0.17.0.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
+if ! echo "${NODE_EXPORTER_CHKSUM}  node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
 tar --strip-components 1 -xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
 cp node_exporter /usr/local/bin
 
@@ -802,8 +854,8 @@ events {
 }
 
 stream {
-  ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-  ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+  ssl_certificate /data/ssl/nginx-selfsigned.crt;
+  ssl_certificate_key /data/ssl/nginx-selfsigned.key;
   ssl_session_cache shared:SSL:1m;
   ssl_session_timeout 4h;
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
@@ -829,9 +881,10 @@ stream {
 http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
-  access_log /var/log/nginx/access.log;
+  access_log off;
   error_log /var/log/nginx/error.log;
   include /etc/nginx/sites-enabled/*.conf;
+  include /data/nginx/sites-enabled/*.conf;
 }
 EOF
 
@@ -863,8 +916,9 @@ PrivateTmp=true
 EOF
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
-if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
 
+if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
   apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
 
   cat << 'EOF' > /etc/xdg/openbox/autostart
@@ -986,6 +1040,10 @@ if [ "${BASE_OVERLAYROOT}" == "true" ]; then
   fi
 fi
 
+## remove temporary symlink /data --> /data_source, unless building on the device
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  rm /data
+fi
 
 set +x
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then

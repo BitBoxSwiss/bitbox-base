@@ -49,8 +49,8 @@ events {
 }
 
 stream {
-  ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-  ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+  ssl_certificate /data/ssl/nginx-selfsigned.crt;
+  ssl_certificate_key /data/ssl/nginx-selfsigned.key;
   ssl_session_cache shared:SSL:1m;
   ssl_session_timeout 4h;
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;

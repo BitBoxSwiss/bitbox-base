@@ -15,5 +15,8 @@ sleep 10
 echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env
 tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env
 
+# log bitcoind restarts including auth information
+echo "`date +%Y-%m-%d-%H:%M` systemd-bitcoind-post.sh `cat /mnt/ssd/bitcoin/.bitcoin/.cookie`" >> /mnt/ssd/bitcoin/.bitcoin/restarts.log
+
 # hold off next services for a bit
 sleep 10
