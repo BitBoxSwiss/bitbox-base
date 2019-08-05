@@ -8,7 +8,7 @@ update:
 	bash $(MAKE_PATH)/armbian-build.sh update
 
 mender-artefacts:
-	bash $(MAKE_PATH)/armbian-mender-convert.sh
+	bash $(MAKE_PATH)/mender-convert.sh
 
 build-ondevice:
 	bash $(MAKE_PATH)/armbian-build.sh ondevice

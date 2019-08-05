@@ -40,12 +40,12 @@ case ${ACTION} in
 		MENDER_DISK_IMAGE="${TARGET_NAME}"
 
 		# retrieve latest Armbian image
-		if [ ! -f "../../provisioning/${SOURCE_NAME}.img" ]; then
-			echo "Error: Armbian source file 'provisioning/${SOURCE_NAME}.img' missing."
+		if [ ! -f "../../bin/img-armbian/${SOURCE_NAME}.img" ]; then
+			echo "Error: Armbian source file 'bin/img-armbian/${SOURCE_NAME}.img' missing."
 			exit 1
 		fi
-		echo "Copying ./provisioning/${SOURCE_NAME}.img..."
-		cp -f "../../provisioning/${SOURCE_NAME}.img" "input/"
+		echo "Copying ./bin/img-armbian/${SOURCE_NAME}.img..."
+		cp -f "../../bin/img-armbian/${SOURCE_NAME}.img" "input/"
 
 		./docker-mender-convert from-raw-disk-image \
 			--raw-disk-image $RAW_DISK_IMAGE \
@@ -59,13 +59,13 @@ case ${ACTION} in
 		rm "input/${SOURCE_NAME}.img"
 		rm "output/${TARGET_NAME}.ext4"
 		mv "output/${TARGET_NAME}.sdimg" "output/${TARGET_NAME}.img"
-		mv output/${SOURCE_NAME}* ../../provisioning/
+		mv output/${SOURCE_NAME}* ../../bin/img-mender/
 
 		echo "Mender files ready for provisioning:"
-		stat -c "%y %s %n" ../../provisioning/${TARGET_NAME}*
+		stat -c "%y %s %n" ../../bin/img-mender/${TARGET_NAME}*
 		echo 
-		echo "Write to eMMC with the following command (check target device /dev/sdb first!):"
-		echo "dd if=./provisioning/${TARGET_NAME}.sdimg of=/dev/sdb bs=4M conv=sync status=progress && sync"
+		echo "Write to eMMC with the following command (check target device /dev/sdX first!):"
+		echo "dd if=./bin/img-armbian/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
 		echo
         ;;
 esac
