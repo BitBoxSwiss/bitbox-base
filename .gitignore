@@ -27,3 +27,6 @@
 !/build/README.md
 /provisioning/*
 !/provisioning/README.md
+
+# Ignore Docker volume files for Middleware integration test
+/middleware/integration_test/volumes/*

@@ -31,7 +31,7 @@ case ${ACTION} in
                 echo "bitcoind:                 $(systemctl is-active bitcoind.service)"
                 echo "electrs:                  $(systemctl is-active electrs.service)"
                 echo "lightningd:               $(systemctl is-active lightningd.service)"
-                echo "base-middleware:          $(systemctl is-active base-middleware.service)"
+                echo "bbbmiddleware:            $(systemctl is-active bbbmiddleware.service)"
                 echo "nginx:                    $(systemctl is-active nginx.service)"
                 echo "prometheus:               $(systemctl is-active prometheus.service)"
                 echo "prometheus-node-exporter: $(systemctl is-active prometheus-node-exporter.service)"
@@ -56,7 +56,7 @@ case ${ACTION} in
                 systemctl $ACTION prometheus-bitcoind.service 
                 systemctl $ACTION prometheus-node-exporter.service 
                 systemctl $ACTION grafana-server.service 
-                systemctl $ACTION base-middleware.service
+                systemctl $ACTION bbbmiddleware.service
                 systemctl $ACTION nginx.service 
                 systemctl $ACTION electrs.service 
                 systemctl $ACTION lightningd.service 
