@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 )
@@ -16,11 +17,37 @@ const (
 	opUCanHasDemo = "d"
 )
 
+// GetEnvResponse is the struct that gets sent by the rpc server during a GetSystemEnv call
+type GetEnvResponse struct {
+	Network        string
+	ElectrsRPCPort string
+}
+
+// ResyncBitcoinResponse is the struct that gets sent by the rpc server during a ResyncBitcoin call
+type ResyncBitcoinResponse struct {
+	Success bool
+}
+
+// SampleInfoResponse holds sample information from c-lightning and bitcoind. It is temporary for testing purposes
+type SampleInfoResponse struct {
+	Blocks         int64   `json:"blocks"`
+	Difficulty     float64 `json:"difficulty"`
+	LightningAlias string  `json:"lightningAlias"`
+}
+
+// VerificationProgressResponse is the struct that gets sent by the rpc server during a VerificationProgress rpc call
+type VerificationProgressResponse struct {
+	Blocks               int64
+	Headers              int64
+	VerificationProgress float64
+}
+
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
 type Middleware struct {
-	info        SampleInfoResponse
-	environment system.Environment
-	events      chan []byte
+	info             SampleInfoResponse
+	environment      system.Environment
+	events           chan []byte
+	prometheusClient *prometheus.PromClient
 }
 
 // NewMiddleware returns a new instance of the middleware
@@ -35,6 +62,7 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 			LightningAlias: "disconnected",
 		},
 	}
+	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
 
 	return middleware
 }
@@ -56,8 +84,7 @@ func (middleware *Middleware) demoBitcoinRPC() {
 	defer client.Shutdown()
 
 	//Get current block count.
-	var blockCount int64
-	blockCount, err = client.GetBlockCount()
+	blockCount, err := client.GetBlockCount()
 	if err != nil {
 		log.Println(err.Error() + " No blockcount received")
 	} else {
@@ -70,6 +97,15 @@ func (middleware *Middleware) demoBitcoinRPC() {
 		middleware.info.Difficulty = blockChainInfo.Difficulty
 	}
 
+}
+
+func (middleware *Middleware) VerificationProgress() (VerificationProgressResponse, error) {
+	verificationProgress := VerificationProgressResponse{
+		Blocks:               middleware.prometheusClient.Blocks(),
+		Headers:              middleware.prometheusClient.Headers(),
+		VerificationProgress: middleware.prometheusClient.VerificationProgress(),
+	}
+	return verificationProgress, nil
 }
 
 // demoCLightningRPC demonstrates a connection with lightnind. Currently it gets the lightningd alias and writes it into the SampleInfoResponse.
@@ -102,26 +138,8 @@ func (middleware *Middleware) Start() <-chan []byte {
 	return middleware.events
 }
 
-// ResyncBitcoinResponse is the struct that gets sent by the rpc server during a ResyncBitcoin call
-type ResyncBitcoinResponse struct {
-	Success bool
-}
-
-// GetEnvResponse is the struct that gets sent by the rpc server during a GetSystemEnv call
-type GetEnvResponse struct {
-	Network        string
-	ElectrsRPCPort string
-}
-
-// SampleInfo holds sample information from c-lightning and bitcoind. It is temporary for testing purposes
-type SampleInfoResponse struct {
-	Blocks         int64   `json:"blocks"`
-	Difficulty     float64 `json:"difficulty"`
-	LightningAlias string  `json:"lightningAlias"`
-}
-
 // ResyncBitcoin returns a ResyncBitcoinResponse struct in response to a rpcserver request
-func (middleware *Middleware) ResyncBitcoin() ResyncBitcoinResponse {
+func (middleware *Middleware) ResyncBitcoin() (ResyncBitcoinResponse, error) {
 	cmd := exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
 	err := cmd.Run()
 	response := ResyncBitcoinResponse{Success: true}
@@ -129,16 +147,15 @@ func (middleware *Middleware) ResyncBitcoin() ResyncBitcoinResponse {
 		log.Println(err.Error() + " failed to run resync command, script does not exist")
 		response = ResyncBitcoinResponse{Success: false}
 	}
-	return response
+	return response, nil
 }
 
-// SystemEnv returns a GetEnvResponse struct in response to a rpcserver request
-func (middleware *Middleware) SystemEnv() GetEnvResponse {
+func (middleware *Middleware) SystemEnv() (GetEnvResponse, error) {
 	response := GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
-	return response
+	log.Println(&response)
+	return response, nil
 }
 
-// SampleInfo returns a SampleInfoResponse struct in response to a rpcserver request
-func (middleware *Middleware) SampleInfo() SampleInfoResponse {
-	return middleware.info
+func (middleware *Middleware) SampleInfo() (SampleInfoResponse, error) {
+	return middleware.info, nil
 }

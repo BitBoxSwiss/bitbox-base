@@ -10,6 +10,7 @@ type Environment struct {
 	bitcoinRPCPort     string
 	lightningRPCPath   string
 	bbbConfigScript    string
+	prometheusURL      string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -24,6 +25,7 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		ElectrsRPCPort:     argumentMap["electrsRPCPort"],
 		Network:            argumentMap["network"],
 		bbbConfigScript:    argumentMap["bbbConfigScript"],
+		prometheusURL:      argumentMap["prometheusURL"],
 	}
 	return environment
 }
@@ -51,4 +53,9 @@ func (environment *Environment) GetLightningRPCPath() string {
 // GetBBBConfigScript is a getter for the location of the bbb config script
 func (environment *Environment) GetBBBConfigScript() string {
 	return environment.bbbConfigScript
+}
+
+// GetPrometheusURL is a getter for the url the prometheus server is reachable on
+func (environment *Environment) GetPrometheusURL() string {
+	return environment.prometheusURL
 }
