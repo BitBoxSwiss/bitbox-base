@@ -3,7 +3,7 @@ REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/../..
 
 check-go-env:
 	@echo "Checking that environment supports Go builds.."
-	@$(REPO_ROOT)/scripts/check-go-env.sh "$(REPO_ROOT)"
+	@$(REPO_ROOT)/contrib/check-go-env.sh "$(REPO_ROOT)"
 
 native: check-go-env copy-service
 	go install $(REPO_ROOT)/tools/bbbsupervisor

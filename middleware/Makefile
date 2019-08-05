@@ -4,7 +4,7 @@ SHELL:=/bin/bash
 
 check-go-env:
 	@echo "Checking that environment supports Go builds.."
-	@$(REPO_ROOT)/scripts/check-go-env.sh "$(REPO_ROOT)"
+	@$(REPO_ROOT)/contrib/check-go-env.sh "$(REPO_ROOT)"
 
 ci:
 	cd $(REPO_ROOT)/middleware/src

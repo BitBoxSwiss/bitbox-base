@@ -50,7 +50,7 @@ mender-artefacts:
 # cleanup build environment
 clean:
 	$(MAKE) -C armbian clean
-	bash $(REPO_ROOT)/scripts/clean.sh
+	bash $(REPO_ROOT)/contrib/clean.sh
 	# Note that this only delete the final image, not the docker cache
 	# You should never need it, but if you want to delete the cache, you can run
 	# "docker rmi $(docker images -a --filter=dangling=true -q)"
@@ -58,7 +58,7 @@ clean:
 
 # run CI tests
 ci: dockerinit
-	./scripts/travis-ci.sh
+	./contrib/travis-ci.sh
 
 # WIP: build Armbian image using Jekyll
 docker-jekyll: dockerinit
