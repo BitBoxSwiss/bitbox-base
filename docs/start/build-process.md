@@ -22,7 +22,7 @@ Unpacking the steps above, what happens when you type `make` is:
     1. [`cd tools && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/tools/Makefile#L38): inside the `digitalbitbox/bitbox-base` container, all Go binaries under the `tools/`  subdirectory are built
         1. [`cd bbbfancontrol && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbfancontrol/Makefile): compiles the `build/bbbfancontrol` binary
         1. [`cd bbbsupervisor && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/tools/supervisor/Makefile): compiles the `build/bbbsupervisor` binary
-    1. [`cd middleware && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/Makefile#L39): inside the `digitalbitbox/bitbox-base` container, the `build/base-middleware` binary is built from the `middleware/` subdirectory
+    1. [`cd middleware && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/Makefile#L39): inside the `digitalbitbox/bitbox-base` container, the `build/bbbmiddleware` binary is built from the `middleware/` subdirectory
 1. [`make build-all`](https://github.com/digitalbitbox/bitbox-base/blob/master/Makefile#L20): the default target if `make` is called, and depends on `make docker-build-go`, and after that performs the main Armbian image build
     1. [`cd armbian && make`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/Makefile): builds the Armbian `.img` file, using the Go binaries in `build/` as inputs
     1. finally, the `.img` file is moved to the `build/` directory

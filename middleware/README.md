@@ -30,9 +30,9 @@ tools)
 The middleware accepts some command line arguments to connect to c-lightning
 and bitcoind. The arguments are expected to be passed in the following fashion:
 
-    ./base-middleware -rpcuser rpcuser -rpcpassword rpcpassword -rpcport 18332 -lightning-rpc-path /home/bitcoin/.lightning/lightning-rpc
+    ./bbbmiddleware -rpcuser rpcuser -rpcpassword rpcpassword -rpcport 18332 -lightning-rpc-path /home/bitcoin/.lightning/lightning-rpc
 
-Running `./base-middleware -h` will print the following help:
+Running `./bbbmiddleware -h` will print the following help:
     
   -bbbconfigscript string
     	Path to the bbb-config file that allows setting system configuration (default "/opt/shift/scripts/bbb-config.sh")

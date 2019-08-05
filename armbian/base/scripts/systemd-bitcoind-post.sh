@@ -10,7 +10,7 @@ mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
 ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
 
 # wait a few seconds before providing cookie authentication 
-# as .env file for electrs and base-middleware 
+# as .env file for electrs and bbbmiddleware 
 sleep 10
 echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env
 tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env

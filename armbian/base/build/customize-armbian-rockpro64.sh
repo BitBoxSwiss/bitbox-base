@@ -613,19 +613,19 @@ else
   echo "WARN: bbbfancontrol not found."
 fi
 
-## base-middleware
+## bbbmiddleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-if [ -f /tmp/overlay/bin/base-middleware ]; then
-  cp /tmp/overlay/bin/base-middleware /usr/local/sbin/
+if [ -f /tmp/overlay/bin/bbbmiddleware ]; then
+  cp /tmp/overlay/bin/bbbmiddleware /usr/local/sbin/
 
-  mkdir -p /etc/base-middleware/
-  cat << EOF > /etc/base-middleware/base-middleware.conf
+  mkdir -p /etc/bbbmiddleware/
+  cat << EOF > /etc/bbbmiddleware/bbbmiddleware.conf
 BITCOIN_RPCUSER=__cookie__
 BITCOIN_RPCPORT=18332
 LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 EOF
 
-  cat << 'EOF' > /etc/systemd/system/base-middleware.service
+  cat << 'EOF' > /etc/systemd/system/bbbmiddleware.service
 [Unit]
 Description=BitBox Base Middleware
 Wants=bitcoind.service lightningd.service electrs.service
@@ -633,9 +633,9 @@ After=lightningd.service
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/base-middleware/base-middleware.conf
+EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStart=/usr/local/sbin/base-middleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH} -datadir=/mnt/ssd/system/middleware
+ExecStart=/usr/local/sbin/bbbmiddleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH} -datadir=/mnt/ssd/system/bbbmiddleware
 Restart=always
 RestartSec=10
 
@@ -643,10 +643,10 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-  systemctl enable base-middleware.service
+  systemctl enable bbbmiddleware.service
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
-  echo "WARN: base-middleware not found."
+  echo "WARN: bbbmiddleware not found."
 fi
 
 
