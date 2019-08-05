@@ -56,14 +56,14 @@ BUILD OPTIONS:
 "
 }
 # get Linux distribution and version
-# (works explicitly only on Armbian Debian Buster and Ubuntu Bionic, Debian Stretch is default)
+# (works explicitly only on Armbian Debian Stretch (default), Buster and Ubuntu Bionic)
 cat /etc/os-release
 source /etc/os-release
 BASE_DISTRIBUTION=${VERSION_CODENAME}
 
 # Load build configuration, set defaults
-source /opt/shift/build/build.conf || true
-source /opt/shift/build/build-local.conf || true
+source /opt/shift/build.conf || true
+source /opt/shift/build-local.conf || true
 
 BASE_BUILDMODE=${1:-"armbian-build"}
 BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"stretch"}
@@ -108,8 +108,8 @@ echoArguments "Starting build process." > /opt/shift/config/buildargs.log
 set -ex
 
 # Prevent interactive prompts
-export DEBIAN_FRONTEND=noninteractive
-export APT_LISTCHANGES_FRONTEND=none
+export DEBIAN_FRONTEND="noninteractive"
+export APT_LISTCHANGES_FRONTEND="none"
 export LANG=C LC_ALL="en_US.UTF-8"
 export HOME=/root
 
@@ -136,14 +136,15 @@ usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
-mkdir -p /root/.ssh 
-mkdir -p /home/base/.ssh
-if [ -f /opt/shift/build/authorized_keys ]; then
-  cp -f /opt/shift/build/authorized_keys /root/.ssh/
-  cp -f /opt/shift/build/authorized_keys /home/base/.ssh/
+mkdir -p /root/.ssh/ 
+mkdir -p /home/base/.ssh/
+if [ -f /opt/shift/config/ssh/authorized_keys ]; then
+  cp -f /opt/shift/config/ssh/authorized_keys /root/.ssh/
+  cp -f /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
 else
-  echo "No SSH keys file found (base/build/authorized_keys), password login only."
+  echo "No SSH keys file found (base/authorized_keys), password login only."
 fi
+chmod -R 700 /root/.ssh/
 chown -R base:bitcoin /home/base/
 chmod -R 700 /home/base/.ssh/
 
@@ -178,9 +179,10 @@ fi
 
 
 # SOFTWARE PACKAGE MGMT --------------------------------------------------------
-## update system
+## update system, force non-interactive commands
+
 apt -y update
-apt -y upgrade
+apt -y -q -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" upgrade
 apt -y --fix-broken install
 
 ## remove unnecessary packages (only when building image, not ondevice)
@@ -394,7 +396,7 @@ curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/
 curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /opt/shift/build/laanwj-releases.asc
+gpg --import /opt/shift/laanwj-releases.asc
 gpg --refresh-keys || true
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
@@ -600,9 +602,9 @@ EOF
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
-if [ -f /tmp/overlay/bin/bbbfancontrol ]; then
-  cp /tmp/overlay/bin/bbbfancontrol /usr/local/sbin/
-  cp /tmp/overlay/bin/bbbfancontrol.service /etc/systemd/system/
+if [ -f /opt/shift/bin/go/bbbfancontrol ]; then
+  cp /opt/shift/bin/go/bbbfancontrol /usr/local/sbin/
+  cp /opt/shift/bin/go/bbbfancontrol.service /etc/systemd/system/
   systemctl enable bbbfancontrol.service
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
@@ -611,8 +613,8 @@ fi
 
 ## bbbmiddleware
 ## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
-if [ -f /tmp/overlay/bin/bbbmiddleware ]; then
-  cp /tmp/overlay/bin/bbbmiddleware /usr/local/sbin/
+if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
+  cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
 
   mkdir -p /etc/bbbmiddleware/
   cat << EOF > /etc/bbbmiddleware/bbbmiddleware.conf
