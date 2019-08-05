@@ -439,7 +439,7 @@ After=network-online.target startup-checks.service tor.service
 Requires=startup-checks.service
 [Service]
 ExecStart=/usr/bin/bitcoind -conf=/etc/bitcoin/bitcoin.conf
-ExecStartPost=/opt/shift/scripts/systemd-bitcoind-post.sh
+ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
 RuntimeDirectory=bitcoind
 User=bitcoin
 Group=bitcoin
@@ -513,12 +513,9 @@ Wants=bitcoind.service
 After=bitcoind.service
 PartOf=bitcoind.service
 [Service]
-# make sure bitcoind is already started
-ExecStartPre=/bin/systemctl is-active bitcoind.service
-# make sure bitcoind is fully synced before first start (otherwise full blockchain is parsed)
-ExecStartPre=/usr/bin/test -f /data/triggers/bitcoind_fully_synced
+ExecStartPre=/opt/shift/scripts/systemd-lightningd-startpre.sh
 ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
-ExecStartPost=/opt/shift/scripts/systemd-lightningd-post.sh
+ExecStartPost=/opt/shift/scripts/systemd-lightningd-startpost.sh
 RuntimeDirectory=lightningd
 User=bitcoin
 Group=bitcoin
@@ -572,8 +569,7 @@ PartOf=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-# make sure bitcoind started and fully indexed
-ExecStartPre=/opt/shift/scripts/systemd-electrs-startchecks.sh
+ExecStartPre=/opt/shift/scripts/systemd-electrs-startpre.sh
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
