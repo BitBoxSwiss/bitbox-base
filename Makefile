@@ -7,35 +7,20 @@ ifndef HAS_DOCKER
 	$(error "This command requires Docker.")
 endif
 
+# build Go tools locally: bbbmiddleware, bbbsupervisor, bbbfancontrol
+# depends on correct golang setup
 build-go:
 	@echo "Building tools.."
 	$(MAKE) -C tools
 	@echo "Building middleware.."
 	$(MAKE) -C middleware
 
-build-all: docker-build-go
-	@echo "Building Armbian.."
-	$(MAKE) -C armbian
-
-build-update: docker-build-go
-	@echo "Updating Armbian build.."
-	$(MAKE) update -C armbian
-
-mender-artefacts:
-	@echo "Creating Mender update artefacts.."
-	$(MAKE) mender-artefacts -C armbian
-
-clean:
-	$(MAKE) -C armbian clean
-	bash $(REPO_ROOT)/scripts/clean.sh
-	# Note that this only delete the final image, not the docker cache
-	# You should never need it, but if you want to delete the cache, you can run
-	# "docker rmi $(docker images -a --filter=dangling=true -q)"
-	docker rmi digitalbitbox/bitbox-base
-
+# initialize docker environment to build Go tools
 dockerinit: check-docker
 	docker build --tag digitalbitbox/bitbox-base .
 
+# build Go tools in Docker: bbbmiddleware, bbbsupervisor, bbbfancontrol
+# depends on docker setup, no local golang necessary
 docker-build-go: dockerinit
 	@echo "Building tools and middleware inside Docker container.."
 	docker build --tag digitalbitbox/bitbox-base .
@@ -45,9 +30,37 @@ docker-build-go: dockerinit
 	       -v $(REPO_ROOT)/build:/opt/build_host \
 	  digitalbitbox/bitbox-base bash -c "cp -f /opt/build/* /opt/build_host"
 
+# build Armbian disk image
+# see configuration: armbian/base/build/build.conf
+build-all: docker-build-go
+	@echo "Building Armbian.."
+	$(MAKE) -C armbian
+
+# build Armbian disk image, use cached binaries and update customization only
+# see configuration: armbian/base/build/build.conf
+build-update: docker-build-go
+	@echo "Updating Armbian build.."
+	$(MAKE) update -C armbian
+
+# create a Mender-enabled disk image out of an Armbian image
+mender-artefacts:
+	@echo "Creating Mender update artefacts.."
+	$(MAKE) mender-artefacts -C armbian
+
+# cleanup build environment
+clean:
+	$(MAKE) -C armbian clean
+	bash $(REPO_ROOT)/scripts/clean.sh
+	# Note that this only delete the final image, not the docker cache
+	# You should never need it, but if you want to delete the cache, you can run
+	# "docker rmi $(docker images -a --filter=dangling=true -q)"
+	docker rmi digitalbitbox/bitbox-base
+
+# run CI tests
 ci: dockerinit
 	./scripts/travis-ci.sh
 
+# WIP: build Armbian image using Jekyll
 docker-jekyll: dockerinit
 	# TODO(hkjn): Investigate why we need the 'rm -rf', or else Jekyll throws errors like the
 	# following, seemingly trying to read a non-existing 'share' file under armbian/armbian-build/packages/bsp/common/usr/
