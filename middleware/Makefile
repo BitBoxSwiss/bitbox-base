@@ -13,7 +13,7 @@ ci:
 
 envinit:
 	@echo "Initializing Go environment.."
-	$(REPO_ROOT)/middleware/scripts/envinit.sh
+	$(REPO_ROOT)/middleware/contrib/envinit.sh
 
 fetch-deps:
 	@echo "Fetching dependencies.."

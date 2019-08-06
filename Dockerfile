@@ -8,25 +8,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
     make \
-    ca-certificates 
+    ca-certificates
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
 RUN mkdir build
 
 # Build the middleware
 FROM bitbox-base as middleware-builder
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base/middleware/
-COPY middleware/scripts/ scripts/
-RUN ./scripts/envinit.sh
+COPY middleware/contrib/ contrib/
+RUN ./contrib/envinit.sh
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
 RUN rm -rf middleware
-COPY scripts/. scripts/.
+COPY contrib/. contrib/.
 COPY middleware/. middleware/.
 RUN make -C "middleware"
 
 # Build the tools
 FROM bitbox-base as middleware-tools
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
-COPY scripts/. scripts/.
+COPY contrib/. contrib/.
 COPY tools/. tools/.
 RUN make -C "tools"
 

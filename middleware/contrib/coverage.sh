@@ -18,7 +18,7 @@
 # as positional arguments. For instance, to check coverage on all backend
 # packages, use the following:
 #
-#     scripts/coverage.sh ./src/...
+#     contrib/coverage.sh ./src/...
 #
 # An html page will be opened, showing the coverage of the indicated
 # packages.
