@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	opICanHasHandShaek   = "h"
-	responseSuccess      = "\x00"
-	responseNeedsPairing = "\x01"
+	opICanHasHandShaek          = "h"
+	responseSuccess             = "\x00"
+	responseNeedsPairing        = "\x01"
+	opICanHasPairinVerificashun = byte('v')
 )
 
 type NoiseConfig struct {
@@ -140,13 +141,28 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 		channelHashBase32[10:15],
 		channelHashBase32[15:20])
 	noiseConfig.initialized = true
+
+	_, responseBytes, err = ws.ReadMessage()
+	if err != nil {
+		return errors.New("websocket failed to read verification request")
+	}
+	if responseBytes[0] == opICanHasPairinVerificashun {
+		log.Println("Need to verify pairing hash")
+		msg = noiseConfig.CheckVerification()
+		err = ws.WriteMessage(websocket.BinaryMessage, msg)
+		if err != nil {
+			log.Println("Error, websocket failed to write channel hash verification message")
+		}
+	}
+	log.Println("Successfully completed noise handshake with client")
+
 	return nil
 }
 
 func (noiseConfig *NoiseConfig) CheckVerification() []byte {
 	// TODO(TheCharlatan) At this point, the channel Hash should be displayed on the screen, with a blocking call.
 	// For now, just add a dummy timer, since we do not have a screen yet, and make every verification a success.
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	err := noiseConfig.addClientStaticPubkey(noiseConfig.clientStaticPubkey)
 	if err != nil {
 		log.Println("Pairing Successful, but unable to write baseNoiseStaticPubkey to file")
