@@ -20,7 +20,9 @@
 
 # Ignore Jekyll-generated files.
 /.jekyll-metadata
-/_site/
+/_site
+/docs/.sass-cache
+/docs/_site
 
 # Ignore the binary build outputs (except READMEs)
 /bin/go/*
@@ -29,3 +31,4 @@
 !/bin/img-mender/README.md
 /bin/img-armbian/*
 !/bin/img-armbian/README.md
+

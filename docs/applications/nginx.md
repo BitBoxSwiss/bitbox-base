@@ -1,8 +1,8 @@
 ---
 layout: default
 title: NGINX
-parent: Supporting Applications
-nav_order: 730
+parent: Applications
+nav_order: 140
 ---
 ## NGINX: Reverse Proxy
 

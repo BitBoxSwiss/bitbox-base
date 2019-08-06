@@ -6,4 +6,5 @@ aux_links:
     "Contribute! Source on GitHub":
       - "https://github.com/digitalbitbox/bitbox-base"
 ga_tracking: UA-133876831-2
-theme: jekyll-theme-minimal
+theme: "just-the-docs"
+

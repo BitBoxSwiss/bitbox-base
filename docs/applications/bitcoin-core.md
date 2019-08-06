@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Bitcoin Core
-parent: Main Applications
-nav_order: 610
+parent: Applications
+nav_order: 100
 ---
 ## Bitcoin Core
 

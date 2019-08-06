@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Main Applications
+title: Applications
 nav_order: 600
 has_children: true
 permalink: /applications
 ---
-## BitBox Base: Main Applications
+## BitBox Base: Applications

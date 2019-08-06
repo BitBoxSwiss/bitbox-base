@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Building Go binaries
-nav_order: 100
-parent: Go applications
+nav_order: 190
+parent: Custom applications
 ---
 ## BitBox Base: Building Go binaries
 

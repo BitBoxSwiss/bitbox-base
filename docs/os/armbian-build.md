@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Build Armbian image
+title: Build Armbian
 parent: Operating System
-nav_order: 310
+nav_order: 120
 ---
 ## Building the Armbian base image
 
@@ -44,7 +44,7 @@ In the following instructions, Windows users just replace `make` with `sh .\buil
 
 ### Configure build options
 
-The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network or Wifi credentials) can be configured within the configuration file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/build.conf).
+The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network or Wifi credentials) can be configured within the configuration file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
 
 To preserve a local configuration, you can copy the file to `build-local.conf`.
 This file is excluded from Git source control and overwrites options from `build.conf`.
@@ -52,12 +52,12 @@ This file is excluded from Git source control and overwrites options from `build
 ### Include SSH keys
 
 It is recommended to use SSH keys to access the Base image.
-You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/authorized_keys).
+You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/authorized_keys).
 Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/creating-ssh-keys-776639788.html) on how to create your own set of new keys.
 
 ### Compile Armbian from source
 
-Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
+Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
 * Start the initial build process.
   
@@ -65,11 +65,11 @@ Now the operating system image can be built. The whole BitBox Base configuration
   make
   ```
 
-* The resulting image is available in `build/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
+* The resulting image is available in `bin/img-armbian` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
   
   ```bash
   lsblk
-  sudo dd if=build/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
+  sudo dd if=bin/img-armbian/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
   sync
   ```  
 
@@ -88,19 +88,3 @@ Now the operating system image can be built. The whole BitBox Base configuration
 The build needs several gigabytes of disk space.
 
 On Linux, the Docker data directory is `/var/lib/docker` by default, so this directory needs to be on a filesystem with sufficient space.
-
-### Missing /bin/bash
-
-We have received [reports](https://github.com/digitalbitbox/bitbox-base/issues/83) from some users that the Armbian build can fail with a symptom like the following:
-
-```bash
-chroot: failed to run command `/bin/bash`: No such file or directory
-```
-
-The users who experienced the issue were on Ubuntu Linux, and mention that installing the following [QEMU](https://www.qemu.org/) packages made the issue go away for them:
-
-```bash
-sudo apt-get install qemu binfmt-support qemu-user-static
-```
-
-Since the Armbian build takes place inside a Docker container, so it's not clear to us why these system packages would be necessary, as we are unaware of any direct or indirect dependency on QEMU in our build system.

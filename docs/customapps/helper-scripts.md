@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Helper scripts
-parent: Operating System
-nav_order: 350
+parent: Custom applications
+nav_order: 140
 
 ---
 ## Helper scripts
