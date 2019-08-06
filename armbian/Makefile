@@ -2,18 +2,16 @@
 MAKE_PATH=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 build:
-	bash $(MAKE_PATH)/build.sh build
-	bash $(MAKE_PATH)/../scripts/move-armbian-image.sh
+	bash $(MAKE_PATH)/armbian-build.sh build
 
 update:
-	bash $(MAKE_PATH)/build.sh update
-	bash $(MAKE_PATH)/../scripts/move-armbian-image.sh
+	bash $(MAKE_PATH)/armbian-build.sh update
 
 mender-artefacts:
 	bash $(MAKE_PATH)/mender-convert.sh
 
 build-ondevice:
-	bash $(MAKE_PATH)/build.sh ondevice
+	bash $(MAKE_PATH)/armbian-build.sh ondevice
 
 clean:
 	rm -rf $(MAKE_PATH)/armbian/armbian-build

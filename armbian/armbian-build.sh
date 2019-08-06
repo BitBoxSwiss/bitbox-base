@@ -5,7 +5,7 @@
 # Script to automate the build process of the customized Armbian base image for the BitBox Base.
 # Additional information: https://digitalbitbox.github.io/bitbox-base
 #
-set -eu
+set -eux
 
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
@@ -37,33 +37,31 @@ case ${ACTION} in
 		if [ ! -d "armbian-build" ]; then
 			git clone https://github.com/armbian/build armbian-build
 		fi
-		cd armbian-build
 
-		mkdir -p output/
-		mkdir -p userpatches/overlay/bin
-		cp -aR ../base/* userpatches/overlay/					# copy scripts and configuration items to overlay
-		cp -aR ../../build/* userpatches/overlay/bin			# copy additional software binaries to overlay
-		cp -a  ../base/build/customize-image.sh userpatches/	# copy customize script to standard Armbian build hook
+		mkdir -p armbian-build/output/
+		mkdir -p armbian-build/userpatches/overlay/bin/go
+		cp -a  base/customize-image.sh armbian-build/userpatches/		# copy customize script to standard Armbian build hook
+		cp -aR base/* armbian-build/userpatches/overlay/					# copy scripts and configuration items to overlay
+		cp -aR ../bin/go/* armbian-build/userpatches/overlay/bin/go			# copy additional software binaries to overlay
 
 		BOARD=${BOARD:-rockpro64}
 		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=bionic BRANCH=default BUILD_DESKTOP=no WIREGUARD=no"
 		if ! [ "${ACTION}" == "build" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache PROGRESS_LOG_TO_FILE=yes"
 		fi
-		time ./compile.sh ${BUILD_ARGS}
+		time armbian-build/compile.sh ${BUILD_ARGS}
+
+		# move compiled Armbian image to binaries directory
+		# TODO(Stadicus): verify that only one file is present
+		mv -v armbian-build/output/images/Armbian_*.img ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
 		;;
 
 	ondevice)
     	# copy custom scripts to filesystem
     	mkdir -p /opt/shift
-    	cp -aR base/scripts /opt/shift
+    	cp -aR base/* /opt/shift
     	chmod -R +x /opt/shift/scripts
-    
-    	# copy configuration items to filesystem
-    	cp -aR base/config /opt/shift
 
-    	# copy built Go binaries and their associated .service files to filesystem
-    	cp -aR base/build /opt/shift
-
-		base/build/customize-armbian-rockpro64.sh ondevice
+		# run customization script
+		base/customize-armbian-rockpro64.sh ondevice
 esac
