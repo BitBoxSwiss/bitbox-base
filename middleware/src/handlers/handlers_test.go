@@ -65,7 +65,10 @@ func TestWebsocketHandler(t *testing.T) {
 	//initialize noise
 	_, sendCipher := initializeNoise(ws, t)
 
-	//test sending to an unpaired api
+	// do not do any pairing verification
+	err = ws.WriteMessage(1, []byte("m"))
+	require.NoError(t, err)
+	//test sending to a non-verified api
 	encryptedMessage := sendCipher.Encrypt(nil, nil, []byte(opICanHasPairinVerificashun))
 	err = ws.WriteMessage(1, encryptedMessage)
 	require.NoError(t, err)
