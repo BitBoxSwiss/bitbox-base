@@ -2,7 +2,7 @@
 layout: default
 title: Common issues
 parent: Operating System
-nav_order: 140
+nav_order: 190
 ---
 ## Common issues
 

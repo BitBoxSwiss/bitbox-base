@@ -3,7 +3,7 @@ layout: default
 title: Networking
 nav_order: 700
 ---
-## BitBox Base: Networking
+# BitBox Base: Networking
 
 Consistently working connectivity of devices without manual configuration is one of the main challenges of using a personal Bitcoin node. Poor privacy practices like revealing your own IP address (which can be geo-located quite accurately to your probable home area), the need to configure your router for external access and usage of unencrypted connections on public networks puts both your security and privacy at risk.
 

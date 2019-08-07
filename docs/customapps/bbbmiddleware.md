@@ -10,8 +10,6 @@ The secure communication channel between BitBox App and Base needs to carry a mu
 
 On the BitBox Base, our custom Base Middleware (written in Go, open-source) is responsible to manage initial pairing, authentication, encryption and data distribution to native RPC and API interfaces. This allows for a more stable interface, additional functionality and potentially multiple user groups (like read-only access for friends & family).
 
-One caveat of this approach, specifically tailored for ease-of-use, is its proprietary nature. This is where "advanced settings" will come in, allowing experienced users to open the native ports and gain full root access.
+One caveat of this approach, specifically tailored for ease-of-use, is its proprietary nature. This is where "advanced settings" will come in, allowing experienced users to open the native application ports and gain full root access.
 
-We have a `middleware` application written in Go, which exposes a single endpoint to the network, acting as a server when the user connects using the [BitBox App](https://github.com/digitalbitbox/bitbox-wallet-app/):
-
-[`middleware/`](https://github.com/digitalbitbox/bitbox-base/tree/master/middleware)
+[See Docs on GitHub](https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md){: .btn }

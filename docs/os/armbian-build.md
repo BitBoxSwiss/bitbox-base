@@ -36,7 +36,6 @@ In Linux you can directly run `make`, while in Windows PowerShell you need to ru
 In the following instructions, Windows users just replace `make` with `sh .\build.sh`.
 
 * Clone the BitBox Base repository to a local directory.
-  
   ```bash
   git clone https://github.com/digitalbitbox/bitbox-base.git
   cd bitbox-base/armbian
@@ -44,7 +43,7 @@ In the following instructions, Windows users just replace `make` with `sh .\buil
 
 ### Configure build options
 
-The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network or Wifi credentials) can be configured within the configuration file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
+The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network) can be configured within the configuration file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/build.conf).
 
 To preserve a local configuration, you can copy the file to `build-local.conf`.
 This file is excluded from Git source control and overwrites options from `build.conf`.
@@ -59,14 +58,14 @@ Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/
 
 Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
+*Note*: you might need use `sudo` for all `make` commands, depending on your Docker configuration.
+
 * Start the initial build process.
-  
   ```bash
   make
   ```
 
 * The resulting image is available in `bin/img-armbian` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
-  
   ```bash
   lsblk
   sudo dd if=bin/img-armbian/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
@@ -74,17 +73,8 @@ Now the operating system image can be built. The whole BitBox Base configuration
   ```  
 
 * After initial build, you can update the image with an adjusted system configuration script, without building Armbian from scratch:
-  
   ```bash
   make update
   ```
 
 * To clean up and remove the build environment, run `make clean`.
-
-## Common issues
-
-### Not enough disk space
-
-The build needs several gigabytes of disk space.
-
-On Linux, the Docker data directory is `/var/lib/docker` by default, so this directory needs to be on a filesystem with sufficient space.

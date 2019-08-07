@@ -14,4 +14,6 @@ The top-level [`Makefile`](https://github.com/digitalbitbox/bitbox-base/blob/mas
 - `make docker-build-go`: Build the Go applications inside a Docker container
 - `make build-go`: Build the Go applications on the host
 
-The default `make` target invokes the `make docker-build-go` target to produce Go binaries compiled for the target CPU architecture in the `build/` directory, and then builds [the Armbian image](/os/armbian-build.md), using the `build/` contents as inputs. For users that have the Go toolchain installed on the host system, `make build-go` should also work fine, and if the Go environment is not configured correctly, the command should produce some useful information to debug the issue.
+The default `make` target invokes the `make docker-build-go` target to produce Go binaries compiled for the target CPU architecture in the `bin/go` directory, and then builds [the Armbian image](/os/armbian-build.md), using the `bin/go` contents as inputs. 
+
+For users that have the Go toolchain installed on the host system, `make build-go` should also work fine, and if the Go environment is not configured correctly, the command should produce some useful information to debug the issue.

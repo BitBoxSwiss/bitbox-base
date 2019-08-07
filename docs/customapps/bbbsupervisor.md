@@ -6,6 +6,4 @@ parent: Custom applications
 ---
 ## BitBox Base: Go tools
 
-Several Go tools are part of this repository:
-
-- [`tools/bbbsupervisor/`](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor): Monitors systemd  logs to detect potential issues and take action
+[See Docs on GitHub](https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbsupervisor/README.md){: .btn }

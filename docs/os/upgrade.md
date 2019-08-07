@@ -1,10 +1,10 @@
 ---
 layout: default
-title: Overall concept
-parent: Firmware Upgrade
-nav_order: 810
+title: Firmware upgrade
+parent: Operating System
+nav_order: 150
 ---
-## Overall Concept for Firmware Upgrades
+## Firmware upgrades
 
 For any modern device with evolving features, especially in a security-critical environment, regular updates are an absolute must.
 Providing new features, improvements and timely security-patches is a key focus of our project.
@@ -46,7 +46,7 @@ This post-processing creates Mender upgrade artifacts for over-the-air (OTA) upd
 * root filesystem B
 * persistent data
 
-![Mender architecture](mender_architecture.png)
+![Mender architecture](upgrade_mender_architecture.png)
 
 The disk image has the Mender client built in, running as a system daemon user space in the currently booted root filesystem.
 It communicates with the BitBox App and can be triggered to to update the device.
@@ -62,7 +62,7 @@ If everything works as expected, the updated "root filesystem B" is commited to 
 If the device is unable to boot, or if application-level checks fail after the update, the system automatically falls back to booting to the previous "root filesystem A", which was working before the upgrade.
 This process makes it very unlikely that a device will end up in a state that can't be fixed using further OTA upgrades.
 
-![Mender update process](mender_upgrade.png)
+![Mender update process](upgrade_mender_process.png)
 
 See additional information on <https://mender.io/overview/solution>  
 Images (c) 2019 by [Northern.tech AS](https://northern.tech/)

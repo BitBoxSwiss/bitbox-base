@@ -15,26 +15,25 @@ This documentation is aimed at project members, contributors and intersted peopl
 
 ## Table of Content
 
-1. [Overview](overview.md)
+1. [Overview](overview/)
    1. [Architecture](overview/architecture.md)
    2. [Do It Yourself!](overview/diy.md)
-2. [Hardware](hw.md)
-   1. [Specifications Overview](hw/spec-overview.md)
-   2. [Platform Choice](hw/platform-choice.md)
-   3. [CAD Concept Schematics](hw/cad-concept-schematics.md)
-   4. [UART communication](hw/uart-communication.md)
-3. [Operating System](os.md)
-   3. [Configuration](os/configuration.md)
-   1. [Build Armbian image](os/armbian-build.md)
-   2. [Security considerations](os/security.md)
-   3. [Common issues](os/os-faq.md)
-4. [Custom applications](customapps.md)
+2. [Hardware](hardware/)
+   1. [Components](hardware/components.md)
+   2. [UART communication](hardware/uart-communication.md)
+3. [Operating System](os/)
+   1. [Configuration](os/configuration.md)
+   2. [Build Armbian image](os/armbian-build.md)
+   3. [Security considerations](os/security.md)
+   4. [Firmware upgrades](os/upgrade.md)
+   5. [Common issues](os/os-faq.md)
+4. [Custom applications](customapps/)
    1. [Middleware](customapps/bbbmiddleware.md)
    2. [Supervisor](customapps/bbbsupervisor.md)
    3. [Fan control](customapps/bbbfancontrol.md)
    4. [Helper scripts](customapps/helper-scripts.md)
    5. [Compiling binaries](customapps/go-build.md)
-5. [Applications](applications.md)
+5. [Applications](applications/)
    1. [Bitcoin Core](applications/bitcoin-core.md)
    2. [c-lightning](applications/c-lightning.md)
    3. [Electrs](applications/electrs.md)
@@ -42,12 +41,8 @@ This documentation is aimed at project members, contributors and intersted peopl
    5. [NGINX](applications/nginx.md)
    6. [Prometheus](applications/prometheus.md)
    7. [Grafana](applications/grafana.md)
-6. [Firmware upgrades](upgrade.md)
-   1. [Overall concept](upgrade/concept.md)
-   2. Device implementation
-   3. Attestation
-   4. Custom firmware
-7. [Contributing](contributing.md)
+6. [Networking](networking/)
+7. [Contributing](contributing/)
 
 ## Contributor workflow
 
