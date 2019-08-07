@@ -300,7 +300,7 @@ case "${COMMAND}" in
 
     exec)
         case "${SETTING}" in
-            BITCOIN_REINDEX)
+            BITCOIN_REINDEX|BITCOIN_RESYNC)
                 # stop systemd services
                 systemctl stop electrs
                 systemctl stop lightningd
@@ -312,8 +312,17 @@ case "${COMMAND}" in
                     rm -rf /mnt/ssd/electrs/db
                     rm -rf /data/triggers/bitcoind_fully_synced
 
-                    # set option reindex-chainstate, restart bitcoind and remove option
-                    echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
+                    # for RESYNC incl. download, delete `blocks` directory too
+                    if [[ "${SETTING}" == "BITCOIN_RESYNC" ]]; then
+                        rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
+
+                    # otherwise assume REINDEX (only validation, no download), set option reindex-chainstate
+                    else
+                        echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
+
+                    fi
+
+                    # restart bitcoind and remove option
                     systemctl start bitcoind
                     sleep 10
                     sed -i '/reindex/Id' /etc/bitcoin/bitcoin.conf
@@ -322,6 +331,8 @@ case "${COMMAND}" in
                     echo "bitcoind is still running, cannot delete chainstate"
                     exit 1
                 fi
+
+                echo "Command ${SETTING} successfully executed."
                 ;;
 
             *)
