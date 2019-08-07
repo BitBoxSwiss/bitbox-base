@@ -571,7 +571,7 @@ PartOf=bitcoind.service
 [Service]
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStartPre=/opt/shift/scripts/systemd-electrs-startpre.sh
+ExecStartPre=+/opt/shift/scripts/systemd-electrs-startpre.sh
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
