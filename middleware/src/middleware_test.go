@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +24,7 @@ func TestMiddleware(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, systemEnvResponse.ElectrsRPCPort, "18442")
 	require.Equal(t, systemEnvResponse.Network, "testnet")
-	resyncBitcoinResponse, err := middlewareInstance.ResyncBitcoin(middleware.ResyncOption)
+	resyncBitcoinResponse, err := middlewareInstance.ResyncBitcoin(rpcmessages.Resync)
 	require.NoError(t, err)
 	require.Equal(t, resyncBitcoinResponse.Success, false)
 }

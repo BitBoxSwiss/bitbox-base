@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	rpcserver "github.com/digitalbitbox/bitbox-base/middleware/src/rpcserver"
 
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func TestRPCServer(t *testing.T) {
 	client := rpc.NewClient(&rpcConn{readChan: clientReadChan, writeChan: clientWriteChan})
 
 	request := 1
-	var reply middleware.GetEnvResponse
+	var reply rpcmessages.GetEnvResponse
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
@@ -71,7 +72,7 @@ func TestRPCServer(t *testing.T) {
 	require.Equal(t, "testnet", reply.Network)
 	require.Equal(t, "18442", reply.ElectrsRPCPort)
 
-	var resyncReply middleware.ResyncBitcoinResponse
+	var resyncReply rpcmessages.ResyncBitcoinResponse
 	wg = sync.WaitGroup{}
 	wg.Add(1)
 

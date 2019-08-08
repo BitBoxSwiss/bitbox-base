@@ -8,51 +8,14 @@ import (
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 )
 
-//go:generate protoc --go_out=import_path=messages:. messages/bbb.proto
-const (
-	opUCanHasDemo = "d"
-)
-
-// ResyncBitcoinOptions is a iota that holds the options for the ResyncBitcoin rpc call
-type ResyncBitcoinOptions int
-
-const (
-	ResyncOption ResyncBitcoinOptions = iota
-	ReindexOption
-)
-
-// GetEnvResponse is the struct that gets sent by the rpc server during a GetSystemEnv call
-type GetEnvResponse struct {
-	Network        string
-	ElectrsRPCPort string
-}
-
-// ResyncBitcoinResponse is the struct that gets sent by the rpc server during a ResyncBitcoin call
-type ResyncBitcoinResponse struct {
-	Success bool
-}
-
-// SampleInfoResponse holds sample information from c-lightning and bitcoind. It is temporary for testing purposes
-type SampleInfoResponse struct {
-	Blocks         int64   `json:"blocks"`
-	Difficulty     float64 `json:"difficulty"`
-	LightningAlias string  `json:"lightningAlias"`
-}
-
-// VerificationProgressResponse is the struct that gets sent by the rpc server during a VerificationProgress rpc call
-type VerificationProgressResponse struct {
-	Blocks               int64   `json:"blocks"`
-	Headers              int64   `json:"difficulty"`
-	VerificationProgress float64 `json:"lightningAlias"`
-}
-
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
 type Middleware struct {
-	info             SampleInfoResponse
+	info             rpcmessages.SampleInfoResponse
 	environment      system.Environment
 	events           chan []byte
 	prometheusClient *prometheus.PromClient
@@ -64,7 +27,7 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
 		events: make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
-		info: SampleInfoResponse{
+		info: rpcmessages.SampleInfoResponse{
 			Blocks:         0,
 			Difficulty:     0.0,
 			LightningAlias: "disconnected",
@@ -107,8 +70,8 @@ func (middleware *Middleware) demoBitcoinRPC() {
 
 }
 
-func (middleware *Middleware) VerificationProgress() (VerificationProgressResponse, error) {
-	verificationProgress := VerificationProgressResponse{
+func (middleware *Middleware) VerificationProgress() (rpcmessages.VerificationProgressResponse, error) {
+	verificationProgress := rpcmessages.VerificationProgressResponse{
 		Blocks:               middleware.prometheusClient.Blocks(),
 		Headers:              middleware.prometheusClient.Headers(),
 		VerificationProgress: middleware.prometheusClient.VerificationProgress(),
@@ -135,7 +98,7 @@ func (middleware *Middleware) rpcLoop() {
 	for {
 		middleware.demoBitcoinRPC()
 		middleware.demoCLightningRPC()
-		middleware.events <- []byte(opUCanHasDemo)
+		middleware.events <- []byte(rpcmessages.OpUCanHasSampleInfo)
 		time.Sleep(5 * time.Second)
 	}
 }
@@ -147,32 +110,32 @@ func (middleware *Middleware) Start() <-chan []byte {
 }
 
 // ResyncBitcoin returns a ResyncBitcoinResponse struct in response to a rpcserver request
-func (middleware *Middleware) ResyncBitcoin(option ResyncBitcoinOptions) (ResyncBitcoinResponse, error) {
+func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error) {
 	var cmd *exec.Cmd
 	switch option {
-	case ResyncOption:
+	case rpcmessages.Resync:
 		log.Println("executing full bitcoin resync in config script")
 		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
-	case ReindexOption:
+	case rpcmessages.Reindex:
 		log.Println("executing bitcoin reindex in config script")
 		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
 	default:
 	}
 	err := cmd.Run()
-	response := ResyncBitcoinResponse{Success: true}
+	response := rpcmessages.ResyncBitcoinResponse{Success: true}
 	if err != nil {
 		log.Println(err.Error() + " failed to run resync command, script does not exist")
-		response = ResyncBitcoinResponse{Success: false}
+		response = rpcmessages.ResyncBitcoinResponse{Success: false}
 	}
 	return response, nil
 }
 
-func (middleware *Middleware) SystemEnv() (GetEnvResponse, error) {
-	response := GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
+func (middleware *Middleware) SystemEnv() (rpcmessages.GetEnvResponse, error) {
+	response := rpcmessages.GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
 	log.Println(&response)
 	return response, nil
 }
 
-func (middleware *Middleware) SampleInfo() (SampleInfoResponse, error) {
+func (middleware *Middleware) SampleInfo() (rpcmessages.SampleInfoResponse, error) {
 	return middleware.info, nil
 }

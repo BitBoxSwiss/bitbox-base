@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/rpc"
 
-	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 )
 
 type rpcConn struct {
@@ -34,7 +34,7 @@ func (conn *rpcConn) Read(p []byte) (n int, err error) {
 }
 
 func (conn *rpcConn) Write(p []byte) (n int, err error) {
-	conn.writeChan <- append([]byte("r"), p...)
+	conn.writeChan <- append([]byte(rpcmessages.OpRPCCall), p...)
 	return len(p), nil
 }
 
@@ -44,10 +44,10 @@ func (conn *rpcConn) Close() error {
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
-	SystemEnv() (middleware.GetEnvResponse, error)
-	ResyncBitcoin(middleware.ResyncBitcoinOptions) (middleware.ResyncBitcoinResponse, error)
-	SampleInfo() (middleware.SampleInfoResponse, error)
-	VerificationProgress() (middleware.VerificationProgressResponse, error)
+	SystemEnv() (rpcmessages.GetEnvResponse, error)
+	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	SampleInfo() (rpcmessages.SampleInfoResponse, error)
+	VerificationProgress() (rpcmessages.VerificationProgressResponse, error)
 }
 
 // RPCServer provides rpc calls to the middleware
@@ -71,7 +71,7 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 }
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
-func (server *RPCServer) GetSystemEnv(args int, reply *middleware.GetEnvResponse) error {
+func (server *RPCServer) GetSystemEnv(args int, reply *rpcmessages.GetEnvResponse) error {
 	var err error
 	*reply, err = server.middleware.SystemEnv()
 	log.Printf("sent reply %v: ", reply)
@@ -79,7 +79,7 @@ func (server *RPCServer) GetSystemEnv(args int, reply *middleware.GetEnvResponse
 }
 
 // ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
-func (server *RPCServer) ResyncBitcoin(args *middleware.ResyncBitcoinOptions, reply *middleware.ResyncBitcoinResponse) error {
+func (server *RPCServer) ResyncBitcoin(args *rpcmessages.ResyncBitcoinArgs, reply *rpcmessages.ResyncBitcoinResponse) error {
 	var err error
 	*reply, err = server.middleware.ResyncBitcoin(*args)
 	log.Printf("sent reply %v: ", reply)
@@ -87,7 +87,7 @@ func (server *RPCServer) ResyncBitcoin(args *middleware.ResyncBitcoinOptions, re
 }
 
 // GetSampleInfo sends the middleware's SampleInfoResponse over rpc
-func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoResponse) error {
+func (server *RPCServer) GetSampleInfo(args int, reply *rpcmessages.SampleInfoResponse) error {
 	var err error
 	*reply, err = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
@@ -95,7 +95,7 @@ func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoRes
 }
 
 // GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
-func (server *RPCServer) GetVerificationProgress(args int, reply *middleware.VerificationProgressResponse) error {
+func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.VerificationProgressResponse) error {
 	var err error
 	*reply, err = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)

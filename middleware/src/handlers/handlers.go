@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"sync"
 
-	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	noisemanager "github.com/digitalbitbox/bitbox-base/middleware/src/noise"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcserver"
 
 	"github.com/gorilla/mux"
@@ -18,10 +18,10 @@ import (
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
-	SystemEnv() (middleware.GetEnvResponse, error)
-	SampleInfo() (middleware.SampleInfoResponse, error)
-	ResyncBitcoin(middleware.ResyncBitcoinOptions) (middleware.ResyncBitcoinResponse, error)
-	VerificationProgress() (middleware.VerificationProgressResponse, error)
+	SystemEnv() (rpcmessages.GetEnvResponse, error)
+	SampleInfo() (rpcmessages.SampleInfoResponse, error)
+	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	VerificationProgress() (rpcmessages.VerificationProgressResponse, error)
 }
 
 // Handlers provides a web api
