@@ -20,7 +20,7 @@ type Middleware interface {
 	Start() <-chan []byte
 	SystemEnv() (middleware.GetEnvResponse, error)
 	SampleInfo() (middleware.SampleInfoResponse, error)
-	ResyncBitcoin() (middleware.ResyncBitcoinResponse, error)
+	ResyncBitcoin(middleware.ResyncBitcoinOptions) (middleware.ResyncBitcoinResponse, error)
 	VerificationProgress() (middleware.VerificationProgressResponse, error)
 }
 

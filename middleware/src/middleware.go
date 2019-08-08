@@ -17,6 +17,14 @@ const (
 	opUCanHasDemo = "d"
 )
 
+// ResyncBitcoinOptions is a iota that holds the options for the ResyncBitcoin rpc call
+type ResyncBitcoinOptions int
+
+const (
+	ResyncOption ResyncBitcoinOptions = iota
+	ReindexOption
+)
+
 // GetEnvResponse is the struct that gets sent by the rpc server during a GetSystemEnv call
 type GetEnvResponse struct {
 	Network        string
@@ -37,9 +45,9 @@ type SampleInfoResponse struct {
 
 // VerificationProgressResponse is the struct that gets sent by the rpc server during a VerificationProgress rpc call
 type VerificationProgressResponse struct {
-	Blocks               int64
-	Headers              int64
-	VerificationProgress float64
+	Blocks               int64   `json:"blocks"`
+	Headers              int64   `json:"difficulty"`
+	VerificationProgress float64 `json:"lightningAlias"`
 }
 
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
@@ -139,8 +147,17 @@ func (middleware *Middleware) Start() <-chan []byte {
 }
 
 // ResyncBitcoin returns a ResyncBitcoinResponse struct in response to a rpcserver request
-func (middleware *Middleware) ResyncBitcoin() (ResyncBitcoinResponse, error) {
-	cmd := exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
+func (middleware *Middleware) ResyncBitcoin(option ResyncBitcoinOptions) (ResyncBitcoinResponse, error) {
+	var cmd *exec.Cmd
+	switch option {
+	case ResyncOption:
+		log.Println("executing full bitcoin resync in config script")
+		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
+	case ReindexOption:
+		log.Println("executing bitcoin reindex in config script")
+		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
+	default:
+	}
 	err := cmd.Run()
 	response := ResyncBitcoinResponse{Success: true}
 	if err != nil {
