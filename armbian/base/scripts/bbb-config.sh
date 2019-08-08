@@ -30,7 +30,8 @@ possible commands:
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
-  exec      <bitcoin_reindex>
+  exec      bitcoin_reindex   (wipes UTXO set and validates existing blocks)
+            bitcoin_resync    (re-download and validate all blocks)
 
 "
 }
