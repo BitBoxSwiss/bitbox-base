@@ -26,7 +26,7 @@ The BitBox App is hosted in a seperate GitHub repository:
 Building a solution platform that focuses on security and performance, the BitBox Base uses an ARM-based board with enough processing power to enable additional features in the future.
 
 * [Pine64 ROCKPro64](https://www.pine64.org/rockpro64/) with fast 4GB memory and an internal 1TB SSD
-* BitBox secure chip: adapted BitBox 02 that drives trusted screen and buttons
+* BitBox secure element: adapted BitBox 02 that drives trusted screen and buttons
 
 ### Operating system
 

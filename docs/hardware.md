@@ -13,7 +13,7 @@ The solution is comprised of the following main components:
 
 * Computing: Pine64 RockPRO64 single board computer, hexa-core CPU, 4 GB DDR4 memory
 * Storage: PCIe M.2 SSD drive for internal storage
-* Security: BitBox secure key storage, with trusted OLED screen and capacitive buttons
+* Security: BitBox secure module, with trusted OLED screen and capacitive buttons
 * Case: custom enclosure with glass top, backmounted display
 
 This preliminary schematic shows the combination of these components:

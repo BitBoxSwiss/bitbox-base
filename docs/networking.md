@@ -10,7 +10,7 @@ Consistently working connectivity of devices without manual configuration is one
 The BitBox Base plans to solve this issue comprehensively, by providing three connection methods:
 
 1. **Local network**  
-   The BitBox Base announces its services using mDNS within the local network. When the BitBox App is connected to the same local network, be it at home or in an enterprise setting (without firewalls interfering), it automatically discovers the Base and can either initiate the setup process (with necessary physical pairing through the integrated HSM) or establish a trusted, encrypted connection when already paired.
+   The BitBox Base announces its services using mDNS within the local network. When the BitBox App is connected to the same local network, be it at home or in an enterprise setting (without firewalls interfering), it automatically discovers the Base and can either initiate the setup process (with necessary physical pairing through the integrated secure module) or establish a trusted, encrypted connection when already paired.
 
 2. **Tor network**  
    Once initialized, the BitBox Base automatically creates a Tor Hidden Service with an onion address. This service is announced to the Tor network and connections can then be established from the public internet. As the initial service connection is established from within the local network to the outside world and that connection is then kept alive, there is no need for any router configuration. Again, additional end-to-end encryption is used to secure all communication.

@@ -28,9 +28,9 @@ Additional components are a 16GB **eMMC module** and a **power supply**, which s
 
 ### Security
 
-A networked device can never be viewed as truly secure. Therefore, adding a Hardware Security Module (HSM) can drastically improve the security for use-cases that depend on trusted information or a need to safeguard secrets. An **integrated BitBox secure key store**, an adapted version of the [BitBox02 hardware wallet](https://shiftcrypto.ch/bitbox02/), will drive a **trusted screen and capacitive touch buttons**. The PCB with the 2.4" OLED (128x64 px) screen is optimized for mounting behind glass.
+A networked device can never be viewed as truly secure. Therefore, adding a secure module can drastically improve the security for use-cases that depend on trusted information or a need to safeguard secrets. An **integrated BitBox secure module**, an adapted version of the [BitBox02 hardware wallet](https://shiftcrypto.ch/bitbox02/), will drive a **trusted screen and capacitive touch buttons**. The PCB with the 2.4" OLED (128x64 px) screen is optimized for mounting behind glass.
 
-This component, running a modified Bitcoin-only BitBox firmware, allows for new use-cases like automatic signing for transaction that meet certain criteria, without exposing the private keys to the networked device itself. The display itself will also be able to display "untrusted" information from the Armbian firmware, but that needs to follow certain rules and be made clearly visible. Additionally, LEDs on the HSM can allow for a quick way to show additional information like the overall status of the Base.
+This component, running a modified Bitcoin-only BitBox firmware, allows for new use-cases like automatic signing for transaction that meet certain criteria, without exposing the private keys to the networked device itself. The display itself will also be able to display "untrusted" information from the Armbian firmware, but that needs to follow certain rules and be made clearly visible. Additionally, LEDs on the secure module can allow for a quick way to show additional information like the overall status of the Base.
 
 ### Case
 
