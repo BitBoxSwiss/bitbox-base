@@ -45,7 +45,7 @@ func (conn *rpcConn) Close() error {
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	SystemEnv() (middleware.GetEnvResponse, error)
-	ResyncBitcoin() (middleware.ResyncBitcoinResponse, error)
+	ResyncBitcoin(middleware.ResyncBitcoinOptions) (middleware.ResyncBitcoinResponse, error)
 	SampleInfo() (middleware.SampleInfoResponse, error)
 	VerificationProgress() (middleware.VerificationProgressResponse, error)
 }
@@ -79,14 +79,14 @@ func (server *RPCServer) GetSystemEnv(args int, reply *middleware.GetEnvResponse
 }
 
 // ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
-func (server *RPCServer) ResyncBitcoin(args int, reply *middleware.ResyncBitcoinResponse) error {
+func (server *RPCServer) ResyncBitcoin(args *middleware.ResyncBitcoinOptions, reply *middleware.ResyncBitcoinResponse) error {
 	var err error
-	*reply, err = server.middleware.ResyncBitcoin()
+	*reply, err = server.middleware.ResyncBitcoin(*args)
 	log.Printf("sent reply %v: ", reply)
 	return err
 }
 
-// GetSampleInfo send the middleware's SampleInfoResponse over rpc
+// GetSampleInfo sends the middleware's SampleInfoResponse over rpc
 func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoResponse) error {
 	var err error
 	*reply, err = server.middleware.SampleInfo()
@@ -94,7 +94,7 @@ func (server *RPCServer) GetSampleInfo(args int, reply *middleware.SampleInfoRes
 	return err
 }
 
-// GetSampleInfo send the middleware's SampleInfoResponse over rpc
+// GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
 func (server *RPCServer) GetVerificationProgress(args int, reply *middleware.VerificationProgressResponse) error {
 	var err error
 	*reply, err = server.middleware.VerificationProgress()

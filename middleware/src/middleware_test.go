@@ -23,7 +23,7 @@ func TestMiddleware(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, systemEnvResponse.ElectrsRPCPort, "18442")
 	require.Equal(t, systemEnvResponse.Network, "testnet")
-	resyncBitcoinResponse, err := middlewareInstance.ResyncBitcoin()
+	resyncBitcoinResponse, err := middlewareInstance.ResyncBitcoin(middleware.ResyncOption)
 	require.NoError(t, err)
 	require.Equal(t, resyncBitcoinResponse.Success, false)
 }
