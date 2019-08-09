@@ -1,8 +1,8 @@
 ---
 layout: default
 title: electrs
-parent: Main Applications
-nav_order: 630
+parent: Applications
+nav_order: 120
 ---
 ## electrs
 

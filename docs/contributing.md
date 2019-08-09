@@ -3,7 +3,7 @@ layout: default
 title: Contributing
 nav_order: 910
 ---
-# Contributing
+# BitBox Base: Contributing
 
 The codebase is maintained using the "contributor workflow" where everyone without exception contributes patch proposals using "pull requests".
 This facilitates social contribution, easy testing and peer review.

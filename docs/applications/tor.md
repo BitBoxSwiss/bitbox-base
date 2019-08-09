@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Tor
-parent: Supporting Applications
-nav_order: 720
+parent: Applications
+nav_order: 130
 ---
 ## Tor: Private Networking
 

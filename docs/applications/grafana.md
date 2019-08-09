@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Grafana
-parent: Supporting Applications
-nav_order: 760
+parent: Applications
+nav_order: 160
 ---
 ## Grafana: Performance Visualization
 

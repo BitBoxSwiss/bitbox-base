@@ -1,8 +1,8 @@
 ---
 layout: default
 title: c-lightning
-parent: Main Applications
-nav_order: 620
+parent: Applications
+nav_order: 110
 ---
 ## c-lightning
 

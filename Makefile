@@ -38,7 +38,7 @@ build-all: docker-build-go
 
 # build Armbian disk image, use cached binaries and update customization only
 # see configuration: armbian/base/build/build.conf
-build-update: docker-build-go
+update: docker-build-go
 	@echo "Updating Armbian build.."
 	$(MAKE) update -C armbian
 

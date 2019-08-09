@@ -2,7 +2,7 @@
 layout: default
 title: Configuration
 parent: Operating System
-nav_order: 320
+nav_order: 110
 
 ---
 ## Configuration
@@ -12,19 +12,22 @@ Here we describe how to set the initial configuration on build, control it inter
 
 ### Initial configuration on build
 
-The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build/build.conf).  
+The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).  
 
-Available options are described directly in the file and are set to default values. 
+Available options are described directly in the file and are set to default values.
 A few examples of build options you can set:
+
 * `BASE_BITCOIN_NETWORK`: set to `mainnet` or `testnet`
 * `BASE_HOSTNAME`: set it to `alice` and your BitBox Base will be visible as `alice.local` within your network
-* `BASE_WIFI_SSID` and `BASE_WIFI_PW`: configure the image to connect to your wireless network
+* `BASE_AUTOSETUP_SSD`: set to "true" to automatically initialize the SSD on first boot
+* `BASE_OVERLAYROOT`: set to 'true' to make the root filesystem read-only
 * ...and many more.
 
 To preserve a local configuration, you can copy the file to `build-local.conf` in the same directory. This file is excluded from Git source control and overwrites options from `build.conf`.
 
 ### Manage configuration during operations
-System configuration is managed internally using the script [`bbb-config.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-config.sh). 
+
+System configuration is managed internally using the script [`bbb-config.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-config.sh).
 Its goal is to centrally define how changes are applied to the system and reuse a single set of commands.
 This is why it is called by the build script as well as by the BitBox Base Middleware during operations.
 Changes are applied by simple operating system commands like copying and deleting files, or replacing text values withing configuration files.
@@ -37,28 +40,33 @@ usage: bbb-config.sh [--version] [--help]
                      <command> [<args>]
 
 possible commands:
-enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-           tor_ssh|tor_electrum>
+  enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
+             tor_ssh|tor_electrum|overlayroot>
 
-disable   any 'enable' argument
+  disable   any 'enable' argument
 
-set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
-          bitcoin_network     <mainnet|testnet>
-          other arguments     string
+  set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
+            bitcoin_network     <mainnet|testnet>
+            bitcoin_ibd         <true|false>
+            bitcoin_dbcache     int (MB)
+            other arguments     string
 
-get       any 'enable' or 'set' argument, or
-          <all|tor_ssh_onion|tor_electrum_onion>
+  get       any 'enable' or 'set' argument, or
+            <all|tor_ssh_onion|tor_electrum_onion>
 
-apply     no argument, applies all configuration settings to the system 
-          [not yet implemented]
+  apply     no argument, applies all configuration settings to the system
+            [not yet implemented]
+
+  exec      <bitcoin_reindex>
 ```
 
 ### Storage of configuration values
-Settings are stored in individual files named in `/data/sysconfig/` as key/value pairs, named like the KEY in uppercase. 
-For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`. 
+
+Settings are stored in individual files named in `/data/sysconfig/` as key/value pairs, named like the KEY in uppercase.
+For example, the file `BITCOIN_NETWORK` contains `BITCOIN_NETWORK=mainnet`.
 These files are always overwritten completely and can be sourced by any script so that the variable `BITCOIN_NETWORK` is available immediately.
 
-```
+```bash
 $ ls -l /data/sysconfig/
   ... AUTOSETUP_SSD
   ... BITCOIN_NETWORK
@@ -66,17 +74,18 @@ $ ls -l /data/sysconfig/
   ... DASHBOARD_WEB
   ... WIFI
 
-$ cat /data/sysconfig/BITCOIN_NETWORK 
+$ cat /data/sysconfig/BITCOIN_NETWORK
 BITCOIN_NETWORK=mainnet
 
-$ source /data/sysconfig/BITCOIN_NETWORK 
+$ source /data/sysconfig/BITCOIN_NETWORK
 $ echo $BITCOIN_NETWORK
 mainnet
 ```
 
-A backup/restore process simply copies all files within `/data/sysconfig/` to/from a different location. 
+A backup/restore process simply copies all files within `/data/sysconfig/` to/from a different location.
 To apply a restored configuration, the `bbb-config.sh apply` command is executed.
 
 ### Managing configuration through the BitBox App
-Ultimately, the configuration is managed by the user through the BitBox App, that talks to the Middleware which in turn calls the `bbb-config.sh` script with the necessary arguments. 
+
+Ultimately, the configuration is managed by the user through the BitBox App, that talks to the Middleware which in turn calls the `bbb-config.sh` script with the necessary arguments.
 This has not been implemented yet.

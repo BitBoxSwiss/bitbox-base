@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Prometheus
-parent: Supporting Applications
-nav_order: 750
+parent: Applications
+nav_order: 150
 ---
 ## Prometheus: System Monitoring
 
