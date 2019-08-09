@@ -18,6 +18,9 @@ if [ ! -f /data/triggers/datadir_set_up ]; then
   else
     ln -sf /data_source /data
   fi
+
+  # update hostname after symlink /etc/hostname -> /data/network/hostname becomes valid
+  hostnamectl set-hostname `cat /etc/hostname`
 fi
 
 # check for TLS certificate and create it if missing
