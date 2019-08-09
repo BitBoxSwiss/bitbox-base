@@ -6,10 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	opICanHasPairinVerificashun = byte('v')
-)
-
 // runWebsocket sets up loops for sending/receiving, abstracting away the low level details about
 // timeouts, clients closing, etc.
 // It returns four channels: one to send messages to the client, one which notifies when the
@@ -42,14 +38,6 @@ func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- [
 			// check if it is the message to request the pairing
 			if len(msg) == 0 {
 				log.Println("Error, received a messaged with zero length, dropping it")
-				continue
-			}
-			if msg[0] == opICanHasPairinVerificashun {
-				msg = handlers.noiseConfig.CheckVerification()
-				err = client.WriteMessage(websocket.TextMessage, msg)
-				if err != nil {
-					log.Println("Error, websocket failed to write channel hash verification message")
-				}
 				continue
 			}
 
