@@ -1,14 +1,37 @@
 # BitBox Base Middleware
 
-### THIS IS DEMO CODE AND NOT MEANT FOR PRODUCTION USE
-
 This project serves as a communication hub between bitcoin core, electrum-x,
 c-lightning and further services that run on the base and the
 bitbox-wallet-app.
 
-It's architecture should be able to handle multiple clients, should run a
-websocket api and by default only expose its api to noise authenticated
+## Overview
+
+The middleware is able to handle multiple connected clients, runs a
+websocket api and by default only exposes its api to noise authenticated
 clients.
+
+A connecting client can always probe availability on a single http endpoint. If
+the middleware is available, it then opens a websocket connection and starts
+a [noise 'XX' handshake](https://noiseprotocol.org/noise.html#handshake-patterns).
+Once the handshake is complete the client's noise static public key is stored. If
+this key is not in storage yet, no further communication with the middleware is
+allowed, until the user manually verifies the [channel binding
+hash](https://noiseprotocol.org/noise.html#channel-binding).
+
+Once the user verfied the channel binding successfully, the middleware starts a
+rpc server. Subsequent communication with the wallet app over the websocket is
+then noise encrypted.  Each client connects to its own rpc server that in turn
+executes function calls to a single middleware backend instance that manages and
+controls data flow to and from bitcoind, lightningd and prometheus. To limit
+calls to bitcoind during initial blockchain download and reindexing operations,
+sync progress and other informational data is fetched from prometheus.
+
+The message format of the rpc server is defined in the
+[rpcmessages.go](src/rpcmessages/rpcmessages.go) file. To notify the wallet app
+that new data in the app is available the middleware backend package emits
+events unique to each rpc method that get transmitted as short encrypted websocket
+messages to the wallet app. The wallet app can then call the respective rpc
+methods.
 
 ## Developing
 
