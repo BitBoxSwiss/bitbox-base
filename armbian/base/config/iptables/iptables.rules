@@ -42,6 +42,9 @@
 -A INPUT -p tcp --dport 9001 -j ACCEPT
 -A INPUT -p tcp --sport 9001 -j ACCEPT
 
+# Allow inbound TCP traffic to electrs port.
+-A INPUT -p tcp --dport 50002 -j ACCEPT
+
 # Allow inbound ICMP type 0, 3 and 8 ("Echo Reply", "Destination
 # Unreachable" and "Echo", i.e. ping).
 -A INPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
