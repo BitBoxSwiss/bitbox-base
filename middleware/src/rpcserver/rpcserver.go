@@ -51,8 +51,8 @@ func (conn *rpcConn) Close() error {
 type Middleware interface {
 	SystemEnv() (rpcmessages.GetEnvResponse, error)
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
-	SampleInfo() (rpcmessages.SampleInfoResponse, error)
-	VerificationProgress() (rpcmessages.VerificationProgressResponse, error)
+	SampleInfo() rpcmessages.SampleInfoResponse
+	VerificationProgress() rpcmessages.VerificationProgressResponse
 }
 
 // RPCServer provides rpc calls to the middleware
@@ -95,18 +95,16 @@ func (server *RPCServer) ResyncBitcoin(args *rpcmessages.ResyncBitcoinArgs, repl
 
 // GetSampleInfo sends the middleware's SampleInfoResponse over rpc
 func (server *RPCServer) GetSampleInfo(args int, reply *rpcmessages.SampleInfoResponse) error {
-	var err error
-	*reply, err = server.middleware.SampleInfo()
+	*reply = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
 }
 
 // GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
 func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.VerificationProgressResponse) error {
-	var err error
-	*reply, err = server.middleware.VerificationProgress()
+	*reply = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
 }
 
 // Serve starts a gob rpc server
