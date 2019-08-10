@@ -20,11 +20,24 @@ func TestMiddleware(t *testing.T) {
 
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
 
-	systemEnvResponse, err := middlewareInstance.SystemEnv()
-	require.NoError(t, err)
+	systemEnvResponse := middlewareInstance.SystemEnv()
 	require.Equal(t, systemEnvResponse.ElectrsRPCPort, "18442")
 	require.Equal(t, systemEnvResponse.Network, "testnet")
 	resyncBitcoinResponse, err := middlewareInstance.ResyncBitcoin(rpcmessages.Resync)
-	require.NoError(t, err)
 	require.Equal(t, resyncBitcoinResponse.Success, false)
+	require.NoError(t, err)
+	sampleInfo := middlewareInstance.SampleInfo()
+	emptySampleInfo := rpcmessages.SampleInfoResponse{
+		Blocks:         0,
+		Difficulty:     0.0,
+		LightningAlias: "disconnected",
+	}
+	require.Equal(t, sampleInfo, emptySampleInfo)
+	verificationProgress := middlewareInstance.VerificationProgress()
+	emptyVerificationProgress := rpcmessages.VerificationProgressResponse{
+		Blocks:               0,
+		Headers:              0,
+		VerificationProgress: 0.0,
+	}
+	require.Equal(t, verificationProgress, emptyVerificationProgress)
 }

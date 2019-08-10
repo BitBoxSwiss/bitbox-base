@@ -30,7 +30,20 @@ func (conn *rpcConn) Close() error {
 	return nil
 }
 
-func TestRPCServer(t *testing.T) {
+type TestingRPCServer struct {
+	clientWriteChan chan []byte
+	clientReadChan  chan []byte
+	serverWriteChan chan []byte
+	serverReadChan  chan []byte
+	client          *rpc.Client
+	rpcServer       *rpcserver.RPCServer
+}
+
+func NewTestingRPCServer() TestingRPCServer {
+	testingRPCServer := TestingRPCServer{
+		clientWriteChan: make(chan []byte),
+		clientReadChan:  make(chan []byte),
+	}
 	argumentMap := make(map[string]string)
 	argumentMap["bitcoinRPCUser"] = "user"
 	argumentMap["bitcoinRPCPassword"] = "password"
@@ -41,53 +54,68 @@ func TestRPCServer(t *testing.T) {
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
 
-	rpcServer := rpcserver.NewRPCServer(middlewareInstance)
-	serverWriteChan := rpcServer.RPCConnection.WriteChan()
-	serverReadChan := rpcServer.RPCConnection.ReadChan()
+	testingRPCServer.rpcServer = rpcserver.NewRPCServer(middlewareInstance)
+	testingRPCServer.serverWriteChan = testingRPCServer.rpcServer.RPCConnection.WriteChan()
+	testingRPCServer.serverReadChan = testingRPCServer.rpcServer.RPCConnection.ReadChan()
 
-	go rpcServer.Serve()
+	go testingRPCServer.rpcServer.Serve()
 
-	clientWriteChan := make(chan []byte)
-	clientReadChan := make(chan []byte)
-	client := rpc.NewClient(&rpcConn{readChan: clientReadChan, writeChan: clientWriteChan})
+	testingRPCServer.client = rpc.NewClient(&rpcConn{readChan: testingRPCServer.clientReadChan, writeChan: testingRPCServer.clientWriteChan})
+	return testingRPCServer
+}
 
-	request := 1
-	var reply rpcmessages.GetEnvResponse
+func (testRPC *TestingRPCServer) RunRPCCall(t *testing.T, method string, request int, reply interface{}) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-		err := client.Call("RPCServer.GetSystemEnv", request, &reply)
-		require.NoError(t, err)
-	}()
-	msgRequest := <-clientWriteChan
-	serverReadChan <- msgRequest
-	msgResponse := <-serverWriteChan
-	t.Logf("response message %s", string(msgResponse))
+	switch reply {
+	case rpcmessages.GetEnvResponse{}:
+		go func() {
+			defer wg.Done()
+			err := testRPC.client.Call(method, request, &rpcmessages.GetEnvResponse{})
+			require.NoError(t, err)
+		}()
+	case rpcmessages.ResyncBitcoinResponse{}:
+		go func() {
+			defer wg.Done()
+			err := testRPC.client.Call(method, request, &rpcmessages.ResyncBitcoinResponse{})
+			require.NoError(t, err)
+		}()
+	case rpcmessages.SampleInfoResponse{}:
+		go func() {
+			defer wg.Done()
+			err := testRPC.client.Call(method, request, &rpcmessages.SampleInfoResponse{})
+			require.NoError(t, err)
+		}()
+	case rpcmessages.VerificationProgressResponse{}:
+		go func() {
+			defer wg.Done()
+			err := testRPC.client.Call(method, request, &rpcmessages.VerificationProgressResponse{})
+			require.NoError(t, err)
+		}()
+	default:
+	}
+	msgRequest := <-testRPC.clientWriteChan
+	testRPC.serverReadChan <- msgRequest
+	msgResponse := <-testRPC.serverWriteChan
 	// Cut off the significant Byte in the response
-	clientReadChan <- msgResponse[1:]
+	testRPC.clientReadChan <- msgResponse[1:]
 	wg.Wait()
 	t.Logf("reply: %v", reply)
-	require.Equal(t, "testnet", reply.Network)
-	require.Equal(t, "18442", reply.ElectrsRPCPort)
+}
+
+func TestRPCServer(t *testing.T) {
+	testingRPCServer := NewTestingRPCServer()
+	request := 1
+	var systemEnvReply rpcmessages.GetEnvResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", request, systemEnvReply)
 
 	var resyncReply rpcmessages.ResyncBitcoinResponse
-	wg = sync.WaitGroup{}
-	wg.Add(1)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", request, resyncReply)
 
-	go func() {
-		defer wg.Done()
-		err := client.Call("RPCServer.ResyncBitcoin", request, &resyncReply)
-		require.NoError(t, err)
-	}()
+	var sampleInfoReply rpcmessages.SampleInfoResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", request, sampleInfoReply)
 
-	msgRequest = <-clientWriteChan
-	serverReadChan <- msgRequest
-	msgResponse = <-serverWriteChan
-	t.Logf("Resync Bitcoin Response %q", string(msgResponse))
-	// Cut off the significant Byte in the response
-	clientReadChan <- msgResponse[1:]
-	wg.Wait()
-	require.Equal(t, false, resyncReply.Success)
+	var verificationProgressReply rpcmessages.VerificationProgressResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", request, verificationProgressReply)
 }

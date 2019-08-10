@@ -150,10 +150,9 @@ func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs
 }
 
 // SystemEnv returns a new GetEnvResponse struct with the values as read from the environment
-func (middleware *Middleware) SystemEnv() (rpcmessages.GetEnvResponse, error) {
+func (middleware *Middleware) SystemEnv() rpcmessages.GetEnvResponse {
 	response := rpcmessages.GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
-	log.Println(&response)
-	return response, nil
+	return response
 }
 
 // SampleInfo returns the chached SampleInfoResponse struct

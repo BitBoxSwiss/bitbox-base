@@ -42,7 +42,7 @@ func (client *PromClient) query(endpoint string) (string, error) {
 	bodyString := string(body)
 	if !gjson.Valid(bodyString) {
 		log.Println("Received unvalid json from prometheus")
-		return "", errors.New("Received Invalid json from Prometheus")
+		return "", errors.New("received Invalid json from Prometheus")
 	}
 	if success != gjson.Get(bodyString, "status").String() {
 		log.Println("Failed")

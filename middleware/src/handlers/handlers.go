@@ -18,7 +18,7 @@ import (
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
-	SystemEnv() (rpcmessages.GetEnvResponse, error)
+	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
 	VerificationProgress() rpcmessages.VerificationProgressResponse

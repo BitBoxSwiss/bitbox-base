@@ -49,7 +49,7 @@ func (conn *rpcConn) Close() error {
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
-	SystemEnv() (rpcmessages.GetEnvResponse, error)
+	SystemEnv() rpcmessages.GetEnvResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
@@ -79,10 +79,9 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
 func (server *RPCServer) GetSystemEnv(args int, reply *rpcmessages.GetEnvResponse) error {
-	var err error
-	*reply, err = server.middleware.SystemEnv()
+	*reply = server.middleware.SystemEnv()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
 }
 
 // ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
