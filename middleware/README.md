@@ -26,6 +26,10 @@ controls data flow to and from bitcoind, lightningd and prometheus. To limit
 calls to bitcoind during initial blockchain download and reindexing operations,
 sync progress and other informational data is fetched from prometheus.
 
+Data fetched from other services is cached in the middleware. These caching
+data structs should be initialized when the middleware is instantiated. A connected
+client should not trigger further rpc or http requests.
+
 The message format of the rpc server is defined in the
 [rpcmessages.go](src/rpcmessages/rpcmessages.go) file. To notify the wallet app
 that new data in the app is available the middleware backend package emits
