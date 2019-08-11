@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,31 +24,39 @@ func NewPromClient(address string) *PromClient {
 	}
 }
 
-func (client *PromClient) query(endpoint string) string {
+func (client *PromClient) query(endpoint string) (string, error) {
 	httpClient := http.Client{
 		Timeout: 5 * time.Second,
 	}
 	response, err := httpClient.Get(client.address + "/api/v1/query?query=" + endpoint)
 	if err != nil {
-		log.Printf("Some weird http error: %v", err)
+		log.Printf("HTTP Error")
+		return "", err
 	}
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Println("Could not read prometheus response body")
+		return "", err
 	}
 	bodyString := string(body)
 	if !gjson.Valid(bodyString) {
 		log.Println("Received unvalid json from prometheus")
+		return "", errors.New("received Invalid json from Prometheus")
+	}
+	if success != gjson.Get(bodyString, "status").String() {
+		log.Println("Failed")
+		return "", nil
 	}
 
-	return bodyString
+	return bodyString, nil
 }
 
 func (client *PromClient) Headers() int64 {
-	response := client.query("bitcoin_headers")
-	if success != gjson.Get(response, "status").String() {
-		log.Println("Failed")
+	response, err := client.query("bitcoin_headers")
+	if err != nil {
+		log.Println(err.Error())
+		return 0
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()
@@ -56,9 +65,10 @@ func (client *PromClient) Headers() int64 {
 }
 
 func (client *PromClient) Blocks() int64 {
-	response := client.query("bitcoin_blocks")
-	if success != gjson.Get(response, "status").String() {
-		log.Println("Failed")
+	response, err := client.query("bitcoin_blocks")
+	if err != nil {
+		log.Println(err.Error())
+		return 0
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()
@@ -67,9 +77,10 @@ func (client *PromClient) Blocks() int64 {
 }
 
 func (client *PromClient) VerificationProgress() float64 {
-	response := client.query("bitcoin_verification_progress")
-	if success != gjson.Get(response, "status").String() {
-		log.Println("Failed")
+	response, err := client.query("bitcoin_verification_progress")
+	if err != nil {
+		log.Println(err.Error())
+		return 0.0
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()

@@ -15,10 +15,11 @@ import (
 
 // Middleware connects to services on the base with provided parrameters and emits events for the handler.
 type Middleware struct {
-	info             rpcmessages.SampleInfoResponse
-	environment      system.Environment
-	events           chan []byte
-	prometheusClient *prometheus.PromClient
+	info                 rpcmessages.SampleInfoResponse
+	environment          system.Environment
+	events               chan []byte
+	prometheusClient     *prometheus.PromClient
+	verificationProgress rpcmessages.VerificationProgressResponse
 }
 
 // NewMiddleware returns a new instance of the middleware
@@ -32,14 +33,19 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 			Difficulty:     0.0,
 			LightningAlias: "disconnected",
 		},
+		verificationProgress: rpcmessages.VerificationProgressResponse{
+			Blocks:               0,
+			Headers:              0,
+			VerificationProgress: 0.0,
+		},
 	}
 	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
 
 	return middleware
 }
 
-// demoBitcoinRPC is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo.
-func (middleware *Middleware) demoBitcoinRPC() {
+// demoBitcoinRPC is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
+func (middleware *Middleware) GetSampleInfo() bool {
 	connCfg := rpcclient.ConnConfig{
 		HTTPPostMode: true,
 		DisableTLS:   true,
@@ -58,29 +64,15 @@ func (middleware *Middleware) demoBitcoinRPC() {
 	blockCount, err := client.GetBlockCount()
 	if err != nil {
 		log.Println(err.Error() + " No blockcount received")
-	} else {
-		middleware.info.Blocks = blockCount
+		return false
 	}
+
 	blockChainInfo, err := client.GetBlockChainInfo()
 	if err != nil {
 		log.Println(err.Error() + " GetBlockChainInfo rpc call failed")
-	} else {
-		middleware.info.Difficulty = blockChainInfo.Difficulty
+		return false
 	}
 
-}
-
-func (middleware *Middleware) VerificationProgress() (rpcmessages.VerificationProgressResponse, error) {
-	verificationProgress := rpcmessages.VerificationProgressResponse{
-		Blocks:               middleware.prometheusClient.Blocks(),
-		Headers:              middleware.prometheusClient.Headers(),
-		VerificationProgress: middleware.prometheusClient.VerificationProgress(),
-	}
-	return verificationProgress, nil
-}
-
-// demoCLightningRPC demonstrates a connection with lightnind. Currently it gets the lightningd alias and writes it into the SampleInfoResponse.
-func (middleware *Middleware) demoCLightningRPC() {
 	ln := &lightning.Client{
 		Path: middleware.environment.GetLightningRPCPath(),
 	}
@@ -88,17 +80,44 @@ func (middleware *Middleware) demoCLightningRPC() {
 	nodeinfo, err := ln.Call("getinfo")
 	if err != nil {
 		log.Println(err.Error() + " Lightningd getinfo called failed.")
-		return
+		return false
 	}
-	middleware.info.LightningAlias = nodeinfo.Get("alias").String()
+
+	updateInfo := rpcmessages.SampleInfoResponse{
+		Blocks:         blockCount,
+		Difficulty:     blockChainInfo.Difficulty,
+		LightningAlias: nodeinfo.Get("alias").String(),
+	}
+	if updateInfo != middleware.info {
+		middleware.info = updateInfo
+		return true
+	}
+	return false
+
 }
 
-//TODO rpcLoop just sends an event to the first client that catches it. In future, this information should properly fan out to all connected clients.
+func (middleware *Middleware) GetVerificationProgress() bool {
+	updateVerificationProgress := rpcmessages.VerificationProgressResponse{
+		Blocks:               middleware.prometheusClient.Blocks(),
+		Headers:              middleware.prometheusClient.Headers(),
+		VerificationProgress: middleware.prometheusClient.VerificationProgress(),
+	}
+	if updateVerificationProgress != middleware.verificationProgress {
+		middleware.verificationProgress = updateVerificationProgress
+		return true
+	}
+	return false
+}
+
+// rpcLoop gets new data from the various rpc connections of the middleware and emits events if new data is available
 func (middleware *Middleware) rpcLoop() {
 	for {
-		middleware.demoBitcoinRPC()
-		middleware.demoCLightningRPC()
-		middleware.events <- []byte(rpcmessages.OpUCanHasSampleInfo)
+		if middleware.GetSampleInfo() {
+			middleware.events <- []byte(rpcmessages.OpUCanHasSampleInfo)
+		}
+		if middleware.GetVerificationProgress() {
+			middleware.events <- []byte(rpcmessages.OpUCanHasVerificationProgress)
+		}
 		time.Sleep(5 * time.Second)
 	}
 }
@@ -130,12 +149,18 @@ func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs
 	return response, nil
 }
 
-func (middleware *Middleware) SystemEnv() (rpcmessages.GetEnvResponse, error) {
+// SystemEnv returns a new GetEnvResponse struct with the values as read from the environment
+func (middleware *Middleware) SystemEnv() rpcmessages.GetEnvResponse {
 	response := rpcmessages.GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
-	log.Println(&response)
-	return response, nil
+	return response
 }
 
-func (middleware *Middleware) SampleInfo() (rpcmessages.SampleInfoResponse, error) {
-	return middleware.info, nil
+// SampleInfo returns the chached SampleInfoResponse struct
+func (middleware *Middleware) SampleInfo() rpcmessages.SampleInfoResponse {
+	return middleware.info
+}
+
+// VerificationProgress returns the cached VerificationProgressResponse struct
+func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationProgressResponse {
+	return middleware.verificationProgress
 }
