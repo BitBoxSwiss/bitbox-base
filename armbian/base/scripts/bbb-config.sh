@@ -343,6 +343,8 @@ case "${COMMAND}" in
         esac
         ;;
 
+    # EXEC section deprecated and moved to: bbb-cmd.sh script.
+    # remove once bbbmiddleware is adjusted.
     exec)
         case "${SETTING}" in
             BITCOIN_REINDEX|BITCOIN_RESYNC)
