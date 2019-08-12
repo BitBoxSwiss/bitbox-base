@@ -4,9 +4,7 @@ set -eu
 # BitBox Base: system configuration utility
 #
 
-SYSCONFIG_PATH="/data/sysconfig"
-mkdir -p "$SYSCONFIG_PATH"
-
+# print usage information for script
 function usage() {
   echo "BitBox Base: system configuration utility
 usage: bbb-config.sh [--version] [--help]
@@ -14,7 +12,7 @@ usage: bbb-config.sh [--version] [--help]
 
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor_ssh|tor_electrum|overlayroot>
+             tor_ssh|tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
@@ -167,6 +165,16 @@ case "${COMMAND}" in
                     echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                     echo "Overlay root filesystem will be disabled on next boot."
                 fi
+                ;;
+
+            ROOT_PWLOGIN)
+                # unlock/lock root user for password login
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    exec_overlayroot both "passwd -u root"
+                else
+                    exec_overlayroot both "passwd -l root"
+                fi
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             *)
