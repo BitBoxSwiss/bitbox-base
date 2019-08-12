@@ -237,7 +237,6 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                     *)
-                        # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                         echo "${3}" > /etc/hostname
                         hostname -F /etc/hostname
                         echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
