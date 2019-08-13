@@ -115,14 +115,16 @@ const prometheusURL = "http://localhost:9090"
 const (
 	triggerElectrsFullySynced = 1 + iota
 	triggerElectrsNoBitcoindConnectivity
+	triggerMiddlewareNoBitcoindConnectivity
 	triggerPrometheusBitcoindIDB
 )
 
 // Map of possible triggers. Mapped by their trigger to a trigger name
 var triggerNames = map[trigger]string{
-	triggerElectrsFullySynced:            "electrsFullySynced",
-	triggerElectrsNoBitcoindConnectivity: "electrsNoBitcoindConnectivity",
-	triggerPrometheusBitcoindIDB:         "prometheusBitcoindIDB",
+	triggerElectrsFullySynced:               "electrsFullySynced",
+	triggerElectrsNoBitcoindConnectivity:    "electrsNoBitcoindConnectivity",
+	triggerMiddlewareNoBitcoindConnectivity: "triggerMiddlewareNoBitcoindConnectivity",
+	triggerPrometheusBitcoindIDB:            "prometheusBitcoindIDB",
 }
 
 // String returns a human readable value for a trigger
@@ -135,7 +137,7 @@ func (t trigger) String() string {
 
 // Write implements the io.Writer interface by sending the content as a parsed event through the event channel.
 func (ew eventWriter) Write(p []byte) (int, error) {
-	fmt.Printf("logWatcher event: %q\n", p) //TODO: this is debug output an can be removed in the future.
+	//fmt.Printf("logWatcher event: %q\n", p) //TODO: cleanup and show information like this with a --verbose flag
 	event := parseEvent(p, ew.unit)
 	if event != nil {
 		ew.events <- *event
@@ -280,6 +282,7 @@ func setupWatchers(events chan watcherEvent, errs chan error) (ws watchers) {
 		logWatcher{"bitcoind", events, errs},
 		logWatcher{"lightningd", events, errs},
 		logWatcher{"electrs", events, errs},
+		logWatcher{"bbbmiddleware", events, errs},
 		prometheusWatcher{unit: "bitcoind", expression: "bitcoin_ibd", server: prometheusURL, interval: 10 * time.Second, trigger: triggerPrometheusBitcoindIDB, events: events, errs: errs},
 	}
 }
@@ -295,10 +298,15 @@ func startWatchers(ws watchers) {
 // parseEvent checks a string for relevant events and potentially returns an event type
 func parseEvent(p []byte, unit string) *watcherEvent {
 	switch {
-	case strings.Contains(string(p), "finished full compaction"): // fully synched electrs
+	// fully synched electrs
+	case strings.Contains(string(p), "finished full compaction"):
 		return &watcherEvent{unit: unit, trigger: triggerElectrsFullySynced}
-	case strings.Contains(string(p), "WARN - reconnecting to bitcoind: no reply from daemon"): // electrs unable to connect bitcoind
+	// electrs unable to connect bitcoind
+	case strings.Contains(string(p), "WARN - reconnecting to bitcoind: no reply from daemon"):
 		return &watcherEvent{unit: unit, trigger: triggerElectrsNoBitcoindConnectivity}
+	// bbbmiddleware unable to connect bitcoind
+	case strings.Contains(string(p), "GetBlockChainInfo rpc call failed"):
+		return &watcherEvent{unit: unit, trigger: triggerMiddlewareNoBitcoindConnectivity}
 	}
 	return nil
 }
@@ -315,6 +323,8 @@ func eventLoop(events chan watcherEvent, errs chan error, pState *supervisorStat
 				handleElectrsFullySynced(event, pState)
 			case event.trigger == triggerElectrsNoBitcoindConnectivity:
 				handleElectrsNoBitcoindConnectivity(event, pState)
+			case event.trigger == triggerMiddlewareNoBitcoindConnectivity:
+				handleMiddlewareNoBitcoindConnectivity(event, pState)
 			case event.trigger == triggerPrometheusBitcoindIDB:
 				err := handleBitcoindIDB(event, pState)
 				if err != nil {
@@ -381,13 +391,26 @@ func setBBBConfigValue(argument string, value string) error {
 }
 
 // handleElectrsNoBitcoindConnectivity handles the triggerElectrsNoBitcoindConnectivity
-// by restarting electrs which copies the current .cookie file
+// by restarting electrs which copies the current .cookie file and reloads authorization
 func handleElectrsNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) {
 	if isTriggerFlooding(30*time.Second, event.trigger, pState) == false {
 		fmt.Printf("Handling trigger %s: restarting electrs to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
 		err := restartUnit("electrs")
 		if err != nil {
 			fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
+		}
+		pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+	}
+}
+
+// handleMiddlewareNoBitcoindConnectivity handles the triggerMiddlewareNoBitcoindConnectivity
+// by restarting bbbmiddleware which copies the current .cookie file and reloads authorization
+func handleMiddlewareNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) {
+	if isTriggerFlooding(30*time.Second, event.trigger, pState) == false {
+		fmt.Printf("Handling trigger %s: restarting bbbmiddleware to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
+		err := restartUnit("bbbmiddleware")
+		if err != nil {
+			fmt.Errorf("Handling trigger %s: Restarting bbbmiddleware failed: %v", event.trigger.String(), err)
 		}
 		pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
 	}
