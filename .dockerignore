@@ -1,4 +1,5 @@
 armbian/armbian-build/
 armbian/mender*
-provisioning/
+bin/
 _site/
+middleware/integration_test/volumes/
