@@ -167,6 +167,7 @@ usermod -a -G system electrs
 adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi || true
 adduser --system --ingroup system --disabled-login --no-create-home               prometheus || true
 adduser --system --ingroup system --disabled-login --no-create-home               node_exporter || true
+adduser --system --group          --disabled-login --no-create-home               redis || true
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
@@ -217,8 +218,7 @@ if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
     apt install -y --no-install-recommends overlayroot
 fi
 
-
-# SYSTEM CONFIGURATION ---------------------------------------------------------
+# REDIS & CONFIGURATION MGMT ---------------------------------------------------
 
 ## create data directory
 ## standard build links from /data to /data_source on first boot, but 
@@ -227,8 +227,26 @@ fi
 ## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
 ln -sf /data_source /data
-touch /data/linked_from_data_directory
 
+## install Redis
+apt install -y --no-install-recommends redis
+mkdir -p /data/redis/
+
+cp /opt/shift/config/redis/redis-local.conf /data/redis/
+echo "include /data/redis/redis-local.conf" >> /etc/redis/redis.conf
+
+rm /etc/systemd/system/redis.service
+cp /opt/shift/config/redis/redis.service /etc/systemd/system/
+
+## start temporary Redis server for build process
+redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data_source/redis/
+
+## bulk import factory settings
+cat /opt/shift/config/redis/factorysettings.txt | sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+redis-cli KEYS "*"
+
+
+# SYSTEM CONFIGURATION ---------------------------------------------------------
 SYSCONFIG_PATH="/data/sysconfig"
 mkdir -p "${SYSCONFIG_PATH}"
 echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
@@ -1056,6 +1074,8 @@ fi
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
   rm /data
 fi
+
+redis-cli shutdown save
 
 set +x
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then

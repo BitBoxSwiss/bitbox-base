@@ -1,0 +1,52 @@
+SET bitcoind:testnet 0
+SET bitcoind:mainnet 1
+SET bitcoind:server 1
+SET bitcoind:listen 1
+SET bitcoind:listenonion 1
+SET bitcoind:txindex 0
+SET bitcoind:prune 0
+SET bitcoind:disablewallet 1
+SET bitcoind:rpccookiefile /mnt/ssd/bitcoin/.bitcoin/.cookie
+SET bitcoind:sysparms 1
+SET bitcoind:printtoconsole 1
+SET bitcoind:rpcconnect 127.0.0.1
+SET bitcoind:dbcache 300
+SET bitcoind:maxconnections 40
+SET bitcoind:maxuploadtarget 5000
+SET bitcoind:proxy 127.0.0.1:9050
+SET bitcoind:seednode:1 nkf5e6b7pl4jfd4a.onion
+SET bitcoind:seednode:2 xqzfakpeuvrobvpj.onion
+SET bitcoind:seednode:3 tsyvzsqwa2kkf6b2.onion
+
+SET lightningd:bitcoin-cli /usr/bin/bitcoin-cli
+SET lightningd:bitcoin-rpcconnect 127.0.0.1
+SET lightningd:bitcoin-rpcport 8332
+SET lightningd:network mainnet
+SET lightningd:lightning-dir /mnt/ssd/bitcoin/.lightning
+SET lightningd:bind-addr 127.0.0.1:9735
+SET lightningd:proxy 127.0.0.1:9050
+SET lightningd:log-level debug
+SET lightningd:plugin:1 /opt/shift/scripts/prometheus-lightningd.py
+
+SET electrs:network mainnet
+SET electrs:rpcconnect 127.0.0.1
+SET electrs:rpcport 8332
+SET electrs:db_dir /mnt/ssd/electrs/db
+SET electrs:daemon_dir /mnt/ssd/bitcoin/.bitcoin
+SET electrs:monitoring_addr 127.0.0.1:4224
+SET electrs:verbosity vvvv
+SET electrs:rust_backtrace 1
+
+SET bbbmiddleware:bitcoin_rpcuser __cookie__
+SET bbbmiddleware:bitcoin_rpcport 8332
+SET bbbmiddleware:lightning_rpcpath /mnt/ssd/bitcoin/.lightning/lightning-rpc
+
+SET grafana:server:http_addr 127.0.0.1                 
+SET grafana:server:root_url http://127.0.0.1:3000/info/ 
+SET grafana:analytics:reporting_enabled false         
+SET grafana:analytics:check_for_updates false           
+SET grafana:users:allow_sign_up false                   
+SET grafana:users:disable_login_form false
+SET grafana:auth.anonymous:enabled true
+
+SAVE
