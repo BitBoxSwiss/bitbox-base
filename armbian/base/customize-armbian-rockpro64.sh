@@ -461,7 +461,8 @@ EOF
 
 # LIGHTNING --------------------------------------------------------------------
 BIN_DEPS_TAG="v0.0.1-alpha"
-LIGHTNING_VERSION="0.7.0"
+LIGHTNING_VERSION_BUILD="0.7.1"
+LIGHTNING_VERSION_BIN="0.7.0"
 
 apt install -y libsodium-dev
 
@@ -475,7 +476,7 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   cd /usr/local/src/
   git clone https://github.com/ElementsProject/lightning.git
   cd lightning
-  git checkout v${LIGHTNING_VERSION}
+  git checkout v${LIGHTNING_VERSION_BUILD}
   ./configure
   make -j 4
   make install
@@ -483,12 +484,12 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
 else
   cd /usr/local/src/
   ## temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
-  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION}-1_arm64.deb
+  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION_BIN}-1_arm64.deb
   if ! echo "52be094f8162749acb207bf9ad08125d25288a9d03eb25690f364ba42fcff3c4  lightningd_0.7.0-1_arm64.deb" | sha256sum -c -; then
     echo "sha256sum for precompiled 'lightningd' failed" >&2
     exit 1
   fi
-  dpkg -i lightningd_${LIGHTNING_VERSION}-1_arm64.deb
+  dpkg -i lightningd_${LIGHTNING_VERSION_BIN}-1_arm64.deb
 
   ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
   ln -sf /usr/bin/lightningd /usr/local/bin/lightningd
@@ -598,7 +599,7 @@ WantedBy=multi-user.target
 EOF
 
 
-# MIDDLEWARE -------------------------------------------------------------------
+# TOOLS & MIDDLEWARE -------------------------------------------------------------------
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
@@ -609,6 +610,17 @@ if [ -f /opt/shift/bin/go/bbbfancontrol ]; then
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
   echo "WARN: bbbfancontrol not found."
+fi
+
+## bbbsupervisor
+## see https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbsupervisor/README.md
+if [ -f /opt/shift/bin/go/bbbsupervisor ]; then
+  cp /opt/shift/bin/go/bbbsupervisor /usr/local/sbin/
+  cp /opt/shift/bin/go/bbbsupervisor.service /etc/systemd/system/
+  #systemctl enable bbbsupervisor.service
+else
+  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
+  echo "WARN: bbbsupervisor not found."
 fi
 
 ## bbbmiddleware
