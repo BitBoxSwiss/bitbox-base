@@ -14,6 +14,7 @@
 # Ignore compiled Go binaries.
 /tools/bbbfancontrol/bbbfancontrol
 /tools/bbbsupervisor/bbbsupervisor
+/tools/bbbconfgen/bbbconfgen
 
 # Ignore vim swap files.
 *.sw?
@@ -31,4 +32,3 @@
 !/bin/img-mender/README.md
 /bin/img-armbian/*
 !/bin/img-armbian/README.md
-
