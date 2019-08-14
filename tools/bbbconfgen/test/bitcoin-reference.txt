@@ -1,0 +1,6 @@
+# network
+mainnet=1
+testnet=0
+rpcconnect=127.0.0.1
+dbcache=300
+seednode=nkf5e6b7pl4jfd4a.onion

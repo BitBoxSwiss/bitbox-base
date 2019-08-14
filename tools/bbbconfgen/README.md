@@ -1,0 +1,81 @@
+# bbbconfgen
+
+Application to generate text files from a template, replacing placeholders that specify Redis keys.
+It's written in Go as part of the [BitBox Base](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch) and used for automatically generating configuration files.
+
+The program reads a text file specified using the `--template` argument, parses the contents and writes it into a target file that is either specified with the `--output` argument, or directly on the first line of the template.
+
+## Usage
+
+The program is run from the command line.
+
+```console
+$ bbbconfgen --help
+
+bbbconfgen version 0.1
+generates text files from a template, substituting placeholders with Redis values
+
+Command-line arguments:
+  --template      input template text file
+  --output        output text file
+  --redis-addr    redis connection address (default "localhost:6379")
+  --redis-db      redis database number
+  --redis-pass    redis password
+  --verbose
+  --version
+  --help
+
+Optionally, the output file can be specified on the first line in the template text file.
+This line will be dropped and only used if no --output argument is supplied.
+  
+  {{ #output: /tmp/output.txt }}
+  
+Placeholders in the template text file are defined as follows.
+Make sure to respect spaces between arguments.
+
+  {{ key }}                     is replaced by Redis 'key', only if key is present
+  {{ key #rm }}                 ...deletes the placeholder if key not found
+  {{ key #rmLine }}             ...deletes the whole line if key not found
+  {{ key #default: some val }}  ...uses default value if key not found
+```
+
+## Example and testing
+
+### Prerequisites
+
+The environment must provide a running Redis server.
+
+### Import test Redis values
+
+To prepare the test data, import some keys into Redis and check them.
+
+```bash
+$ cat test/bitcoin-redisimport.txt | redis-cli --pipe
+All data transferred. Waiting for the last reply...
+Last reply received from server.
+errors: 0, replies: 3
+
+$ redis-cli KEYS 'bitcoin*'
+1) "bitcoind:seednode:1"
+2) "bitcoind:rpcconnect"
+3) "bitcoind:mainnet"
+```
+
+### Creating text file from template
+
+Create the new file `bitcoin-output.txt` based on the template and the Redis key/value pairs.
+
+```bash
+$ ./bbbconfgen --template test/bitcoin-template.txt --output test/bitcoin-output.txt --verbose
+read template file test/bitcoin-template.txt
+written output file test/bitcoin-output.txt
+3 replaced, 0 kept, 0 deleted, 2 lines deleted, 2 set to default
+
+$ cat test/bitcoin-output.txt
+# network
+mainnet=1
+testnet=0
+rpcconnect=127.0.0.1
+dbcache=300
+seednode=nkf5e6b7pl4jfd4a.onion
+```

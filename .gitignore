@@ -16,6 +16,10 @@
 /tools/bbbsupervisor/bbbsupervisor
 /tools/bbbconfgen/bbbconfgen
 
+# Ignore files created during testing
+tools/bbbconfgen/test/bitcoin-output.txt
+tools/bbbconfgen/test/test-output.txt
+
 # Ignore vim swap files.
 *.sw?
 
