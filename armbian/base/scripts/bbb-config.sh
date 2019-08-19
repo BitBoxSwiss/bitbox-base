@@ -4,9 +4,7 @@ set -eu
 # BitBox Base: system configuration utility
 #
 
-SYSCONFIG_PATH="/data/sysconfig"
-mkdir -p "$SYSCONFIG_PATH"
-
+# print usage information for script
 function usage() {
   echo "BitBox Base: system configuration utility
 usage: bbb-config.sh [--version] [--help]
@@ -14,7 +12,7 @@ usage: bbb-config.sh [--version] [--help]
 
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor_ssh|tor_electrum|overlayroot>
+             tor_ssh|tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
@@ -36,6 +34,33 @@ possible commands:
 "
 }
 
+# function to execute command, either within overlayroot-chroot or directly
+function exec_overlayroot() {
+    echo "${1}"
+    if [[ "${1}" != "once" ]] && [[ "${1}" != "both" ]]; then
+        echo "function exec_overlayroot(): first argument must be either"
+        echo "                             'once': execute in active overlayroot, and only when not active execute directly"
+        echo "                             'both': execute both in overlayroot and directly"
+        exit 1
+    fi
+
+    if [ "${OVERLAYROOT_ENABLED}" = true ]; then
+        echo "executing in overlayroot-chroot: ${2}"
+        overlayroot-chroot /bin/bash -c "${2}"
+    fi
+
+    if [ "${OVERLAYROOT_ENABLED}" != true ] || [[ "${1}" == "both" ]]; then
+        echo "executing directly: ${2}"
+        /bin/bash -c "${2}"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+
+SYSCONFIG_PATH="/data/sysconfig"
+mkdir -p "$SYSCONFIG_PATH"
+
+# check script arguments
 if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
   usage
   exit 0
@@ -55,6 +80,15 @@ fi
 COMMAND="${1}"
 SETTING="${2^^}"
 
+# check if overlayroot is enabled
+source /etc/overlayroot.local.conf
+if [[ "${overlayroot:0:5}" == "tmpfs" ]]; then
+    OVERLAYROOT_ENABLED=true;
+else
+    OVERLAYROOT_ENABLED=false;
+fi
+
+# parse COMMAND: enable, disable, get, set
 case "${COMMAND}" in
     enable|disable)
         if [[ "${COMMAND}" == "enable" ]]; then
@@ -121,6 +155,7 @@ case "${COMMAND}" in
                 ;;
 
             OVERLAYROOT)
+                # set explicitly without exec_overlayroot() to make sure it is set under all conditions
                 if [[ ${ENABLE} -eq 1 ]]; then
                     echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
                     echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
@@ -130,6 +165,16 @@ case "${COMMAND}" in
                     echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                     echo "Overlay root filesystem will be disabled on next boot."
                 fi
+                ;;
+
+            ROOT_PWLOGIN)
+                # unlock/lock root user for password login
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    exec_overlayroot both "passwd -u root"
+                else
+                    exec_overlayroot both "passwd -l root"
+                fi
+                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             *)
@@ -237,7 +282,6 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                     *)
-                        # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                         echo "${3}" > /etc/hostname
                         hostname -F /etc/hostname
                         echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
@@ -246,8 +290,8 @@ case "${COMMAND}" in
                 ;;
 
             ROOT_PW)
-                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
-                echo "root:${3}" | chpasswd
+                exec_overlayroot both "echo 'root:${3}' | chpasswd"
+                exec_overlayroot both "echo 'base:${3}' | chpasswd"
                 ;;
 
             WIFI_SSID)
@@ -299,6 +343,8 @@ case "${COMMAND}" in
         esac
         ;;
 
+    # EXEC section deprecated and moved to: bbb-cmd.sh script.
+    # remove once bbbmiddleware is adjusted.
     exec)
         case "${SETTING}" in
             BITCOIN_REINDEX|BITCOIN_RESYNC)

@@ -348,6 +348,7 @@ EOF
 
 ## make bbb scripts executable with sudo
 ln -sf /opt/shift/scripts/bbb-config.sh    /usr/local/sbin/bbb-config.sh
+ln -sf /opt/shift/scripts/bbb-cmd.sh       /usr/local/sbin/bbb-cmd.sh
 ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
