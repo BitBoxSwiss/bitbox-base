@@ -27,7 +27,7 @@ build:
 
 aarch64: check-go-env fetch-deps ci
 	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
-	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/build/bbbmiddleware
+	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/bin/go/bbbmiddleware
 
 regtest-up:
 	cd $(REPO_ROOT)/middleware/integration_test ;\

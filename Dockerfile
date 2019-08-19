@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     ca-certificates
 WORKDIR /go/src/github.com/digitalbitbox/bitbox-base
-RUN mkdir build
+RUN mkdir -p bin/go/
 
 # Build the middleware
 FROM bitbox-base as middleware-builder
@@ -33,5 +33,5 @@ RUN make -C "tools"
 # Final
 FROM golang:1.12.5-stretch as final
 
-COPY --from=middleware-builder /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
-COPY --from=middleware-tools /go/src/github.com/digitalbitbox/bitbox-base/build/. /opt/build/.
+COPY --from=middleware-builder /go/src/github.com/digitalbitbox/bitbox-base/bin/go/. /opt/build/.
+COPY --from=middleware-tools /go/src/github.com/digitalbitbox/bitbox-base/bin/go/. /opt/build/.

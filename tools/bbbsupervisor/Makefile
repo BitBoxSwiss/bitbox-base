@@ -10,7 +10,7 @@ native: check-go-env copy-service
 
 aarch64: check-go-env copy-service
 	GOARCH=arm64 go install $(REPO_ROOT)/tools/bbbsupervisor
-	cp ${GOPATH}/bin/linux_arm64/bbbsupervisor $(REPO_ROOT)/build/
+	cp ${GOPATH}/bin/linux_arm64/bbbsupervisor $(REPO_ROOT)/bin/go/
 
 copy-service:
-	cp bbbsupervisor.service $(REPO_ROOT)/build/
+	cp bbbsupervisor.service $(REPO_ROOT)/bin/go/
