@@ -63,9 +63,10 @@ There are currently three triggers handled: `triggerElectrsFullySynced`, `trigge
 
 | trigger | fired when | action performed | rationale |
 | ---  | --- | --- | --- |
-| `triggerElectrsFullySynced` (logWatcher) | when electrs is fully synced. electrs stdout contains `"finished full compaction"`. | Restart electrs. (this is not tested, just taken from previous versions) | Maybe Stadicus knows? |
-| `triggerElectrsNoBitcoindConnectivity` (logWatcher) | when the `.cookie.env` file changes without electrs noticing. electrs stdout `"WARN - reconnecting to bitcoind: no reply from daemon"` | restart electrs which, via script (7e7a09c5907a68783971a03e52d866b738f75462) recreates the cookie file| electrs sometime gets out of sync with the bitcoind .cookie file |
-| `triggerPrometheusBitcoindIDB` (prometheusWatcher) | every time a Prometheus measurement for `"bitcoind_ibd"` has been made | initial trigger: run `bbbconfig.sh set bitcoin_idb true/false`. not changed: nothing, changed: run `bbbconfig.sh set bitcoin_idb true/false` | Setting e.g. a different db_cache and stop lightningd and electrs on initial block download |
+| `triggerElectrsFullySynced` (logWatcher) | Electrs log reports `"finished full compaction"`. | Restart electrs. | Free memory after initiall full sync |
+| `triggerElectrsNoBitcoindConnectivity` (logWatcher) | Electrs log reports `"WARN - reconnecting to bitcoind: no reply from daemon"` | restart electrs  | lost connection to `bitcoind` due to .cookie auth |
+| `triggerMiddlewareNoBitcoindConnectivity` (logWatcher) | Middleware log reports `"GetBlockChainInfo rpc call failed"` | Restarts Middleware | lost connection to `bitcoind` due to .cookie auth |
+| `triggerPrometheusBitcoindIDB` (prometheusWatcher) | read Prometheus measure `bitcoind_ibd` periodically | initial trigger or value has changed: run `bbbconfig.sh set bitcoin_idb <true|false>`; not changed: nothing | adjust dbcache and stop lightningd and electrs during initial block download |
 
 For some triggers, a (previous) state is needed. For example `triggerPrometheusBitcoindIDB` needs the previous measurement to detect a change from _idb_ to _no-idb_. For logWatcher triggers, a flood control is implemented. I.e a trigger is only handled again after a definable `minDelay` to prevent multiple handling actions being executed at roughly the same time.
 
