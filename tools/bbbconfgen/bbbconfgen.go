@@ -14,7 +14,7 @@
 //
 // BitBox Base Config Generator
 // ----------------------------
-// Generates text files from template, substituting placeholders with Redis values.
+// Generates configuration files from template, substituting placeholders with Redis values.
 // See helpText specified below for usage information.
 //
 // https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen
@@ -24,6 +24,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -36,38 +37,38 @@ import (
 
 // Command line arguments
 var (
-	templateArg  = flag.String("template", "", "input template text file")
-	outputArg    = flag.String("output", "", "output text file")
+	templateArg  = flag.String("template", "", "input template config file")
+	outputArg    = flag.String("output", "", "output config file")
 	redisAddrArg = flag.String("redis-addr", "localhost:6379", "redis connection address")
 	redisPassArg = flag.String("redis-pass", "", "redis password")
 	redisDbArg   = flag.Int("redis-db", 0, "redis database number")
 	versionArg   = flag.Bool("version", false, "return program version")
-	verboseArg   = flag.Bool("verbose", false, "show additional information")
+	quietArg     = flag.Bool("quiet", false, "suppress parsing information")
 	helpArg      = flag.Bool("help", false, "show help")
 )
 
 // Help text for --help option
 const (
-	helpText = `generates text files from a template, substituting placeholders with Redis values
+	helpText = `generates configuration files from a template, substituting placeholders with Redis values
 
 Command-line arguments: 
-  --template      input template text file
-  --output        output text file
-  --redis-addr    redis connection address (default "localhost:6379")
-  --redis-db      redis database number
+  --template      input template config file
+  --output        output config file
+  --redis-addr    redis connection address  (default "localhost:6379")
+  --redis-db      redis database number     (default 0)
   --redis-pass    redis password
   --verbose
-  --version
+  --quiet
   --help
 
-Optionally, the output file can be specified on the first line in the template text file.
+Optionally, the output file can be specified on the first line in the template file.
 This line will be dropped and only used if no --output argument is supplied.
   
-  {{ #output: /tmp/output.txt }}
+  {{ #output: /tmp/output.conf }}
   
-Placeholders in the template text file are defined as follows.
+Placeholders in the template file are defined as follows.
 Make sure to respect spaces between arguments.
-
+  
   {{ key }}                     is replaced by Redis 'key', only if key is present
   {{ key #rm }}                 ...deletes the placeholder if key not found
   {{ key #rmLine }}             ...deletes the whole line if key not found
@@ -76,23 +77,15 @@ Make sure to respect spaces between arguments.
 `
 )
 
-func main() {
-	var (
-		versionNum = 0.1
-		redisConn  redis.Conn
-		err        error
-
-		countReplace int
-		countKeep    int
-		countRm      int
-		countRmLine  int
-		countDefault int
-	)
-
+func initialize(versionNum float64) {
+	// parse command line arguments
 	flag.Parse()
 
+	// remove timestamp from logger
+	log.SetFlags(0)
+
 	if *versionArg || *helpArg {
-		fmt.Println("bbbconfgen version", versionNum)
+		log.Println("bbbconfgen version", versionNum)
 		if *helpArg {
 			fmt.Println(helpText)
 		}
@@ -100,31 +93,42 @@ func main() {
 	}
 
 	if len(*templateArg) == 0 {
-		fmt.Println("No input template file specified using --template argument.")
-		os.Exit(1)
+		log.Fatalln("No input template file specified using --template argument.")
 	}
+}
 
-	// Open and check connection to Redis server
+// Open and check connection to Redis server
+func connectRedis() (r redis.Conn, err error) {
 	if len(*redisPassArg) > 0 {
-		redisConn, err = redis.Dial("tcp", *redisAddrArg, redis.DialDatabase(*redisDbArg))
+		r, err = redis.Dial("tcp", *redisAddrArg, redis.DialDatabase(*redisDbArg))
 	} else {
-		redisConn, err = redis.Dial("tcp", *redisAddrArg, redis.DialPassword(*redisPassArg), redis.DialDatabase(*redisDbArg))
+		r, err = redis.Dial("tcp", *redisAddrArg, redis.DialPassword(*redisPassArg), redis.DialDatabase(*redisDbArg))
 	}
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer redisConn.Close()
-
-	_, err = redisConn.Do("PING")
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	// If no outputFile supplied, check first line of template file
-	if len(*outputArg) == 0 {
+	_, err = r.Do("PING")
+	return r, err
+}
+
+// open template configuration file
+func openTemplateFile() (fp *os.File, err error) {
+	fp, err = os.Open(*templateArg)
+	return
+}
+
+// open output file, path provided either by cli or read it from template file
+func openOutputFile() (filepointer *os.File, filename string, err error) {
+
+	if len(*outputArg) > 0 {
+		filename = *outputArg
+
+	} else {
+		// if no cli outputFile provided,
 		templateFile, err := os.Open(*templateArg)
 		if err != nil {
-			log.Fatal(err)
+			return nil, "", errors.New("cannot open templateFile " + *templateArg)
 		}
 		defer templateFile.Close()
 
@@ -139,26 +143,31 @@ func main() {
 
 		// if successful, use it as *outputArg, otherwise abort
 		if len(firstLineGroups) > 0 && len(firstLineGroups[1]) > 0 {
-			*outputArg = strings.Trim(firstLineGroups[1], " ")
+			filename = strings.Trim(firstLineGroups[1], " ")
 		} else {
-			fmt.Println("No output file specified, specify either --output argument or within template.")
-			os.Exit(1)
+			return nil, "", errors.New("no output file specified, specify either --output argument or within template")
 		}
 	}
 
-	// Open template file
-	templateFile, err := os.Open(*templateArg)
+	filepointer, err = os.Create(filename)
 	if err != nil {
-		log.Fatal(err)
+		return nil, "", errors.New("cannot create outputFile " + filename)
 	}
-	defer templateFile.Close()
+	return
+}
 
-	// Create output file
-	outputFile, err := os.Create(*outputArg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer outputFile.Close()
+// parse template config file and replace placeholders with Redis values
+// also, count number of replacements
+func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.File) (err error) {
+
+	var (
+		countLines   int
+		countReplace int
+		countKeep    int
+		countRm      int
+		countRmLine  int
+		countDefault int
+	)
 
 	// Read template file line by line
 	scanner := bufio.NewScanner(templateFile)
@@ -223,19 +232,69 @@ func main() {
 		// write processed line to outputFile
 		if printLine {
 			fmt.Fprintln(outputFile, outputLine)
+			countLines++
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if !*quietArg {
+		log.Printf("written %v lines\n", countLines)
+		log.Printf("placeholders: %v replaced, %v kept, %v deleted, %v lines deleted, %v set to default\n\n", countReplace, countKeep, countRm, countRmLine, countDefault)
+	}
+	return nil
+
+}
+
+func main() {
+	var (
+		versionNum = 0.1
+		redisConn  redis.Conn
+		err        error
+	)
+
+	// parse cli arguments with some sanity checks
+	initialize(versionNum)
+
+	// connect to Redis
+	redisConn, err = connectRedis()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer redisConn.Close()
+	if !*quietArg {
+		log.Println("connected to Redis")
+	}
+
+	// open template file
+	templateFile, err := openTemplateFile()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer templateFile.Close()
+	if !*quietArg {
+		log.Println("opened template config file", *templateArg)
+	}
+
+	// open outputFile, either from cli or from template file
+	outputFile, outputFilename, err := openOutputFile()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outputFile.Close()
+	if !*quietArg {
+		log.Println("writing into output file", outputFilename)
+	}
+
+	// parse temlateFile
+	err = parseTemplate(redisConn, templateFile, outputFile)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	if *verboseArg {
-		fmt.Println("read template file", *templateArg)
-		fmt.Println("written output file", *outputArg)
-		fmt.Printf("%v replaced, %v kept, %v deleted, %v lines deleted, %v set to default\n\n", countReplace, countKeep, countRm, countRmLine, countDefault)
-	}
 }

@@ -28,7 +28,7 @@ Command-line arguments:
 Optionally, the output file can be specified on the first line in the template text file.
 This line will be dropped and only used if no --output argument is supplied.
   
-  {{ #output: /tmp/output.txt }}
+  {{ #output: /tmp/output.conf }}
   
 Placeholders in the template text file are defined as follows.
 Make sure to respect spaces between arguments.
@@ -39,21 +39,23 @@ Make sure to respect spaces between arguments.
   {{ key #default: some val }}  ...uses default value if key not found
 ```
 
-## Example and testing
+## Example
 
 ### Prerequisites
 
 The environment must provide a running Redis server.
 
-### Import test Redis values
+### Import example Redis values
 
-To prepare the test data, import some keys into Redis and check them.
+To prepare the example data, import some keys into Redis and check them.
 
 ```bash
-$ cat test/bitcoin-redisimport.txt | redis-cli --pipe
-All data transferred. Waiting for the last reply...
-Last reply received from server.
-errors: 0, replies: 3
+$ redis-cli SET bitcoind:mainnet 1
+OK
+$ redis-cli SET bitcoind:rpcconnect 127.0.0.1
+OK
+$ redis-cli SET bitcoind:seednode:1 nkf5e6b7pl4jfd4a.onion
+OK
 
 $ redis-cli KEYS 'bitcoin*'
 1) "bitcoind:seednode:1"
@@ -63,15 +65,25 @@ $ redis-cli KEYS 'bitcoin*'
 
 ### Creating text file from template
 
-Create the new file `bitcoin-output.txt` based on the template and the Redis key/value pairs.
+Create the new file `bitcoin-output.conf` based on the template and the Redis key/value pairs.
 
-```bash
-$ ./bbbconfgen --template test/bitcoin-template.txt --output test/bitcoin-output.txt --verbose
-read template file test/bitcoin-template.txt
-written output file test/bitcoin-output.txt
+```console
+$ cat test/bitcoin-template.conf
+# network
+mainnet={{ bitcoind:mainnet }}
+testnet={{ bitcoind:testnet #default: 0 }}
+rpcconnect={{ bitcoind:rpcconnect }}
+dbcache={{ bitcoind:dbcache #default: 300 }}
+seednode={{ bitcoind:seednode:1 #rmLine }}
+seednode={{ bitcoind:seednode:2 #rmLine }}
+seednode={{ bitcoind:seednode:3 #rmLine }}
+
+$ ./bbbconfgen --template test/bitcoin-template.conf --output test/bitcoin-output.conf --verbose
+read template file test/bitcoin-template.conf
+written output file test/bitcoin-output.conf
 3 replaced, 0 kept, 0 deleted, 2 lines deleted, 2 set to default
 
-$ cat test/bitcoin-output.txt
+$ cat test/bitcoin-output.conf
 # network
 mainnet=1
 testnet=0
@@ -79,3 +91,11 @@ rpcconnect=127.0.0.1
 dbcache=300
 seednode=nkf5e6b7pl4jfd4a.onion
 ```
+
+## Testing
+
+The following files are used for automated testing (not yet implemented), TODO(Stadicus):
+
+* `test-redisimport.txt`: bulk import key/value pairs into Redis
+* `test-template.conf`: template config file
+* `test-reference.conf`: reference config file, to compare newly created `test-output.conf` with

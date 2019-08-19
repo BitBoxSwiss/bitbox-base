@@ -10,4 +10,4 @@ native: check-go-env
 
 aarch64: check-go-env
 	GOARCH=arm64 go install $(REPO_ROOT)/tools/bbbconfgen
-	cp ${GOPATH}/bin/linux_arm64/bbbconfgen $(REPO_ROOT)/build/
+	cp ${GOPATH}/bin/linux_arm64/bbbconfgen $(REPO_ROOT)/bin/go/
