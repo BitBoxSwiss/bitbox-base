@@ -81,11 +81,15 @@ COMMAND="${1}"
 SETTING="${2^^}"
 
 # check if overlayroot is enabled
-source /etc/overlayroot.local.conf
-if [[ "${overlayroot:0:5}" == "tmpfs" ]]; then
-    OVERLAYROOT_ENABLED=true;
-else
-    OVERLAYROOT_ENABLED=false;
+OVERLAYROOT_ENABLED=false;
+
+if [ -f /etc/overlayroot.local.conf ]; then
+    overlayroot=""
+    # shellcheck disable=SC1091
+    source /etc/overlayroot.local.conf
+    if [[ "${overlayroot:0:5}" == "tmpfs" ]]; then
+        OVERLAYROOT_ENABLED=true;
+    fi
 fi
 
 # parse COMMAND: enable, disable, get, set
@@ -277,7 +281,7 @@ case "${COMMAND}" in
 
             HOSTNAME)
                 case "${3}" in
-                    [^0-9A-Za-z]*|*[^\-0-9A-Z_a-z]*|*[^0-9A-Za-z]|*-_*|*_-*)
+                    [^0-9A-Za-z]*|*[^-0-9A-Z_a-z]*|*[^0-9A-Za-z]|*-_*|*_-*)
                         echo "Invalid argument: '${3}' is not a valid hostname."
                         exit 1
                         ;;
