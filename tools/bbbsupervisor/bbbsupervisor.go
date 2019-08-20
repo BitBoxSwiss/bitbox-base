@@ -61,6 +61,22 @@ type watcher interface {
 	watch()
 }
 
+// Command line arguments
+var (
+	versionArg = flag.Bool("version", false, "return program version")
+	helpArg    = flag.Bool("help", false, "show help")
+)
+
+const (
+	helpText = `
+Watches systemd logs (via journalctl) and queries Prometheus to detect potential issues and take action.
+
+Command-line arguments: 
+  --version
+  --help
+`
+)
+
 // watcherEvent represents an event triggered by a watcher
 // e.g. that bitcoin or electrs has fully synced, or a service is not reachable
 type watcherEvent struct {
@@ -263,17 +279,13 @@ func (pw prometheusWatcher) parsePrometheusResponseAsFloat(json string) (float64
 
 // handleFlags parses command line arguments and handles them
 func handleFlags() {
-	version := flag.Bool("version", false, "return program version")
-	flag.Parse()
-
-	if *version {
-		printVersion()
+	if *versionArg || *helpArg {
+		fmt.Printf("bbbsupervisor version %v\n", versionNum)
+		if *helpArg {
+			fmt.Println(helpText)
+		}
 		os.Exit(0)
 	}
-}
-
-func printVersion() {
-	fmt.Printf("bbbsupervisor version %v\n", versionNum)
 }
 
 // setupWatchers sets up prometheusWatchers and logWatchers and returns them
@@ -458,8 +470,9 @@ func handleBitcoindIDB(event watcherEvent, pState *supervisorState) error {
 }
 
 func main() {
+	flag.Parse()
+
 	handleFlags()
-	printVersion()
 
 	events := make(chan watcherEvent) // channel to process events a watcher detects
 	errs := make(chan error)          // channel to process errors from watchers
