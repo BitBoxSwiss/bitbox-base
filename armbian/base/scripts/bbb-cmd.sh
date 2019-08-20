@@ -128,6 +128,9 @@ case "${MODULE}" in
                 ;;
 
             MOUNT)
+                # ensure mountpoint is available
+                mkdir -p /mnt/backup
+
                 # check if ARG is valid USB thumbdrive
                 if ! lsblk "${ARG}" > /dev/null 2>&1; then
                     echo "USB_THUMBDRIVE MOUNT: device ${ARG} not found."
@@ -148,6 +151,7 @@ case "${MODULE}" in
 
                     # all checks passed
                     else
+
                         # mount USB device with the following options:
                         #   rw:         read/write
                         #   nosuid:     cannot contain set userid files, prevents root escalation
@@ -171,11 +175,59 @@ case "${MODULE}" in
                     umount /mnt/backup
                 fi
                 ;;
+
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
         esac
         ;;        
+    
+    BACKUP)
+        case "${COMMAND}" in
+            HSM_FILEPATH="/mnt/ssd/bitcoin/.lightning/hsm_secret"
+            REDIS_FILEPATH="/data/redis/bitboxbase.rdb"
+
+            HSM_SECRET_SAVE)
+                # encode binary file 'hsm_secret' as base64 and store it in Redis
+                redis-cli SET lightningd:hsm_secret `cat ${HSM_FILEPATH} | base64`
+                echo "OK: file 'hsm_secret' successfully saved in Redis"
+                ;;
+
+            HSM_SECRET_RESTORE)
+                # create snapshot of 'hsm_secret'
+                cp "${HSM_FILEPATH}" "${HSM_FILEPATH}_$(date '+%Y%m%d-%H%M').backup"
+
+                # save base64 encoded 'hsm_secret' as binary file to file system
+                # redis-cli causes script to terminate when Redis not available
+                redis-cli GET lightningd:hsm_secret | base64 -d > /mnt/ssd/bitcoin/.lightning/hsm_secret
+                echo "OK: file 'hsm_secret' successfully restored in Redis"
+                ;;
+
+            CREATE)
+                if mountpoint /mnt/ssd -q; then
+                    cp "${REDIS_FILEPATH}" "/mnt/backup/bbbb-backup.backup"
+
+                    # create backup history (restore not implemented)
+                    cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup_$(date '+%Y%m%d-%H%M').backup"
+                else
+                    echo "ERR: /mnt/backup is not a mountpoint"
+                fi                
+                ;;
+
+            RESTORE)
+                if [ -f /mnt/backup/bbb-backup.backup ]; then
+                    cp "/mnt/backup/bbb-backup.backup" "${REDIS_FILEPATH}"
+                else
+                    echo "ERR: backup file /mnt/backup/bbb-backup.backup not found"
+                    exit 1
+                fi
+                echo "OK: backup file /mnt/backup/bbb-backup.backup restored to ${REDIS_FILEPATH}."
+                ;;
+
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+        esac
+        ;;    
+
     *)
         echo "Invalid argument: module ${MODULE} unknown."
-
 esac
