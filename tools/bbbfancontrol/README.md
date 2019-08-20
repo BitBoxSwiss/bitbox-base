@@ -4,8 +4,8 @@ Simple program to control fan speed on a single board computer according to curr
 
 The program reads the current system temperature from a single file, calculates the appropriate fan PWM value and writes it into a control file. The default values are set for the ROCKPro64 board running Armbian.
 
-* Temperature is read from the file `/sys/class/hwmon/hwmon0/pwm1`, in °C * 1000 (e.g. `45000` for 45°C)
-* Fan is controlled by writing a value between `0` (off) and `255` (max) into the file `/sys/class/thermal/thermal_zone0/temp`
+* Temperature is read from the file `/sys/class/thermal/thermal_zone0/temp`, in °C * 1000 (e.g. `45000` for 45°C)
+* Fan is controlled by writing a value between `0` (off) and `255` (max) into the file `/sys/class/hwmon/hwmon0/pwm1`
 
 The appropriate fan speed value is calculated linearly for the desired temperature range:
 ```
