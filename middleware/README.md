@@ -94,18 +94,33 @@ rpc files can be accessed in `integration_test/volumes/clightning1` and
 To acces the lightningd unix port, the makefile target will ask for a sudo password 
 to change permissions of the lightning-rpc file.
 
-Once the docker container is up, use `bitcoin-cli` and `lightning-cli` to communicate:
+## Initialize the regtest blockchain with:
+
+Create 101 initial blocks:
+
+    make regtest-init
+
+Get blockchain info:
+
+    make regtest-info
+
+## Once the docker container is up, use `bitcoin-cli` and `lightning-cli` to communicate:
 
     bitcoin-cli -regtest -rpcport=18443 -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo
     lightning-cli --rpc-file integration_test/volumes/clightning1/lightning-rpc getinfo
 
-For the middleware run:
+You can run any of these commands from within the docker containers without having bitcoin-cli or lightning-cli installed on your host machine  
+e.g. run from the `integration_test` directory:
+
+    docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=18443 -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo
+
+## For the middleware run:
 
     middleware -rpcport=18443 -rpcpassword=rpcpass -rpcuser=rpcuser -electrsport=60401 -lightning-rpc-path=integration_test/volumes/clightning1/lightning-rpc
 
-The two c-lightning instances allow communication between each other. To
-connect clightning1 with clightning2, run getinfo on clightning2 and then
-connect to its id on clightning1 with:
+## To connect clightning1 with clightning2:
+  The two c-lightning instances allow communication between each other.  
+  Run getinfo on clightning2 and then connect to its id on clightning1 with:
 
     docker exec -ti lightningd1 lightning-cli connect 026c213484d4b3cb8aff9d4186439bf4032b793831051cf1b4189c7d83a6ec47f1 10.10.0.13:9735
 

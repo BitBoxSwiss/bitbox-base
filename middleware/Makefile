@@ -1,6 +1,9 @@
 .DEFAULT_GOAL := aarch64
 REPO_ROOT=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/..
 SHELL:=/bin/bash
+RPCPORT:=18443
+RPCUSER:=rpcuser
+RPCPASSWORD:=rpcpass
 
 check-go-env:
 	@echo "Checking that environment supports Go builds.."
@@ -39,3 +42,10 @@ regtest-down:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
 	docker-compose down ;\
 
+regtest-init:
+	cd $(REPO_ROOT)/middleware/integration_test ;\
+	docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} generate 101
+
+regtest-info:
+	cd $(REPO_ROOT)/middleware/integration_test ;\
+	docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} getblockchaininfo
