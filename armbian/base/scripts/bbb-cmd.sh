@@ -16,8 +16,7 @@ possible commands:
   base restart      restarts the node
   base shutdown     shuts down the node
   
-  usb_thumbdrive    <check|mount|umount>
-  usb_backup
+  usb_flashdrive    <check|mount|umount>
 
 "
 }
@@ -94,35 +93,35 @@ case "${MODULE}" in
         esac
         ;;
 
-    USB_THUMBDRIVE)
+    USB_FLASHDRIVE)
         # sanitize device name
         ARG="${ARG//[^a-zA-Z0-9_\/]/}"
 
         case "${COMMAND}" in
             CHECK)
-                usb_thumbdrive_count=0
-                while read scsidev; do
-                    name=$( echo "${scsidev}" | cut -f 1 -d " " )
-                    size=$( echo "${scsidev}" | cut -f 2 -d " " )
-                    type=$( echo "${scsidev}" | cut -f 3 -d " " )
+                usb_flashdrive_count=0
+                while read -r scsidev; do
+                    name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
+                    size=$( echo "${scsidev}" | cut -s -f 2 -d " " )
+                    fstype=$( echo "${scsidev}" | cut -s -f 3 -d " " )
 
-                    # search drives that have partition and are <= 64GB
-                    if [[ "${type}" == "part" ]] && [[ size -lt 64000000000 ]]; then
-                        usb_thumbdrive_count=$((usb_thumbdrive_count + 1))
-                        usb_thumbdrive_name="${name}"
+                    # search drives that have a filesystem (not iso9660) and are <= 64GB
+                    if [ -n "${fstype}" ] && [[ "${fstype}" != "iso9660" ]] && [[ size -lt 64000000000 ]]; then
+                        usb_flashdrive_count=$((usb_flashdrive_count + 1))
+                        usb_flashdrive_name="${name}"
                     fi
-                done <<< "$(lsblk -o NAME,SIZE,TYPE -abrnp -I 8)"
+                done <<< "$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8)"
 
                 # only 1 drive must be present, otherwise abort
-                if [[ usb_thumbdrive_count -eq 1 ]]; then
-                    echo "${usb_thumbdrive_name}"
+                if [[ usb_flashdrive_count -eq 1 ]]; then
+                    echo "${usb_flashdrive_name}"
 
-                elif [[ usb_thumbdrive_count -eq 0 ]]; then
-                    echo "USB_THUMBDRIVE CHECK: no target found"
+                elif [[ usb_flashdrive_count -eq 0 ]]; then
+                    echo "USB_FLASHDRIVE CHECK: no target found"
                     exit 1
 
                 else
-                    echo "USB_THUMBDRIVE CHECK: too many targets found (${usb_thumbdrive_count} in total)"
+                    echo "USB_FLASHDRIVE CHECK: too many targets found (${usb_flashdrive_count} in total)"
                     exit 1
                 fi               
                 ;;
@@ -131,26 +130,22 @@ case "${MODULE}" in
                 # ensure mountpoint is available
                 mkdir -p /mnt/backup
 
-                # check if ARG is valid USB thumbdrive
+                # check if ARG is valid USB flashdrive
                 if ! lsblk "${ARG}" > /dev/null 2>&1; then
-                    echo "USB_THUMBDRIVE MOUNT: device ${ARG} not found."
+                    echo "USB_FLASHDRIVE MOUNT: device ${ARG} not found."
                     exit 1
 
-                elif [ `lsblk -o NAME,SIZE,TYPE -abrnp -I 8 ${ARG} | wc -l` -ne 1 ]; then
-                    echo "USB_THUMBDRIVE MOUNT: device ${ARG} is not unique and/or has partitions."
+                elif [ "$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}" | wc -l)" -ne 1 ]; then
+                    echo "USB_FLASHDRIVE MOUNT: device ${ARG} is not unique and/or has partitions."
                     exit 1
 
                 else
-                    scsidev=`lsblk -o NAME,SIZE,TYPE -abrnp -I 8 ${ARG}`
-                    size=$( echo "${scsidev}" | cut -f 2 -d " " )
-                    type=$( echo "${scsidev}" | cut -f 3 -d " " )
+                    scsidev=$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}")
+                    name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
+                    size=$( echo "${scsidev}" | cut -s -f 2 -d " " )
+                    fstype=$( echo "${scsidev}" | cut -s -f 3 -d " " )
 
-                    if [[ "${type}" != "part" ]] || [[ size -gt 64000000000 ]]; then
-                        echo "USB_THUMBDRIVE MOUNT: device ${scsidev} is either bigger than 64GB (${size}) or not a partition (type ${type})."
-                        exit 1
-
-                    # all checks passed
-                    else
+                    if [ -n "${fstype}" ] && [[ "${fstype}" != "iso9660" ]] && [[ size -lt 64000000000 ]]; then
 
                         # mount USB device with the following options:
                         #   rw:         read/write
@@ -161,7 +156,11 @@ case "${MODULE}" in
                         #   nodiratime: no update of directory access time
                         #   sync:       synchronous write, flushed to disk immediatly
                         mount "${ARG}" -o rw,nosuid,nodev,noexec,noatime,nodiratime,sync /mnt/backup
-                        echo "USB_THUMBDRIVE MOUNT: mounted ${scsidev}} to /mnt/backup"
+                        echo "USB_FLASHDRIVE MOUNT: mounted ${name} to /mnt/backup"
+
+                    else
+                        echo "USB_FLASHDRIVE MOUNT: device ${name} is either bigger than 64GB (${size}) or does the filesystem (${fstype}) is not supported."
+                        exit 1
                     fi
 
                 fi
@@ -169,10 +168,10 @@ case "${MODULE}" in
 
             UNMOUNT)
                 if ! mountpoint /mnt/backup -q; then
-                    echo "USB_THUMBDRIVE UNMOUNT: no drive mounted at /mnt/backup"
+                    echo "USB_FLASHDRIVE UNMOUNT: no drive mounted at /mnt/backup"
                 else
-                    echo "USB_THUMBDRIVE UNMOUNT: /mnt/backup unmounted."
                     umount /mnt/backup
+                    echo "USB_FLASHDRIVE UNMOUNT: /mnt/backup unmounted."
                 fi
                 ;;
 
