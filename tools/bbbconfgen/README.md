@@ -21,8 +21,8 @@ Command-line arguments:
   --redis-addr    redis connection address (default "localhost:6379")
   --redis-db      redis database number
   --redis-pass    redis password
-  --verbose
   --version
+  --quiet
   --help
 
 Optionally, the output file can be specified on the first line in the template text file.
@@ -78,7 +78,7 @@ seednode={{ bitcoind:seednode:1 #rmLine }}
 seednode={{ bitcoind:seednode:2 #rmLine }}
 seednode={{ bitcoind:seednode:3 #rmLine }}
 
-$ ./bbbconfgen --template test/bitcoin-template.conf --output test/bitcoin-output.conf --verbose
+$ ./bbbconfgen --template test/bitcoin-template.conf --output test/bitcoin-output.conf
 read template file test/bitcoin-template.conf
 written output file test/bitcoin-output.conf
 3 replaced, 0 kept, 0 deleted, 2 lines deleted, 2 set to default

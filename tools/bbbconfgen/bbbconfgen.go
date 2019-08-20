@@ -57,7 +57,7 @@ Command-line arguments:
   --redis-addr    redis connection address  (default "localhost:6379")
   --redis-db      redis database number     (default 0)
   --redis-pass    redis password
-  --verbose
+  --version
   --quiet
   --help
 
