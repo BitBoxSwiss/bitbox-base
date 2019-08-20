@@ -54,6 +54,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/tidwall/gjson"
 )
 
@@ -63,8 +64,11 @@ type watcher interface {
 
 // Command line arguments
 var (
-	versionArg = flag.Bool("version", false, "return program version")
-	helpArg    = flag.Bool("help", false, "show help")
+	helpArg      = flag.Bool("help", false, "show help")
+	redisAddrArg = flag.String("redis-addr", "localhost:6379", "redis connection address")
+	redisPassArg = flag.String("redis-pass", "", "redis password")
+	redisDbArg   = flag.Int("redis-db", 0, "redis database number")
+	versionArg   = flag.Bool("version", false, "return program version")
 )
 
 const (
@@ -72,8 +76,11 @@ const (
 Watches systemd logs (via journalctl) and queries Prometheus to detect potential issues and take action.
 
 Command-line arguments: 
+	--help
+	--redis-addr    redis connection address  (default "localhost:6379")
+	--redis-db      redis database number     (default 0)
+	--redis-pass    redis password
   --version
-  --help
 `
 )
 
@@ -469,6 +476,20 @@ func handleBitcoindIDB(event watcherEvent, pState *supervisorState) error {
 	return nil
 }
 
+func connectRedis() (r redis.Conn, err error) {
+	if len(*redisPassArg) > 0 {
+		r, err = redis.Dial("tcp", *redisAddrArg, redis.DialDatabase(*redisDbArg))
+	} else {
+		r, err = redis.Dial("tcp", *redisAddrArg, redis.DialPassword(*redisPassArg), redis.DialDatabase(*redisDbArg))
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.Do("PING")
+	return r, err
+}
+
 func main() {
 	flag.Parse()
 
@@ -482,6 +503,23 @@ func main() {
 		triggerLastExecuted:    make(map[trigger]int64),
 		prometheusLastStateIBD: -1,
 	}
+
+	/* Redis connectivity, a sample SET and GET are included, but commented out since it's not used yet
+	redisConn, err := connectRedis()
+	if err != nil {
+		panic(fmt.Sprintf("Fatal: Could not connect to redis: %v\n", err))
+	}
+
+	_, err = redisConn.Do("SET", "key", "value")
+	if err != nil {
+		// handle err
+	}
+
+	valueForKey, err := redisConn.Do("GET", "key") // wrap in e.g. redis.String( ) to get as string
+	if err != nil {
+		// handle err
+	}
+	*/
 
 	ws := setupWatchers(events, errs)
 	startWatchers(ws)
