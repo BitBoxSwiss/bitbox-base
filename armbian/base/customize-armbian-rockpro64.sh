@@ -462,7 +462,7 @@ EOF
 
 # LIGHTNING --------------------------------------------------------------------
 BIN_DEPS_TAG="v0.0.1-alpha"
-LIGHTNING_VERSION_BUILD="0.7.1"
+LIGHTNING_VERSION_BUILD="0.7.2.1"
 LIGHTNING_VERSION_BIN="0.7.0"
 
 apt install -y libsodium-dev
@@ -470,7 +470,8 @@ apt install -y libsodium-dev
 ## either compile c-lightning from source (default), or use prebuilt binary
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                  libsqlite3-dev python python3 net-tools zlib1g-dev asciidoc-base
+                  libsqlite3-dev python python3 python3-mako net-tools \
+                  zlib1g-dev asciidoc-base
 
   rm -rf /usr/local/src/lightning
 
