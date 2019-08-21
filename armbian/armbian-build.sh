@@ -5,7 +5,7 @@
 # Script to automate the build process of the customized Armbian base image for the BitBox Base.
 # Additional information: https://digitalbitbox.github.io/bitbox-base
 #
-set -eux
+set -eu
 
 function usage() {
 	echo "Build customized Armbian base image for BitBox Base"
@@ -24,7 +24,7 @@ fi
 
 case ${ACTION} in
 	build|update)
-		if ! which git >/dev/null 2>&1 || ! which docker >/dev/null 2>&1; then
+		if ! command -v git >/dev/null 2>&1 || ! command -v docker >/dev/null 2>&1; then
 			echo
 			echo "Build environment not set up, please check documentation at"
 			echo "https://digitalbitbox.github.io/bitbox-base"
@@ -45,15 +45,23 @@ case ${ACTION} in
 		cp -aR ../bin/go/* armbian-build/userpatches/overlay/bin/go			# copy additional software binaries to overlay
 
 		BOARD=${BOARD:-rockpro64}
-		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no RELEASE=bionic BRANCH=default BUILD_DESKTOP=no WIREGUARD=no"
-		if ! [ "${ACTION}" == "build" ]; then
-			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache PROGRESS_LOG_TO_FILE=yes"
+		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=default WIREGUARD=no PROGRESS_LOG_TO_FILE=yes"
+		if [ "${ACTION}" == "update" ]; then
+			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache"
 		fi
+		# shellcheck disable=SC2086
 		time armbian-build/compile.sh ${BUILD_ARGS}
 
 		# move compiled Armbian image to binaries directory
-		# TODO(Stadicus): verify that only one file is present
-		mv -v armbian-build/output/images/Armbian_*.img ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
+		IMG_COUNT=$(find armbian-build/output/images/Armbian_*.img | grep -c ^armbian)
+
+		if [[ ${IMG_COUNT} -eq 1 ]]; then
+			mv -v armbian-build/output/images/Armbian_*.img ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
+		else
+			echo "ERR: one image file expected in armbian-build/output/images/, ${IMG_COUNT} files found."
+			find armbian-build/output/images/Armbian_*.img
+			exit 1
+		fi
 		;;
 
 	ondevice)

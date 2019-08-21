@@ -207,7 +207,7 @@ fi
 
 ## install dependecies
 apt install -y --no-install-recommends \
-  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools
+  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools curl
 apt install -y --no-install-recommends ifmetric
 
 # debug
