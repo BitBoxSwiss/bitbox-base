@@ -164,3 +164,46 @@ func (middleware *Middleware) SampleInfo() rpcmessages.SampleInfoResponse {
 func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationProgressResponse {
 	return middleware.verificationProgress
 }
+
+// Flashdrive returns a FlashdriveResponse struct in response to a rpcserver request
+func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error) {
+	switch args.Method {
+	case rpcmessages.Check:
+		log.Println("executing a USB flashdrive check via the cmd script")
+		out, err := middleware.runBBBCmdScript("usb_flashdrive", "check")
+		if err != nil {
+			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+		}
+		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+
+	case rpcmessages.Mount:
+		log.Println("executing a USB flashdrive mount via the cmd script")
+		out, err := middleware.runBBBCmdScript("usb_flashdrive", "mount"+" "+args.Path)
+		if err != nil {
+			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+		}
+		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+
+	case rpcmessages.Unmount:
+		log.Println("executing a USB flashdrive unmount via the cmd script")
+		out, err := middleware.runBBBCmdScript("usb_flashdrive", "unmount")
+		if err != nil {
+			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+		}
+		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+
+	default:
+		return rpcmessages.FlashdriveResponse{Success: false, Message: "FlashdriveMethod not supported. (" + string(args.Method) + ")"}, nil
+	}
+}
+
+func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
+	script := middleware.environment.GetBBBCmdScript()
+	cmdAsString := "." + script + " " + method + " " + arg
+	out, err = exec.Command("."+script, method, "check").Output()
+	if err != nil {
+		// no error handling here, only logging.
+		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
+	}
+	return
+}

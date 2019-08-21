@@ -20,6 +20,7 @@ func main() {
 	dataDir := flag.String("datadir", ".base", "Directory where middleware persistent data like noise keys is stored")
 	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
 	bbbConfigScript := flag.String("bbbconfigscript", "/opt/shift/scripts/bbb-config.sh", "Path to the bbb-config file that allows setting system configuration")
+	bbbCmdScript := flag.String("bbbcmdscript", "/opt/shift/scripts/bbb-cmd.sh", "Path to the bbb-cmd file that allows executing system commands")
 	prometheusURL := flag.String("prometheusurl", "http://localhost:9090", "Url of the prometheus server in the form of 'http://localhost:9090'")
 	flag.Parse()
 
@@ -31,6 +32,7 @@ func main() {
 	argumentMap["electrsRPCPort"] = *electrsRPCPort
 	argumentMap["network"] = *network
 	argumentMap["bbbConfigScript"] = *bbbConfigScript
+	argumentMap["bbbCmdScript"] = *bbbCmdScript
 	argumentMap["prometheusURL"] = *prometheusURL
 
 	logBeforeExit := func() {

@@ -21,6 +21,7 @@ type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error)
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 }
 
