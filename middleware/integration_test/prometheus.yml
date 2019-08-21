@@ -1,0 +1,13 @@
+global:
+  scrape_interval:     10s
+  evaluation_interval: 10s
+scrape_configs:
+  - job_name: bitcoind
+    static_configs:
+      - targets: ['bitcoind:8334']
+  - job_name: electrs
+    static_configs:
+    - targets: ['electrs:4224']
+  # - job_name: lightningd
+  #   static_configs:
+  #   - targets: ['127.0.0.1:9900']

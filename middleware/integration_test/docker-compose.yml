@@ -1,7 +1,7 @@
 version: "3"
 services:
   bitcoind:
-    image: nicolasdorier/docker-bitcoin:0.17.0
+    image: shiftcrypto/basebitcoind:latest
     networks:
       local:
         ipv4_address: 10.10.0.10
@@ -42,6 +42,8 @@ services:
       - 0.0.0.0:60401
       - --cors
       - "*"
+      - --monitoring-addr
+      - 10.10.0.11:4224
     networks:
       local:
         ipv4_address: 10.10.0.11
@@ -101,6 +103,18 @@ services:
       local:
         ipv4_address: 10.10.0.13
     restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    networks:
+      local:
+        ipv4_address: 10.10.0.14
+    ports:
+      - 9090:9090
+    depends_on:
+      - electrs
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
 
 networks:
   local:

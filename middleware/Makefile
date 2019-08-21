@@ -37,14 +37,21 @@ regtest-up:
 	docker-compose up -d ;\
 	sudo chown ${USER} volumes/clightning1/lightning-rpc ;\
 	sudo chown ${USER} volumes/clightning2/lightning-rpc ;\
+	docker-compose exec -d bitcoind sh /scripts/prometheus-bitcoind.sh ;\
 
 regtest-down:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
 	docker-compose down ;\
 
+# Creates initial 101 blocks so we have spendable output
 regtest-init:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
-	docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} generate 101
+	docker-compose exec bitcoind sh /scripts/regtest-init.sh ;\
+
+# Generates additional 5 new blocks
+regtest-generate:
+	cd $(REPO_ROOT)/middleware/integration_test ;\
+	docker-compose exec bitcoind sh /scripts/generate5.sh ;\
 
 regtest-info:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
