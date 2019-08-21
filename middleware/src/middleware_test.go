@@ -16,7 +16,8 @@ func TestMiddleware(t *testing.T) {
 	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
-	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
+	argumentMap["bbbConfigScript"] = "/home/bitcoin/config-script.sh"
+	argumentMap["bbbCmdScript"] = "/home/bitcoin/cmd-script.sh"
 
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
 

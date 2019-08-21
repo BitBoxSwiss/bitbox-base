@@ -15,7 +15,8 @@ func TestSystem(t *testing.T) {
 	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
-	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
+	argumentMap["bbbConfigScript"] = "/home/bitcoin/config-script.sh"
+	argumentMap["bbbCmdScript"] = "/home/bitcoin/cmd-script.sh"
 	argumentMap["prometheusURL"] = "http://localhost:9090"
 
 	environmentInstance := system.NewEnvironment(argumentMap)
@@ -23,7 +24,8 @@ func TestSystem(t *testing.T) {
 	require.Equal(t, environmentInstance.GetBitcoinRPCUser(), "user")
 	require.Equal(t, environmentInstance.GetBitcoinRPCPassword(), "password")
 	require.Equal(t, environmentInstance.GetLightningRPCPath(), "/home/bitcoin/.lightning")
-	require.Equal(t, environmentInstance.GetBBBConfigScript(), "/home/bitcoin/script.sh")
+	require.Equal(t, environmentInstance.GetBBBConfigScript(), "/home/bitcoin/config-script.sh")
+	require.Equal(t, environmentInstance.GetBBBCmdScript(), "/home/bitcoin/cmd-script.sh")
 	require.Equal(t, environmentInstance.Network, "testnet")
 	require.Equal(t, environmentInstance.ElectrsRPCPort, "18442")
 	require.Equal(t, environmentInstance.GetPrometheusURL(), "http://localhost:9090")

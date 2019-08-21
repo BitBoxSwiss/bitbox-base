@@ -47,8 +47,17 @@ type BackupArgs int
 
 // The BackupArgs has two methods. Backup the system config (sysconfig) or the hsm_secret by c-lightning
 const (
-	SysConfig BackupArgs = iota
-	HSMSecret
+	BackupSysConfig BackupArgs = iota
+	BackupHSMSecret
+)
+
+// RestoreArgs is an iota that holds the method for the Backup RPC call
+type RestoreArgs int
+
+// The RestoreArgs has two methods. Restore the system config (sysconfig) or the hsm_secret by c-lightning
+const (
+	RestoreSysConfig RestoreArgs = iota
+	RestoreHSMSecret
 )
 
 /*
@@ -80,14 +89,9 @@ type VerificationProgressResponse struct {
 	VerificationProgress float64 `json:"verificationProgress"`
 }
 
-// FlashdriveResponse is the struct that gets sent by the rpc server during a Flashdrive call
-type FlashdriveResponse struct {
-	Success bool
-	Message string
-}
-
-// BackupResponse is the struct that gets sent by the rpc server during a Backup call
-type BackupResponse struct {
+// GenericResponse is a struct that for example gets sent by the RPC server during a Flashdrive, Backup or Restore call.
+// Since it simply includes a success boolean and a message it can be used for other/future RPCs as well.
+type GenericResponse struct {
 	Success bool
 	Message string
 }

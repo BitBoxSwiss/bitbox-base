@@ -51,8 +51,9 @@ func (conn *rpcConn) Close() error {
 type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
-	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error)
-	Backup(rpcmessages.BackupArgs) (rpcmessages.BackupResponse, error)
+	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
+	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
+	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 }
@@ -108,20 +109,29 @@ func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.Ve
 	return nil
 }
 
-// Flashdrive sends the middleware's FlashdriveResponse over rpc
+// Flashdrive sends the middleware's GenericResponse over rpc
 // Args given can specify e.g. a flashdrive check, mount or unmount
-func (server *RPCServer) Flashdrive(args *rpcmessages.FlashdriveArgs, reply *rpcmessages.FlashdriveResponse) error {
+func (server *RPCServer) Flashdrive(args *rpcmessages.FlashdriveArgs, reply *rpcmessages.GenericResponse) error {
 	var err error
 	*reply, err = server.middleware.Flashdrive(*args)
 	log.Printf("sent reply %v: ", reply)
 	return err
 }
 
-// Backup sends the middleware's BackupResponse over rpc
+// Backup sends the middleware's GenericResponse over rpc
 // Args given can specify e.g. a sysconfig backup or a hsm_secret backup
-func (server *RPCServer) Backup(args *rpcmessages.BackupArgs, reply *rpcmessages.BackupResponse) error {
+func (server *RPCServer) Backup(args *rpcmessages.BackupArgs, reply *rpcmessages.GenericResponse) error {
 	var err error
 	*reply, err = server.middleware.Backup(*args)
+	log.Printf("sent reply %v: ", reply)
+	return err
+}
+
+// Restore sends the middleware's GenericResponse over rpc
+// Args given can specify e.g. a sysconfig restore or a hsm_secret restore
+func (server *RPCServer) Restore(args *rpcmessages.RestoreArgs, reply *rpcmessages.GenericResponse) error {
+	var err error
+	*reply, err = server.middleware.Restore(*args)
 	log.Printf("sent reply %v: ", reply)
 	return err
 }
