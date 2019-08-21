@@ -51,6 +51,7 @@ func (conn *rpcConn) Close() error {
 type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error)
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 }
@@ -104,6 +105,15 @@ func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.Ve
 	*reply = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)
 	return nil
+}
+
+// Flashdrive sends the middleware's FlashdriveResponse over rpc
+// Args given can specify e.g. a flashdrive check, mount or unmount
+func (server *RPCServer) Flashdrive(args *rpcmessages.FlashdriveArgs, reply *rpcmessages.FlashdriveResponse) error {
+	var err error
+	*reply, err = server.middleware.Flashdrive(*args)
+	log.Printf("sent reply %v: ", reply)
+	return err
 }
 
 // Serve starts a gob rpc server

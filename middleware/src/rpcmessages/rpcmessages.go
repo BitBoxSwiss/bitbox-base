@@ -25,6 +25,23 @@ const (
 	Reindex
 )
 
+// FlashdriveArgs is an struct that holds the arguments for the Flashdrive RPC call
+type FlashdriveArgs struct {
+	Method FlashdriveMethod // the method called
+	Path   string           // the method 'mount' needs a path. If not calling 'mount' this path should be empty.
+}
+
+// FlashdriveMethod is an iota that holds the methods for the Flashdrive RPC call
+type FlashdriveMethod int
+
+// FlashdriveMethod can be one of three possible methods.
+// Either check for an existing flashdrive, mount a flash drive or unmount a mounted drive.
+const (
+	Check FlashdriveMethod = iota
+	Mount
+	Unmount
+)
+
 /*
 Put Response structs below this line. They should have the format of 'RPC Method Name' + 'Response'.
 */
@@ -52,4 +69,10 @@ type VerificationProgressResponse struct {
 	Blocks               int64   `json:"blocks"`
 	Headers              int64   `json:"headers"`
 	VerificationProgress float64 `json:"verificationProgress"`
+}
+
+// FlashdriveResponse is the struct that gets sent by the rpc server during a Flashdrive call
+type FlashdriveResponse struct {
+	Success bool
+	Message string
 }
