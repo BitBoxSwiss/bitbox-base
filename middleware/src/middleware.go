@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"errors"
 	"log"
 	"os/exec"
 	"time"
@@ -165,59 +166,86 @@ func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationPro
 	return middleware.verificationProgress
 }
 
-// Flashdrive returns a FlashdriveResponse struct in response to a rpcserver request
-func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error) {
+// Flashdrive returns a GenericResponse struct in response to a rpcserver request
+func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error) {
 	switch args.Method {
 	case rpcmessages.Check:
 		log.Println("Executing a USB flashdrive check via the cmd script")
-		out, err := middleware.runBBBCmdScript("usb_flashdrive", "check")
+		out, err := middleware.runBBBCmdScript("flashdrive", "check")
 		if err != nil {
-			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
-		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	case rpcmessages.Mount:
 		log.Println("Executing a USB flashdrive mount via the cmd script")
-		out, err := middleware.runBBBCmdScript("usb_flashdrive", "mount"+" "+args.Path)
+		out, err := middleware.runBBBCmdScript("flashdrive", "mount"+" "+args.Path)
 		if err != nil {
-			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
-		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	case rpcmessages.Unmount:
 		log.Println("Executing a USB flashdrive unmount via the cmd script")
-		out, err := middleware.runBBBCmdScript("usb_flashdrive", "unmount")
+		out, err := middleware.runBBBCmdScript("flashdrive", "unmount")
 		if err != nil {
-			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
-		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		return rpcmessages.FlashdriveResponse{Success: false, Message: "Method " + string(args.Method) + " not supported for Flashdrive."}, nil
+		errorMessage := "Method " + string(args.Method) + " not supported for Flashdrive()."
+		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
 }
 
-// Backup returns a BackupResponse struct in response to a rpcserver request
-func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages.BackupResponse, error) {
+// Backup returns a GenericResponse struct in response to a rpcserver request
+func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error) {
 	switch method {
-	case rpcmessages.SysConfig:
+	case rpcmessages.BackupSysConfig:
 		log.Println("Executing a backup of the system config via the cmd script")
 		out, err := middleware.runBBBCmdScript("backup", "sysconfig")
 		if err != nil {
-			return rpcmessages.BackupResponse{Success: false, Message: string(out)}, nil
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
-		return rpcmessages.BackupResponse{Success: true, Message: string(out)}, nil
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
-	case rpcmessages.HSMSecret:
+	case rpcmessages.BackupHSMSecret:
 		log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
 		out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
 		if err != nil {
-			return rpcmessages.BackupResponse{Success: false, Message: string(out)}, nil
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
-		return rpcmessages.BackupResponse{Success: true, Message: string(out)}, nil
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		return rpcmessages.BackupResponse{Success: false, Message: "Method " + string(method) + " not supported for Backup."}, nil
+		errorMessage := "Method " + string(method) + " not supported for Backup()."
+		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+	}
+}
+
+// Restore returns a GenericResponse struct in response to a rpcserver request
+func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error) {
+	switch method {
+	case rpcmessages.RestoreSysConfig:
+		log.Println("Executing a restore of the system config via the cmd script")
+		out, err := middleware.runBBBCmdScript("restore", "sysconfig")
+		if err != nil {
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
+		}
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
+
+	case rpcmessages.RestoreHSMSecret:
+		log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
+		out, err := middleware.runBBBCmdScript("restore", "hsm_secret")
+		if err != nil {
+			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
+		}
+		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
+
+	default:
+		errorMessage := "Method " + string(method) + " not supported for Restore()."
+		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
 }
 
