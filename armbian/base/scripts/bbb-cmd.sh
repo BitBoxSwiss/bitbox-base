@@ -92,6 +92,7 @@ case "${MODULE}" in
                 ;;
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
         esac
         ;;
 
@@ -171,6 +172,7 @@ case "${MODULE}" in
             UNMOUNT)
                 if ! mountpoint /mnt/backup -q; then
                     echo "USB_FLASHDRIVE UNMOUNT: no drive mounted at /mnt/backup"
+                    exit 1
                 else
                     umount /mnt/backup
                     echo "USB_FLASHDRIVE UNMOUNT: /mnt/backup unmounted."
@@ -179,6 +181,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
         esac
         ;;        
     
@@ -196,6 +199,7 @@ case "${MODULE}" in
                     cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup_$(date '+%Y%m%d-%H%M').rdb"
                 else
                     echo "ERR: /mnt/backup is not a mountpoint"
+                    exit 1
                 fi
                 echo "OK: backup created as /mnt/backup/bbb-backup.rdb"
                 ;;
@@ -209,6 +213,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
         esac
         ;;    
 
@@ -246,9 +251,11 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
         esac
         ;;    
 
     *)
         echo "Invalid argument: module ${MODULE} unknown."
+        exit 1
 esac
