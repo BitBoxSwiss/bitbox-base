@@ -169,7 +169,7 @@ func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationPro
 func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.FlashdriveResponse, error) {
 	switch args.Method {
 	case rpcmessages.Check:
-		log.Println("executing a USB flashdrive check via the cmd script")
+		log.Println("Executing a USB flashdrive check via the cmd script")
 		out, err := middleware.runBBBCmdScript("usb_flashdrive", "check")
 		if err != nil {
 			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
@@ -177,7 +177,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
 
 	case rpcmessages.Mount:
-		log.Println("executing a USB flashdrive mount via the cmd script")
+		log.Println("Executing a USB flashdrive mount via the cmd script")
 		out, err := middleware.runBBBCmdScript("usb_flashdrive", "mount"+" "+args.Path)
 		if err != nil {
 			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
@@ -185,7 +185,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
 
 	case rpcmessages.Unmount:
-		log.Println("executing a USB flashdrive unmount via the cmd script")
+		log.Println("Executing a USB flashdrive unmount via the cmd script")
 		out, err := middleware.runBBBCmdScript("usb_flashdrive", "unmount")
 		if err != nil {
 			return rpcmessages.FlashdriveResponse{Success: false, Message: string(out)}, nil
@@ -193,7 +193,31 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 		return rpcmessages.FlashdriveResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		return rpcmessages.FlashdriveResponse{Success: false, Message: "FlashdriveMethod not supported. (" + string(args.Method) + ")"}, nil
+		return rpcmessages.FlashdriveResponse{Success: false, Message: "Method " + string(args.Method) + " not supported for Flashdrive."}, nil
+	}
+}
+
+// Backup returns a BackupResponse struct in response to a rpcserver request
+func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages.BackupResponse, error) {
+	switch method {
+	case rpcmessages.SysConfig:
+		log.Println("Executing a backup of the system config via the cmd script")
+		out, err := middleware.runBBBCmdScript("backup", "sysconfig")
+		if err != nil {
+			return rpcmessages.BackupResponse{Success: false, Message: string(out)}, nil
+		}
+		return rpcmessages.BackupResponse{Success: true, Message: string(out)}, nil
+
+	case rpcmessages.HSMSecret:
+		log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
+		out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
+		if err != nil {
+			return rpcmessages.BackupResponse{Success: false, Message: string(out)}, nil
+		}
+		return rpcmessages.BackupResponse{Success: true, Message: string(out)}, nil
+
+	default:
+		return rpcmessages.BackupResponse{Success: false, Message: "Method " + string(method) + " not supported for Backup."}, nil
 	}
 }
 

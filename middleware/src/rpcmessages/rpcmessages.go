@@ -31,7 +31,7 @@ type FlashdriveArgs struct {
 	Path   string           // the method 'mount' needs a path. If not calling 'mount' this path should be empty.
 }
 
-// FlashdriveMethod is an iota that holds the methods for the Flashdrive RPC call
+// FlashdriveMethod is an iota that holds the method for the Flashdrive RPC call
 type FlashdriveMethod int
 
 // FlashdriveMethod can be one of three possible methods.
@@ -40,6 +40,15 @@ const (
 	Check FlashdriveMethod = iota
 	Mount
 	Unmount
+)
+
+// BackupArgs is an iota that holds the method for the Backup RPC call
+type BackupArgs int
+
+// The BackupArgs has two methods. Backup the system config (sysconfig) or the hsm_secret by c-lightning
+const (
+	SysConfig BackupArgs = iota
+	HSMSecret
 )
 
 /*
@@ -73,6 +82,12 @@ type VerificationProgressResponse struct {
 
 // FlashdriveResponse is the struct that gets sent by the rpc server during a Flashdrive call
 type FlashdriveResponse struct {
+	Success bool
+	Message string
+}
+
+// BackupResponse is the struct that gets sent by the rpc server during a Backup call
+type BackupResponse struct {
 	Success bool
 	Message string
 }
