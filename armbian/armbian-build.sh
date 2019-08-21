@@ -24,7 +24,7 @@ fi
 
 case ${ACTION} in
 	build|update)
-		if ! which git >/dev/null 2>&1 || ! which docker >/dev/null 2>&1; then
+		if ! command -v git >/dev/null 2>&1 || ! command -v docker >/dev/null 2>&1; then
 			echo
 			echo "Build environment not set up, please check documentation at"
 			echo "https://digitalbitbox.github.io/bitbox-base"
@@ -49,11 +49,11 @@ case ${ACTION} in
 		if [ "${ACTION}" == "update" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache"
 		fi
+		# shellcheck disable=SC2086
 		time armbian-build/compile.sh ${BUILD_ARGS}
 
 		# move compiled Armbian image to binaries directory
-		IMG_COUNT=find armbian-build/output/images/Armbian_*.img | grep -c ^armbian
-		echo $IMG_COUNT
+		IMG_COUNT=$(find armbian-build/output/images/Armbian_*.img | grep -c ^armbian)
 
 		if [[ ${IMG_COUNT} -eq 1 ]]; then
 			mv -v armbian-build/output/images/Armbian_*.img ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
