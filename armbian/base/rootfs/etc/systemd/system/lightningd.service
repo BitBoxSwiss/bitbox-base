@@ -1,0 +1,24 @@
+[Unit]
+Description=c-lightning daemon
+Wants=bitcoind.service
+After=bitcoind.service
+
+[Service]
+ExecStartPre=/opt/shift/scripts/systemd-lightningd-startpre.sh
+ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
+ExecStartPost=/opt/shift/scripts/systemd-lightningd-startpost.sh
+RuntimeDirectory=lightningd
+User=bitcoin
+Group=bitcoin
+Type=simple
+Restart=always
+RestartSec=30
+TimeoutSec=240
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+PrivateDevices=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

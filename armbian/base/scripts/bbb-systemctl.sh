@@ -25,21 +25,23 @@ fi
 
 case ${ACTION} in
         status)
-                echo
-                echo "Checking systemd unit status of BitBox Base..."
-                echo 
-                echo "bitcoind:                 $(systemctl is-active bitcoind.service)"
-                echo "electrs:                  $(systemctl is-active electrs.service)"
-                echo "lightningd:               $(systemctl is-active lightningd.service)"
-                echo "bbbmiddleware:            $(systemctl is-active bbbmiddleware.service)"
-                echo "nginx:                    $(systemctl is-active nginx.service)"
-                echo "prometheus:               $(systemctl is-active prometheus.service)"
-                echo "prometheus-node-exporter: $(systemctl is-active prometheus-node-exporter.service)"
-                echo "prometheus-base:          $(systemctl is-active prometheus-base.service)"
-                echo "prometheus-bitcoind:      $(systemctl is-active prometheus-bitcoind.service)"
-                echo "grafana:                  $(systemctl is-active grafana-server.service)"
-                echo "bbbfancontrol:            $(systemctl is-active bbbfancontrol.service)"
-                echo
+                echo "
+Checking systemd unit status of BitBox Base...
+
+bitcoind:                 $(systemctl is-active bitcoind.service)
+electrs:                  $(systemctl is-active electrs.service)
+lightningd:               $(systemctl is-active lightningd.service)
+bbbmiddleware:            $(systemctl is-active bbbmiddleware.service)
+bbbsupervisor:            $(systemctl is-active bbbsupervisor.service)
+bbbfancontrol:            $(systemctl is-active bbbfancontrol.service)
+redis:                    $(systemctl is-active redis.service)
+nginx:                    $(systemctl is-active nginx.service)
+prometheus:               $(systemctl is-active prometheus.service)
+prometheus-node-exporter: $(systemctl is-active prometheus-node-exporter.service)
+prometheus-base:          $(systemctl is-active prometheus-base.service)
+prometheus-bitcoind:      $(systemctl is-active prometheus-bitcoind.service)
+grafana:                  $(systemctl is-active grafana-server.service)
+" | grep --color -E 'failed|activating|$'
                 ;;
 
   start|restart|stop|enable|disable)
@@ -61,7 +63,9 @@ case ${ACTION} in
                 systemctl $ACTION electrs.service 
                 systemctl $ACTION lightningd.service 
                 systemctl $ACTION bitcoind.service
+                systemctl $ACTION bbbsupervisor.service
                 systemctl $ACTION bbbfancontrol.service
+                systemctl $ACTION redis.service
                 ;;
 esac
 echo

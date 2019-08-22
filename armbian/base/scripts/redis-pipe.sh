@@ -6,6 +6,8 @@
 # convert it to the Redis protocol for mass insertion.
 # https://redis.io/topics/mass-insert
 #
+# value arguments with spaces are not supported
+#
 # Example: cat redis-commands.txt | sh redis-pipe.sh | redis-cli --pipe
 
 while read -r CMD; do

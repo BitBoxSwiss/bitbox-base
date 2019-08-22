@@ -1,0 +1,9 @@
+# Disable any form of screen saver / screen blanking / power management
+xset s off
+xset s noblank
+xset -dpms
+
+# Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
+chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'

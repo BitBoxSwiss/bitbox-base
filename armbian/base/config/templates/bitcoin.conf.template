@@ -1,0 +1,33 @@
+{{ #output: /etc/bitcoin/bitcoin.conf }}
+# network
+mainnet={{ bitcoind:mainnet #default: 1 }}
+testnet={{ bitcoind:testnet #default: 0 }}
+
+# server
+server={{           bitcoind:server             #default: 1 }}
+listen={{           bitcoind:listen             #default: 1 }}
+listenonion={{      tor:base:enabled            #default: 1 }}
+txindex={{          bitcoind:txindex            #default: 0 }}
+prune={{            bitcoind:prune              #default: 0 }}
+disablewallet={{    bitcoind:disablewallet      #default: 1 }}
+rpccookiefile={{    bitcoind:rpccookiefile      #default: /mnt/ssd/bitcoin/.bitcoin/.cookie }}
+sysparms={{         bitcoind:sysparms           #default: 1 }}
+printtoconsole={{   bitcoind:printtoconsole     #default: 1 }}
+onlynet={{          bitcoind:onlynet            #rmLine }}                  {{ bitcoind:onlynet:enabled #check }}
+
+# rpc
+rpcconnect={{       bitcoind:rpcconnect         #default: 127.0.0.1 }}
+rpcport={{          bitcoind:rpcport            #default: 8332 }}
+
+# performance
+dbcache={{          bitcoind:dbcache            #default: 300 }}
+maxconnections={{   bitcoind:maxconnections     #default: 40 }}
+maxuploadtarget={{  bitcoind:maxuploadtarget    #default: 5000 }}
+
+# tor
+proxy={{            bitcoind:proxy              #default: 127.0.0.1:9050 }} {{ tor:base:enabled #check }}
+seednode={{         bitcoind:seednode:1         #rmLine }}                  {{ tor:base:enabled #check }}
+seednode={{         bitcoind:seednode:2         #rmLine }}                  {{ tor:base:enabled #check }}
+seednode={{         bitcoind:seednode:3         #rmLine }}                  {{ tor:base:enabled #check }}
+
+#reindex-chainstate={{ bitcoind:reindex-chainstate }}

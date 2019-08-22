@@ -1,0 +1,20 @@
+{{ #output: /home/base/.bashrc-custom }}
+export LS_OPTIONS='--color=auto'
+alias l='ls $LS_OPTIONS -l'
+alias ll='ls $LS_OPTIONS -la'
+
+# Bitcoin
+alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
+alias blog='sudo journalctl -f -u bitcoind'
+
+# Lightning
+alias lcli='lightning-cli --lightning-dir={{ lightningd:basedir #rmLine }}'
+alias llog='sudo journalctl -f -u lightningd'
+
+# Logs
+alias j='sudo journalctl -n 100 -f'
+alias elog='sudo journalctl -n 100 -f -u electrs'
+alias slog='sudo journalctl -n 100 -f -u bbbsupervisor'
+alias mlog='sudo journalctl -n 100 -f -u bbbmiddleware'
+
+export PATH=$PATH:/sbin:/usr/local/sbin

@@ -28,7 +28,7 @@
 
 set -e
 
-function echoArguments {
+echoArguments() {
   echo "
 ================================================================================
 ==> $1
@@ -43,45 +43,105 @@ CONFIGURATION:
     SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
-    OVERLAYROOT:        ${BASE_OVERLAYROOT}
 
 ================================================================================
 BUILD OPTIONS:
     BUILD MODE:         ${BASE_BUILDMODE}
+    VERSION:            ${BASE_VERSION}
     LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
     MINIMAL IMAGE:      ${BASE_MINIMAL}
+    OVERLAYROOT:        ${BASE_OVERLAYROOT}
     BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
+
+importFile() {
+  # copies a single file from the repository directory to the root filesystem
+  # this makes every file inclusion explicit
+  #
+  # argument is full rootfs path, with leading slash /
+  #
+  local REPO_ROOTFS="/opt/shift/rootfs"
+
+  if [ ${#} -eq 0 ] || [ ${#} -gt 1 ]; then
+    echo "ERR: importFile() expects exactly one argument"
+    exit 1
+  fi
+
+  # create directory
+  local DIR=$(dirname "${1}")
+  mkdir -p "${DIR}"
+
+  # strip leading slash and import file
+  local FILE="${1#/}"
+  if [ -f "${REPO_ROOTFS}/${FILE}" ]; then
+    echo "importFile() copying ${FILE}"
+    cd "${REPO_ROOTFS}"
+    cp -f --parents "${FILE}" /
+    cd -
+  else
+    echo "ERR: generateConfig() template file ${REPO_ROOTFS}/${FILE} not found"
+    exit 1
+  fi
+}
+
+generateConfig() {
+  # generates a config file using custom bbbconfgen
+  # https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen
+  #
+  # argument is template filename, without path
+  #
+  local TEMPLATES_DIR="/opt/shift/config/templates"
+
+  if [ ${#} -eq 0 ] || [ ${#} -gt 1 ]; then
+    echo "ERR: generateConfig() expects exactly one argument"
+    exit 1
+  fi
+
+  local FILE="${TEMPLATES_DIR}/${1}"
+  if [ -f "${FILE}" ]; then
+    echo "generateConfig() from ${FILE}"
+    /usr/local/sbin/bbbconfgen --template "${FILE}"
+  else
+    echo "ERR: generateConfig() template file ${FILE} not found"
+    exit 1
+  fi
+}
+
 # get Linux distribution and version
-# (works explicitly only on Armbian Debian Stretch (default), Buster and Ubuntu Bionic)
+# (works explicitly only on Armbian Debian Stretch, Buster and Ubuntu Bionic)
 cat /etc/os-release
+# shellcheck disable=SC1091
 source /etc/os-release
 BASE_DISTRIBUTION=${VERSION_CODENAME}
 
 # Load build configuration, set defaults
+# shellcheck disable=SC1091
 source /opt/shift/build.conf || true
+# shellcheck disable=SC1091
 source /opt/shift/build-local.conf || true
 
 BASE_BUILDMODE=${1:-"armbian-build"}
-BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"stretch"}
+BASE_VERSION=${BASE_VERSION:-"0"}
+BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
-BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
+BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"mainnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
-BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"false"}
 BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
 BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
 
 # HDMI dashboard only enabled if image is built to support it
 if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
+  echo "WARN: HDMI dashboard is disabled. It cannot be enabled without BASE_HDMI_BUILD option set to 'true'."
   BASE_DASHBOARD_HDMI_ENABLED="false"
 fi
 BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
@@ -120,6 +180,7 @@ export HOME=/root
 # - user 'root' is disabled from logging in with password
 # - user 'base' has sudo rights and is used for low-level user access
 # - user 'hdmi' has minimal access rights
+# - other users are setup as system user, with disabled login 
 
 # add groups
 addgroup --system bitcoin
@@ -128,7 +189,10 @@ addgroup --system system
 # Set root password (either from configuration or random) and lock account
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo "root:${BASE_ROOTPW}" | chpasswd
-passwd -l root
+
+if [ "$BASE_SSH_ROOT_LOGIN" != "true" ]; then 
+  passwd -l root
+fi
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
 adduser --ingroup system --disabled-password --gecos "" base || true
@@ -136,26 +200,23 @@ usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
-mkdir -p /root/.ssh/ 
 mkdir -p /home/base/.ssh/
 if [ -f /opt/shift/config/ssh/authorized_keys ]; then
-  cp -f /opt/shift/config/ssh/authorized_keys /root/.ssh/
-  cp -f /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
+  cp /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/authorized_keys), password login only."
 fi
-chmod -R 700 /root/.ssh/
 chown -R base:bitcoin /home/base/
 chmod -R 700 /home/base/.ssh/
 
 # disable password login for SSH (authorized ssh keys only)
-if [ ! "$BASE_SSH_PASSWORD_LOGIN" == "true" ]; then
+if [ "$BASE_SSH_PASSWORD_LOGIN" != "true" ]; then
   sed -i '/PASSWORDAUTHENTICATION/Ic\PasswordAuthentication no' /etc/ssh/sshd_config
   sed -i '/CHALLENGERESPONSEAUTHENTICATION/Ic\ChallengeResponseAuthentication no' /etc/ssh/sshd_config
 fi
 
 # disable root login via SSH
-if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+if [ "$BASE_SSH_ROOT_LOGIN" != "true" ]; then
   sed -i '/PERMITROOTLOGIN/Ic\PermitRootLogin no' /etc/ssh/sshd_config
 fi
 
@@ -210,11 +271,12 @@ fi
 apt install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools curl
 apt install -y --no-install-recommends ifmetric
+apt install -y iptables-persistent
 
 # debug
 apt install -y --no-install-recommends tmux unzip
 
-if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+if [[ "${BASE_DISTRIBUTION}" == "bionic" ]]; then
     apt install -y --no-install-recommends overlayroot
 fi
 
@@ -227,47 +289,63 @@ fi
 ## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
 ln -sf /data_source /data
+touch /data/.datadir_set_up
 
 ## install Redis
 apt install -y --no-install-recommends redis
 mkdir -p /data/redis/
+chown -R redis:redis /data/redis/
 
-cp /opt/shift/config/redis/redis-local.conf /data/redis/
-echo "include /data/redis/redis-local.conf" >> /etc/redis/redis.conf
+### disable standard systemd unit
+systemctl disable redis-server.service
+systemctl mask redis-server.service
 
-rm /etc/systemd/system/redis.service
-cp /opt/shift/config/redis/redis.service /etc/systemd/system/
+echo "include /etc/redis/redis-local.conf" >> /etc/redis/redis.conf
+importFile /etc/redis/redis-local.conf
+
+importFile /etc/systemd/system/redis.service
+systemctl enable redis.service
 
 ## start temporary Redis server for build process
-redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data_source/redis/
+redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data/redis/
 
-## bulk import factory settings
-cat /opt/shift/config/redis/factorysettings.txt | sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+## bulk import factory settings / store build info
+< /opt/shift/config/redis/factorysettings.txt sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+redis-cli SET build:date "$(date +%Y-%m-%d)"
+redis-cli SET build:time "$(date +%H:%M)"
+redis-cli SET build:commit "$(cat /opt/shift/config/latest_commit)"
+redis-cli SET base:version "${BASE_VERSION}"
 redis-cli KEYS "*"
+
+## bbbconfgen
+## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen
+if [ -f /opt/shift/bin/go/bbbconfgen ]; then
+  cp /opt/shift/bin/go/bbbconfgen /usr/local/sbin/
+else
+  echo "INFO: bbbconfgen not found, executable is downloaded from GitHub."
+  mkdir -p /usr/local/src/bbbconfgen && cd "$_"
+  curl --retry 5 -SLO "https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/bbbconfgen.tar.gz"
+  #TODO(Stadicus): add checksum once releases are stable
+  # if ! echo "xxxxx  bbbconfgen.tar.gz" | sha256sum -c -; then
+  #   echo "sha256sum for precompiled 'bbbconfgen' failed" >&2
+  #   exit 1
+  # fi
+  tar -xzf bbbconfgen.tar.gz
+  cp ./bbbconfgen /usr/local/sbin/
+fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
-SYSCONFIG_PATH="/data/sysconfig"
-mkdir -p "${SYSCONFIG_PATH}"
-echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/BITCOIN_NETWORK"
-
-## store build information
-echo "BUILD_DATE='$(date +%Y-%m-%d)'" > "${SYSCONFIG_PATH}/BUILD_DATE"
-echo "BUILD_TIME='$(date +%H:%M)'" > "${SYSCONFIG_PATH}/BUILD_TIME"
-echo "BUILD_COMMIT='$(cat /opt/shift/config/latest_commit)'" > "${SYSCONFIG_PATH}/BUILD_COMMIT"
 
 ## create triggers directory
 mkdir -p /data/triggers/
-touch /data/triggers/datadir_set_up
 
 ## set hostname
-mkdir -p /data/network
-mv /etc/hostname /data/network/hostname
-ln -sf /data/network/hostname /etc/hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 ## set debug console to only use display, not serial console ttyS2 over UART
 echo 'console=display' >> /boot/armbianEnv.txt
+systemctl mask serial-getty@ttyS2.service
 
 ## generate selfsigned NGINX key when run script is run on device, plus symlink to /data
 mkdir -p /data/ssl/
@@ -279,7 +357,7 @@ fi
 if [ "$BASE_OVERLAYROOT" == "true" ]; then
   sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
   sed -i 's/log.hdd/log/g' /etc/logrotate.conf
-  cp /opt/shift/config/logrotate/rsyslog /etc/logrotate.d/
+  importFile /etc/logrotate.d/rsyslog
 fi
 
 ## retain less NGINX logs
@@ -287,22 +365,11 @@ sed -i 's/daily/size 1M/g' /etc/logrotate.d/nginx || true
 sed -i '/\trotate/Ic\\trotate 14' /etc/logrotate.d/nginx || true
 
 ## configure systemd journal
-cat << 'EOF' > /etc/systemd/journald.conf
-Storage=auto
-Compress=yes
-SplitMode=none
-SyncIntervalSec=5m
-RateLimitIntervalSec=30sn
-RateLimitBurst=10000
-SystemMaxUse=1G
-ForwardToSyslog=no
-ForwardToWall=yes
-MaxLevelWall=emerg
-EOF
+importFile "/etc/systemd/journald.conf"
 
 ## run logroate every 10 minutes
-cp /opt/shift/config/logrotate/logrotate.service /etc/systemd/system/
-cp /opt/shift/config/logrotate/logrotate.timer /etc/systemd/system/
+importFile "/etc/systemd/system/logrotate.service"
+importFile "/etc/systemd/system/logrotate.timer"
 systemctl enable logrotate.timer
 
 ## retain journal logs between reboots on the SSD
@@ -314,16 +381,7 @@ sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 
 ## startup checks
-cat << 'EOF' > /etc/systemd/system/startup-checks.service
-[Unit]
-Description=BitBox Base startup checks
-After=network-online.target
-[Service]
-ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
-Type=simple
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile /etc/systemd/system/startup-checks.service
 
 ## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd
@@ -331,27 +389,10 @@ echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian
 ## prepare SSD mount point
 mkdir -p /mnt/ssd/
 
-## add shortcuts
-cat << EOF > /home/base/.bashrc-custom
-export LS_OPTIONS='--color=auto'
-alias l='ls $LS_OPTIONS -l'
-alias ll='ls $LS_OPTIONS -la'
-
-# Bitcoin
-alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
-alias blog='sudo journalctl -f -u bitcoind'
-
-# Lightning
-alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'
-alias llog='sudo journalctl -f -u lightningd'
-
-# Electrum
-alias elog='sudo journalctl -n 100 -f -u electrs'
-
-export PATH=$PATH:/sbin:/usr/local/sbin
-EOF
-
+## add bash shortcuts
+generateConfig bashrc-custom.template # -->  /home/base/.bashrc-custom
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
+# shellcheck disable=SC1091
 source /home/base/.bashrc-custom
 
 cat << 'EOF' >> /etc/services
@@ -361,7 +402,7 @@ electrum-tls    50002/tcp
 bitcoin         8333/tcp
 bitcoin-rpc     8332/tcp
 lightning       9735/tcp
-middleware      8845/tcp
+bbbmiddleware   8845/tcp
 EOF
 
 ## make bbb scripts executable with sudo
@@ -379,31 +420,11 @@ fi
 
 apt update
 apt -y install tor --no-install-recommends
+generateConfig "torrc.template" # --> /etc/tor/torrc
 
 ## allow user 'bitcoin' to access Tor proxy socket
 usermod -a -G debian-tor bitcoin
 
-cat << EOF > /etc/tor/torrc
-ControlPort 9051                                          #TOR#
-CookieAuthentication 1                                    #TOR#
-CookieAuthFileGroupReadable 1                             #TOR#
-
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/         #SSH#
-HiddenServiceVersion 3                                    #SSH#
-HiddenServicePort 22 127.0.0.1:22                         #SSH#
-
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/    #ELECTRUM#
-HiddenServiceVersion 3                                    #ELECTRUM#
-HiddenServicePort 50002 127.0.0.1:50002                   #ELECTRUM#
-
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/      #LN#
-HiddenServiceVersion 3                                    #LN#
-HiddenServicePort 9375 127.0.0.1:9735                     #LN#
-
-HiddenServiceDir /var/lib/tor/hidden_service_middleware/  #MIDDLEWARE#
-HiddenServiceVersion 3                                    #MIDDLEWARE#
-HiddenServicePort 9375 127.0.0.1:8845                     #MIDDLEWARE#
-EOF
 
 
 # BITCOIN ----------------------------------------------------------------------
@@ -411,71 +432,20 @@ BITCOIN_VERSION="0.18.0"
 
 mkdir -p /usr/local/src/bitcoin
 cd /usr/local/src/bitcoin/
-curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
-curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
+curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc"
+curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz"
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /opt/shift/laanwj-releases.asc
-gpg --refresh-keys || true
+gpg --import /opt/shift/config/laanwj-releases.asc
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
 tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
 install -m 0755 -o root -g root -t /usr/bin bin/*
 
 mkdir -p /etc/bitcoin/
-cat << EOF > /etc/bitcoin/bitcoin.conf
-# network
-testnet=1
-
-# server
-server=1
-listen=1
-listenonion=1
-txindex=0
-prune=0
-disablewallet=1
-rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie
-sysparms=1
-printtoconsole=1
-
-# rpc
-rpcconnect=127.0.0.1
-
-# performance
-dbcache=300
-maxconnections=40
-maxuploadtarget=5000
-
-# tor
-proxy=127.0.0.1:9050
-seednode=nkf5e6b7pl4jfd4a.onion
-seednode=xqzfakpeuvrobvpj.onion
-seednode=tsyvzsqwa2kkf6b2.onion
-EOF
-
-cat << 'EOF' > /etc/systemd/system/bitcoind.service
-[Unit]
-Description=Bitcoin daemon
-After=network-online.target startup-checks.service tor.service
-Requires=startup-checks.service
-[Service]
-ExecStart=/usr/bin/bitcoind -conf=/etc/bitcoin/bitcoin.conf
-ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
-RuntimeDirectory=bitcoind
-User=bitcoin
-Group=bitcoin
-Type=simple
-Restart=always
-RestartSec=30
-TimeoutSec=300
-PrivateTmp=true
-ProtectSystem=full
-NoNewPrivileges=true
-PrivateDevices=true
-MemoryDenyWriteExecute=true
-[Install]
-WantedBy=multi-user.target
-EOF
+generateConfig "bitcoin.conf.template" # --> /etc/bitcoin/bitcoin.conf
+importFile "/etc/systemd/system/bitcoind.service"
+systemctl enable bitcoind.service
 
 
 # LIGHTNING --------------------------------------------------------------------
@@ -517,43 +487,9 @@ else
 fi
 
 mkdir -p /etc/lightningd/
-cat << EOF > /etc/lightningd/lightningd.conf
-bitcoin-cli=/usr/bin/bitcoin-cli
-bitcoin-rpcconnect=127.0.0.1
-bitcoin-rpcport=18332
-network=testnet
-lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet
-bind-addr=127.0.0.1:9735
-proxy=127.0.0.1:9050
-log-level=debug
-plugin=/opt/shift/scripts/prometheus-lightningd.py
-EOF
-
-cat << 'EOF' >/etc/systemd/system/lightningd.service
-[Unit]
-Description=c-lightning daemon
-Wants=bitcoind.service
-After=bitcoind.service
-PartOf=bitcoind.service
-[Service]
-ExecStartPre=/opt/shift/scripts/systemd-lightningd-startpre.sh
-ExecStart=/usr/local/bin/lightningd --conf=/etc/lightningd/lightningd.conf
-ExecStartPost=/opt/shift/scripts/systemd-lightningd-startpost.sh
-RuntimeDirectory=lightningd
-User=bitcoin
-Group=bitcoin
-Type=simple
-Restart=always
-RestartSec=30
-TimeoutSec=240
-PrivateTmp=true
-ProtectSystem=full
-NoNewPrivileges=true
-PrivateDevices=true
-MemoryDenyWriteExecute=true
-[Install]
-WantedBy=multi-user.target
-EOF
+generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
+importFile "/etc/systemd/system/lightningd.service"
+systemctl enable lightningd.service
 
 
 # ELECTRS ----------------------------------------------------------------------
@@ -572,107 +508,51 @@ tar -xzf electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz -C /usr/bin
 chmod +x /usr/bin/electrs
 
 mkdir -p /etc/electrs/
-cat << EOF > /etc/electrs/electrs.conf
-NETWORK=testnet
-RPCCONNECT=127.0.0.1
-RPCPORT=18332
-DB_DIR=/mnt/ssd/electrs/db
-DAEMON_DIR=/mnt/ssd/bitcoin/.bitcoin
-MONITORING_ADDR=127.0.0.1:4224
-VERBOSITY=vvvv
-RUST_BACKTRACE=1
-EOF
-
-cat << 'EOF' > /etc/systemd/system/electrs.service
-[Unit]
-Description=Electrs server daemon
-Wants=bitcoind.service
-After=bitcoind.service
-PartOf=bitcoind.service
-[Service]
-EnvironmentFile=/etc/electrs/electrs.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStartPre=+/opt/shift/scripts/systemd-electrs-startpre.sh
-ExecStart=/usr/bin/electrs \
-    --network ${NETWORK} \
-    --db-dir ${DB_DIR} \
-    --daemon-dir ${DAEMON_DIR} \
-    --cookie "__cookie__:${RPCPASSWORD}" \
-    --monitoring-addr ${MONITORING_ADDR} \
-    -${VERBOSITY}
-
-RuntimeDirectory=electrs
-User=electrs
-Group=bitcoin
-Type=simple
-KillMode=process
-Restart=always
-TimeoutSec=120
-RestartSec=30
-PrivateTmp=true
-ProtectSystem=full
-NoNewPrivileges=true
-PrivateDevices=true
-MemoryDenyWriteExecute=true
-[Install]
-WantedBy=multi-user.target
-EOF
+generateConfig "electrs.conf.template" # --> /etc/electrs/electrs.conf
+importFile "/etc/systemd/system/electrs.service"
+systemctl enable electrs.service
 
 
 # TOOLS & MIDDLEWARE -------------------------------------------------------------------
+BIN_DEPS_TAG="v0.0.2-alpha"
 
 ## bbbfancontrol
-## see https://github.com/digitalbitbox/bitbox-base/blob/fan-control/tools/bbbfancontrol/README.md
+## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbfancontrol
 if [ -f /opt/shift/bin/go/bbbfancontrol ]; then
   cp /opt/shift/bin/go/bbbfancontrol /usr/local/sbin/
-  cp /opt/shift/bin/go/bbbfancontrol.service /etc/systemd/system/
-  systemctl enable bbbfancontrol.service
 else
-  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
-  echo "WARN: bbbfancontrol not found."
+  echo "INFO: bbbfancontrol not found, executable is downloaded from GitHub."
+  mkdir -p /usr/local/src/bbbfancontrol && cd "$_"
+  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/bbbfancontrol.tar.gz
+  #TODO(Stadicus): add checksum once releases are stable
+  # if ! echo "xxxxx  bbbfancontrol.tar.gz" | sha256sum -c -; then
+  #   echo "sha256sum for precompiled 'bbbfancontrol' failed" >&2
+  #   exit 1
+  # fi
+  tar -xzf bbbfancontrol.tar.gz
+  cp ./bbbfancontrol /usr/local/sbin/
 fi
+importFile "/etc/systemd/system/bbbfancontrol.service"
+systemctl enable bbbfancontrol.service
 
 ## bbbsupervisor
-## see https://github.com/digitalbitbox/bitbox-base/blob/master/tools/bbbsupervisor/README.md
+## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor
 if [ -f /opt/shift/bin/go/bbbsupervisor ]; then
   cp /opt/shift/bin/go/bbbsupervisor /usr/local/sbin/
-  cp /opt/shift/bin/go/bbbsupervisor.service /etc/systemd/system/
-  #systemctl enable bbbsupervisor.service
+  importFile "/etc/systemd/system/bbbsupervisor.service"
+  systemctl enable bbbsupervisor.service
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
   echo "WARN: bbbsupervisor not found."
 fi
 
 ## bbbmiddleware
-## see https://github.com/digitalbitbox/bitbox-base/blob/master/middleware/README.md
+## see https://github.com/digitalbitbox/bitbox-base/tree/master/middleware
 if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
   cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
-
   mkdir -p /etc/bbbmiddleware/
-  cat << EOF > /etc/bbbmiddleware/bbbmiddleware.conf
-BITCOIN_RPCUSER=__cookie__
-BITCOIN_RPCPORT=18332
-LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
-EOF
-
-  cat << 'EOF' > /etc/systemd/system/bbbmiddleware.service
-[Unit]
-Description=BitBox Base Middleware
-Wants=bitcoind.service lightningd.service electrs.service
-After=lightningd.service
-
-[Service]
-Type=simple
-EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
-ExecStart=/usr/local/sbin/bbbmiddleware -rpcuser=${BITCOIN_RPCUSER} -rpcpassword=${RPCPASSWORD} -rpcport=${BITCOIN_RPCPORT} -lightning-rpc-path=${LIGHTNING_RPCPATH} -datadir=/mnt/ssd/system/bbbmiddleware
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
+  generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
+  importFile "/etc/systemd/system/bbbmiddleware.service"
   systemctl enable bbbmiddleware.service
 else
   #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
@@ -695,51 +575,9 @@ cp prometheus promtool /usr/local/bin/
 cp -r consoles/ console_libraries/ /etc/prometheus/
 chown -R prometheus /etc/prometheus /var/lib/prometheus
 
-cat << 'EOF' > /etc/prometheus/prometheus.yml
-global:
-  scrape_interval:     5m
-  evaluation_interval: 5m 
-scrape_configs:
-  - job_name: node
-    scrape_interval: 1m
-    static_configs:
-      - targets: ['127.0.0.1:9100']
-  - job_name: base
-    scrape_interval: 1m
-    static_configs:
-      - targets: ['127.0.0.1:8400']
-  - job_name: bitcoind
-    static_configs:
-      - targets: ['127.0.0.1:8334']
-  - job_name: electrs
-    static_configs:
-    - targets: ['127.0.0.1:4224']
-  - job_name: lightningd
-    static_configs:
-    - targets: ['127.0.0.1:9900']    
-EOF
-
-cat << 'EOF' > /etc/systemd/system/prometheus.service
-[Unit]
-Description=Prometheus
-After=network-online.target
-
-[Service]
-User=prometheus
-Group=system
-Type=simple
-ExecStart=/usr/local/bin/prometheus \
-    --web.listen-address="127.0.0.1:9090" \
-    --config.file /etc/prometheus/prometheus.yml \
-    --storage.tsdb.path=/mnt/ssd/prometheus \
-    --web.console.templates=/etc/prometheus/consoles \
-    --web.console.libraries=/etc/prometheus/console_libraries
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile "/etc/prometheus/prometheus.yml"
+importFile "/etc/systemd/system/prometheus.service"
+systemctl enable prometheus.service
 
 ## Prometheus Node Exporter
 NODE_EXPORTER_VERSION="0.18.1"
@@ -750,62 +588,21 @@ if ! echo "${NODE_EXPORTER_CHKSUM}  node_exporter-${NODE_EXPORTER_VERSION}.linux
 tar --strip-components 1 -xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
 cp node_exporter /usr/local/bin
 
-cat << 'EOF' > /etc/systemd/system/prometheus-node-exporter.service
-[Unit]
-Description=Prometheus Node Exporter
-After=network-online.target
-
-[Service]
-User=node_exporter
-Group=system
-Type=simple
-ExecStart=/usr/local/bin/node_exporter
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile "/etc/systemd/system/prometheus-node-exporter.service"
+systemctl enable prometheus-node-exporter.service
 
 ## Prometheus Base status exporter
 apt install -y python3-pip python3-setuptools
 pip3 install wheel
 pip3 install prometheus_client
+pip3 install redis
 
-cat << 'EOF' > /etc/systemd/system/prometheus-base.service
-[Unit]
-Description=Prometheus base exporter
-After=network-online.target
-
-[Service]
-ExecStart=/opt/shift/scripts/prometheus-base.py
-KillMode=process
-User=node_exporter
-Group=system
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile "/etc/systemd/system/prometheus-base.service"
+systemctl enable prometheus-base.service
 
 ## Prometheus Bitcoin Core exporter
-cat << 'EOF' > /etc/systemd/system/prometheus-bitcoind.service
-[Unit]
-Description=Prometheus bitcoind exporter
-After=network-online.target bitcoind.service
-
-[Service]
-ExecStart=/opt/shift/scripts/prometheus-bitcoind.py
-KillMode=process
-User=bitcoin
-Group=bitcoin
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile "/etc/systemd/system/prometheus-bitcoind.service"
+systemctl enable prometheus-bitcoind.service
 
 ## Prometheus plugin for c-lightning
 pip3 install pylightning
@@ -813,6 +610,7 @@ cd /opt/shift/scripts/
 curl --retry 5 -SL https://raw.githubusercontent.com/lightningd/plugins/6d0df3c83bd5098ca084b04ba8f589f33a609b8e/prometheus/prometheus.py -o prometheus-lightningd.py
 if ! echo "5e020696545e0cd00c2b2b93b49dc9fca55d6c3c56facd685f6098b720230fb3  prometheus-lightningd.py" | sha256sum -c -; then exit 1; fi
 chmod +x prometheus-lightningd.py
+
 
 # GRAFANA ----------------------------------------------------------------------
 GRAFANA_VERSION="6.1.4"
@@ -822,146 +620,39 @@ curl --retry 5 -SLO https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION
 if ! echo "47ffae49ee6412b4b04e2b1ac155cab3467c3c0fd437000b1c8948ed7046d331  grafana_6.1.4_arm64.deb" | sha256sum -c -; then exit 1; fi
 dpkg -i grafana_${GRAFANA_VERSION}_arm64.deb
 
-cat << 'EOF' >> /etc/grafana/grafana.ini
-[server]
-http_addr = 127.0.0.1                   #G010#
-root_url = http://127.0.0.1:3000/info/  #G011#
-[analytics]
-reporting_enabled = false               #G020#
-check_for_updates = false               #G021#
-[users]
-allow_sign_up = false                   #G030#
-#disable_login_form = true              #G031#
-[auth.anonymous]
-enabled = true                          #G040#
-EOF
+mv /etc/grafana/grafana.ini /etc/grafana/grafana.ini.default
+generateConfig "grafana.ini.template"
 
-cat << 'EOF' > /etc/grafana/provisioning/datasources/prometheus.yaml
-apiVersion: 1
-datasources:
-  - name: Prometheus
-    type: prometheus
-    access: proxy
-    url: http://127.0.0.1:9090
-    isDefault: true
-    editable: false
-EOF
+importFile "/etc/grafana/dashboards/grafana_bitbox_base.json"
+importFile "/etc/grafana/provisioning/datasources/prometheus.yaml"
+importFile "/etc/grafana/provisioning/dashboards/bitbox-base.yaml"
 
-cat << 'EOF' > /etc/grafana/provisioning/dashboards/bitbox-base.yaml
-apiVersion: 1
-providers:
-- name: 'default'
-  orgId: 1
-  folder: ''
-  type: file
-  disableDeletion: false
-  updateIntervalSeconds: 10 #how often Grafana will scan for changed dashboards
-  options:
-    path: /opt/shift/config/grafana/dashboard
-EOF
-
-mkdir -p /etc/systemd/system/grafana-server.service.d/
-cat << 'EOF' > /etc/systemd/system/grafana-server.service.d/override.conf
-[Service]
-Restart=always
-RestartSec=10
-PrivateTmp=true
-EOF
+# mkdir -p /etc/systemd/system/grafana-server.service.d/
+importFile "/etc/systemd/system/grafana-server.service.d/override.conf"
+systemctl enable grafana-server.service
 
 
 # NGINX ------------------------------------------------------------------------
 apt install -y nginx
 rm -f /etc/nginx/sites-enabled/default
 
-cat << 'EOF' > /etc/nginx/nginx.conf
-user www-data;
-worker_processes 1;
-pid /run/nginx.pid;
-include /etc/nginx/modules-enabled/*.conf;
-
-events {
-  worker_connections 768;
-}
-
-stream {
-  ssl_certificate /data/ssl/nginx-selfsigned.crt;
-  ssl_certificate_key /data/ssl/nginx-selfsigned.key;
-  ssl_session_cache shared:SSL:1m;
-  ssl_session_timeout 4h;
-  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-  ssl_prefer_server_ciphers on;
-
-  upstream electrs {
-    server 127.0.0.1:50001;
-  }
-  server {
-    listen 50002 ssl;
-    proxy_pass electrs;
-  }
-
-  upstream electrs_testnet {
-    server 127.0.0.1:60001;
-  }
-  server {
-    listen 51002 ssl;
-    proxy_pass electrs_testnet;
-  }
-}
-
-http {
-  include /etc/nginx/mime.types;
-  default_type application/octet-stream;
-  access_log off;
-  error_log /var/log/nginx/error.log;
-  include /etc/nginx/sites-enabled/*.conf;
-  include /data/nginx/sites-enabled/*.conf;
-}
-EOF
-
-cat << 'EOF' > /etc/nginx/sites-available/grafana.conf
-server {
-  listen 80;
-  location = / {
-    return 301 http://$host/info/d/BitBoxBase/;
-  }
-  location /info/ {
-    proxy_pass http://127.0.0.1:3000/;
-  }
-}
-EOF
+importFile "/etc/nginx/nginx.conf"
+importFile "/etc/nginx/sites-available/grafana.conf"
 
 if [[ "${BASE_DASHBOARD_WEB_ENABLED}" == "true" ]]; then
   /opt/shift/scripts/bbb-config.sh enable dashboard_web
 fi
 
-mkdir -p /etc/systemd/system/nginx.service.d/
-cat << 'EOF' > /etc/systemd/system/nginx.service.d/override.conf
-[Unit]
-After=grafana-server.service startup-checks.service
- 
-[Service]
-Restart=always
-RestartSec=10
-PrivateTmp=true
-EOF
+# mkdir -p /etc/systemd/system/nginx.service.d/
+importFile "/etc/systemd/system/nginx.service.d/override.conf"
+systemctl enable nginx.service
 
 # DASHBOARD OVER HDMI ----------------------------------------------------------
 mkdir -p /etc/systemd/system/getty@tty1.service.d/
 
 if [[ "${BASE_HDMI_BUILD}" == "true" ]]; then
   apt-get install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox chromium
-
-  cat << 'EOF' > /etc/xdg/openbox/autostart
-# Disable any form of screen saver / screen blanking / power management
-xset s off
-xset s noblank
-xset -dpms
-
-# Start Chromium in kiosk mode (fake 'clean exit' to avoid popups)
-sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
-sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
-chromium --disable-infobars --kiosk --incognito 'http://localhost/info/d/BitBoxBase/bitbox-base?refresh=10s&from=now-24h&to=now&kiosk'
-EOF
+  importFile "/etc/xdg/openbox/autostart"
 
   ## start x-server on user 'hdmi' login
   cat << 'EOF' > /home/hdmi/.bashrc
@@ -976,47 +667,21 @@ EOF
 fi
 
 # NETWORK ----------------------------------------------------------------------
-cat << 'EOF' > /etc/systemd/resolved.conf
-[Resolve]
-FallbackDNS=1.1.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844
-DNSSEC=yes
-Cache=yes
-EOF
+importFile "/etc/systemd/resolved.conf"
 
 ## include Wifi credentials, if specified (experimental)
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
-  sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
-  sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
-  cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
-  echo "WIFI=1" > ${SYSCONFIG_PATH}/WIFI
+  generateConfig "wlan0.conf.template" # --
+  redis-cli SET network:wifi:enabled 1
 fi
 
 ## mDNS services
 sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
-
-cat << 'EOF' > /etc/avahi/services/bitboxbase.service
-<?xml version="1.0" standalone='no'?>
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-<service-group>
-  <name>bitbox base middleware</name>
-  <service>
-    <type>_bitboxbase._tcp</type>
-    <port>8845</port>
-  </service>
-</service-group>
-EOF
+importFile "/etc/avahi/services/bitboxbase.service"
 
 ## firewall: restore iptables rules on startup
-cat << 'EOF' > /etc/systemd/system/iptables-restore.service
-[Unit]
-Description=BitBox Base: restore iptables rules
-Before=network.target
-[Service]
-Type=oneshot
-ExecStart=/bin/sh -c "/sbin/iptables-restore < /opt/shift/config/iptables/iptables.rules"
-[Install]
-WantedBy=multi-user.target
-EOF
+importFile "/etc/iptables/iptables.rules"
+importFile "/etc/systemd/system/iptables-restore.service"
 
 
 # FINALIZE ---------------------------------------------------------------------
@@ -1037,24 +702,16 @@ apt clean
 apt -y autoremove
 rm -rf /usr/local/src/*
 
-## Enable services
+## Enable system services
 systemctl daemon-reload
 systemctl enable systemd-networkd.service
 systemctl enable systemd-resolved.service
 systemctl enable systemd-timesyncd.service
-systemctl enable bitcoind.service
-systemctl enable lightningd.service
-systemctl enable electrs.service
-systemctl enable prometheus.service
-systemctl enable prometheus-node-exporter.service
-systemctl enable prometheus-base.service
-systemctl enable prometheus-bitcoind.service
-systemctl enable grafana-server.service
 systemctl enable iptables-restore.service
 
-## Set to mainnet if configured
-if [ "${BASE_BITCOIN_NETWORK}" == "mainnet" ]; then
-  /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
+## Set to testnet if configured
+if [ "${BASE_BITCOIN_NETWORK}" == "testnet" ]; then
+  /opt/shift/scripts/bbb-config.sh set bitcoin_network testnet
 fi
 
 if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then

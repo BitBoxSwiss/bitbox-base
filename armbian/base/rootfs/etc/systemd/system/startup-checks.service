@@ -1,0 +1,10 @@
+[Unit]
+Description=BitBox Base startup checks
+After=network-online.target 
+
+[Service]
+ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

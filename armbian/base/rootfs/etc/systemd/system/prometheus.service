@@ -1,0 +1,19 @@
+[Unit]
+Description=Prometheus
+After=mnt-ssd.mount
+
+[Service]
+User=prometheus
+Group=system
+Type=simple
+ExecStart=/usr/local/bin/prometheus \
+    --web.listen-address="127.0.0.1:9090" \
+    --config.file /etc/prometheus/prometheus.yml \
+    --storage.tsdb.path=/mnt/ssd/prometheus \
+    --web.console.templates=/etc/prometheus/consoles \
+    --web.console.libraries=/etc/prometheus/console_libraries
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

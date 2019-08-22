@@ -19,6 +19,7 @@
 # Ignore files created during testing
 tools/bbbconfgen/test/bitcoin-output.conf
 tools/bbbconfgen/test/test-output.conf
+test/
 
 # Ignore vim swap files.
 *.sw?

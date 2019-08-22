@@ -1,6 +1,6 @@
 [Unit]
 Description=BitBox Base Supervisor
-After=local-fs.target
+After=redis.service
 
 [Service]
 Type=simple

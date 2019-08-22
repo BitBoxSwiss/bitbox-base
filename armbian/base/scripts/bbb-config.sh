@@ -5,14 +5,17 @@ set -eu
 #
 
 # print usage information for script
-function usage() {
+usage() {
   echo "BitBox Base: system configuration utility
 usage: bbb-config.sh [--version] [--help]
                      <command> [<args>]
 
+assumes Redis database running to be used with 'redis-cli', respecting
+environment variables REDIS_HOST, REDIS_PORT and REDIS_DB
+
 possible commands:
   enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor_ssh|tor_electrum|overlayroot|root_pwlogin>
+             tor|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
@@ -22,43 +25,78 @@ possible commands:
             bitcoin_dbcache     int (MB)
             other arguments     string
 
-  get       any 'enable' or 'set' argument, or
-            <all|tor_ssh_onion|tor_electrum_onion>
+  get       <tor_ssh_onion|tor_electrum_onion>
 
   apply     no argument, applies all configuration settings to the system 
             [not yet implemented]
 
-  exec      bitcoin_reindex   (wipes UTXO set and validates existing blocks)
-            bitcoin_resync    (re-download and validate all blocks)
-
 "
 }
 
+# Redis configuration
+REDIS_HOST="${REDIS_HOST:-127.0.0.1}"
+REDIS_PORT="${REDIS_PORT:-6379}"
+REDIS_DB="${REDIS_DB:-0}"
+
 # function to execute command, either within overlayroot-chroot or directly
-function exec_overlayroot() {
+exec_overlayroot() {
     echo "${1}"
-    if [[ "${1}" != "once" ]] && [[ "${1}" != "both" ]]; then
-        echo "function exec_overlayroot(): first argument must be either"
-        echo "                             'once': execute in active overlayroot, and only when not active execute directly"
-        echo "                             'both': execute both in overlayroot and directly"
+    if [[ "${1}" != "base-only" ]] && [[ "${1}" != "all-layers" ]]; then
+        echo "exec_overlayroot(): first argument '${1}', but must be either"
+        echo "                    'base-only':  execute base layer (in r/o partition when overlayroot active, or directy when no overlayroot active"
+        echo "                    'all-layers': execute both in overlayroot and directly"
         exit 1
     fi
 
-    if [ "${OVERLAYROOT_ENABLED}" = true ]; then
+    if [ "${OVERLAYROOT_ENABLED}" -eq 1 ]; then
         echo "executing in overlayroot-chroot: ${2}"
         overlayroot-chroot /bin/bash -c "${2}"
     fi
 
-    if [ "${OVERLAYROOT_ENABLED}" != true ] || [[ "${1}" == "both" ]]; then
+    if [ "${OVERLAYROOT_ENABLED}" -ne 1 ] || [[ "${1}" == "all-layers" ]]; then
         echo "executing directly: ${2}"
         /bin/bash -c "${2}"
     fi
 }
 
-# ------------------------------------------------------------------------------
+redis_set() {
+    # usage: redis_set "key" "value"
+    ok=$(redis-cli -h localhost -p 6379 -n 0 SET "${1}" "${2}")
+    if [[ "${ok}"  != "OK" ]]; then
+        echo "ERR: could not SET key ${1}"
+        # exit 1
+    fi
+}
 
-SYSCONFIG_PATH="/data/sysconfig"
-mkdir -p "$SYSCONFIG_PATH"
+redis_get() {
+    # usage: str=$(redis_get "key")
+    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
+    echo "${ok}"
+}
+
+generateConfig() {
+  # generates a config file using custom bbbconfig
+  #
+  # argument is template filename, without path
+  #
+  local TEMPLATES_DIR="/opt/shift/config/templates"
+
+  if [ ${#} -eq 0 ] || [ ${#} -gt 1 ]; then
+    echo "ERR: generateConfig() expects exactly one argument"
+    exit 1
+  fi
+
+  local FILE="${TEMPLATES_DIR}/${1}"
+  if [ -f "${FILE}" ]; then
+    echo "generateConfig() from ${FILE}"
+    /usr/local/sbin/bbbconfgen --template "${FILE}"
+  else
+    echo "ERR: generateConfig() template file ${FILE} not found"
+    exit 1
+  fi
+}
+
+# ------------------------------------------------------------------------------
 
 # check script arguments
 if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
@@ -81,15 +119,9 @@ COMMAND="${1}"
 SETTING="${2^^}"
 
 # check if overlayroot is enabled
-OVERLAYROOT_ENABLED=false;
-
-if [ -f /etc/overlayroot.local.conf ]; then
-    overlayroot=""
-    # shellcheck disable=SC1091
-    source /etc/overlayroot.local.conf
-    if [[ "${overlayroot:0:5}" == "tmpfs" ]]; then
-        OVERLAYROOT_ENABLED=true;
-    fi
+OVERLAYROOT_ENABLED=0
+if grep -q "tmpfs" /etc/overlayroot.local.conf; then
+    OVERLAYROOT_ENABLED=1
 fi
 
 # parse COMMAND: enable, disable, get, set
@@ -113,7 +145,7 @@ case "${COMMAND}" in
                 fi
                 systemctl daemon-reload
                 systemctl restart getty@tty1.service
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:dashboard:hdmi:enabled" "${ENABLE}"
                 echo "Changes take effect on next restart."
                 ;;
 
@@ -121,40 +153,62 @@ case "${COMMAND}" in
                 # create / delete symlink to enable NGINX block
                 if [[ ${ENABLE} -eq 1 ]]; then
                     ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
+                    systemctl enable grafana-server.service
+                    systemctl start grafana-server.service
                 else
                     rm -f /etc/nginx/sites-enabled/grafana.conf
+                    systemctl disable grafana-server.service
+                    systemctl stop grafana-server.service
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:dashboard:web:enabled" "${ENABLE}"
                 systemctl restart nginx.service
                 ;;
 
             WIFI)
                 # copy / delete wlan0 config to include directory
                 if [[ ${ENABLE} -eq 1 ]]; then
-                    cp /opt/shift/config/wifi/wlan0.conf /etc/network/interfaces.d/
+                    generateConfig "wlan0.conf.template"
                 else
                     rm -f /etc/network/interfaces.d/wlan0.conf
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:wifi:enabled" "${ENABLE}"
                 systemctl restart networking.service
                 ;;
 
             AUTOSETUP_SSD)
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:autosetupssd:enabled" "${ENABLE}"
+                ;;
+
+            TOR)
+                # enable/disable Tor systemwide
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    exec_overlayroot all-layers "systemctl enable tor.service"
+                    redis_set "tor:base:enabled" "${ENABLE}"
+                    redis_set "bitcoind:onlynet:enabled" 0
+                    generateConfig "bitcoin.conf.template"
+                    systemctl start tor.service
+                else
+                    exec_overlayroot all-layers "systemctl disable tor.service"
+                    redis_set "tor:base:enabled" "${ENABLE}"
+                    redis_set "bitcoind:onlynet:enabled" 1
+                    generateConfig "bitcoin.conf.template"
+                    systemctl stop tor.service
+                fi
+                systemctl restart networking.service
+                systemctl restart bitcoind.service
                 ;;
 
             TOR_SSH|TOR_ELECTRUM)
-                # get service name after '_'
-                SERVICE="${SETTING#*_}"
-
-                if [[ ${ENABLE} -eq 1 ]]; then
-                    # uncomment line that contains #SSH#
-                    sed -i "/^#.*#${SERVICE}#/s/^#//" /etc/tor/torrc
+                if [[ ${SETTING} == "TOR_SSH" ]]; then
+                    redis_set "base:tor:ssh:enabled" "${ENABLE}"
+                elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
+                    redis_set "base:tor:electrs:enabled" "${ENABLE}"
                 else
-                    # comment line that contains #SERVICE# (if not commented out already)
-                    sed -i "/^[^#]/ s/\(^.*#${SERVICE}#.*$\)/#\1/" /etc/tor/torrc
+                    echo "ERR: invalid argument, setting ${SETTING} not allowed"
+                    exit 1
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+
+                generateConfig "torrc.template"
                 systemctl restart tor.service
                 ;;
 
@@ -162,30 +216,28 @@ case "${COMMAND}" in
                 # set explicitly without exec_overlayroot() to make sure it is set under all conditions
                 if [[ ${ENABLE} -eq 1 ]]; then
                     echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
-                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                     echo "Overlay root filesystem will be enabled on next boot."
                 else
                     overlayroot-chroot /bin/bash -c "echo 'overlayroot=disabled' > /etc/overlayroot.local.conf"
-                    echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
                     echo "Overlay root filesystem will be disabled on next boot."
                 fi
+                redis_set "base:overlayroot:enabled" "${ENABLE}"
                 ;;
 
             ROOT_PWLOGIN)
                 # unlock/lock root user for password login
                 if [[ ${ENABLE} -eq 1 ]]; then
-                    exec_overlayroot both "passwd -u root"
+                    exec_overlayroot all-layers "passwd -u root"
                 else
-                    exec_overlayroot both "passwd -l root"
+                    exec_overlayroot all-layers "passwd -l root"
                 fi
-                echo "${SETTING}=${ENABLE}" > "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:rootpasslogin:enabled" "${ENABLE}"
                 ;;
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
                 exit 1
         esac
-        cat "${SYSCONFIG_PATH}/${SETTING}"
         ;;
 
     set)
@@ -198,58 +250,53 @@ case "${COMMAND}" in
             BITCOIN_NETWORK)
                 case "${3}" in
                     mainnet)
-                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning'" /home/base/.bashrc-custom
-                        sed -i '/HIDDENSERVICEPORT 18333/Ic\HiddenServicePort 8333 127.0.0.1:8333' /etc/tor/torrc
-                        sed -i '/TESTNET=/Ic\#testnet=1' /etc/bitcoin/bitcoin.conf
-                        sed -i '/NETWORK=/Ic\network=bitcoin' /etc/lightningd/lightningd.conf
-                        sed -i '/BITCOIN-RPCPORT=/Ic\bitcoin-rpcport=8332' /etc/lightningd/lightningd.conf
-                        sed -i '/LIGHTNING-DIR=/Ic\lightning-dir=/mnt/ssd/bitcoin/.lightning' /etc/lightningd/lightningd.conf
-                        sed -i '/NETWORK=/Ic\NETWORK=mainnet' /etc/electrs/electrs.conf
-                        sed -i '/RPCPORT=/Ic\RPCPORT=8332' /etc/electrs/electrs.conf
-                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=8332' /etc/bbbmiddleware/bbbmiddleware.conf || true
-                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning/lightning-rpc' /etc/bbbmiddleware/bbbmiddleware.conf || true
-                        echo "BITCOIN_NETWORK=mainnet" > "${SYSCONFIG_PATH}/${SETTING}"
+                        redis_set "bitcoind:network" "mainnet"
+                        redis_set "bitcoind:testnet" "0"
+                        redis_set "bitcoind:mainnet" "1"
+                        redis_set "bitcoind:rpcport" "8332" # use for other services, or fix for mainnet and testnet
+                        redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning"
                         ;;
 
                     testnet)
-                        sed -i "/ALIAS LCLI=/Ic\alias lcli='lightning-cli --lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet'" /home/base/.bashrc-custom
-                        sed -i '/HIDDENSERVICEPORT 8333/Ic\HiddenServicePort 18333 127.0.0.1:18333' /etc/tor/torrc
-                        sed -i '/TESTNET=/Ic\testnet=1' /etc/bitcoin/bitcoin.conf
-                        sed -i '/NETWORK=/Ic\network=testnet' /etc/lightningd/lightningd.conf
-                        sed -i '/LIGHTNING-DIR=/Ic\lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet' /etc/lightningd/lightningd.conf
-                        sed -i '/BITCOIN-RPCPORT=/Ic\bitcoin-rpcport=18332' /etc/lightningd/lightningd.conf
-                        sed -i '/NETWORK=/Ic\NETWORK=testnet' /etc/electrs/electrs.conf
-                        sed -i '/RPCPORT=/Ic\RPCPORT=18332' /etc/electrs/electrs.conf
-                        sed -i '/BITCOIN_RPCPORT=/Ic\BITCOIN_RPCPORT=18332' /etc/bbbmiddleware/bbbmiddleware.conf || true
-                        sed -i '/LIGHTNING_RPCPATH=/Ic\LIGHTNING_RPCPATH=/mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc' /etc/bbbmiddleware/bbbmiddleware.conf || true
-                        echo "BITCOIN_NETWORK=testnet" > "${SYSCONFIG_PATH}/${SETTING}"
+                        redis_set "bitcoind:network" "testnet"
+                        redis_set "bitcoind:testnet" "1"
+                        redis_set "bitcoind:mainnet" "0"
+                        redis_set "bitcoind:rpcport" "18332" # use for other services, or fix for mainnet and testnet
+                        redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning-testnet"
                         ;;
 
                     *)
                         echo "Invalid argument: ${SETTING} can only be set to 'mainnet' or 'testnet'."
                         exit 1
                 esac
+
+                generateConfig "bashrc-custom.template"
+                generateConfig "torrc.template"
+                generateConfig "bitcoin.conf.template"
+                generateConfig "lightningd.conf.template"
+                generateConfig "electrs.conf.template"
+                generateConfig "bbbmiddleware.conf.template"
                 echo "System configuration ${SETTING} will be enabled on next boot."
                 ;;
 
             BITCOIN_IBD)
                 case "${3}" in
                     true)
-                        echo "Setting bitcoind configuration for 'active initial sync'."
-                        bbb-config.sh set bitcoin_dbcache 2000
-                        rm -f /data/triggers/bitcoind_fully_synced
                         echo "Service 'lightningd' and 'electrs' are being stopped..."
                         systemctl stop lightningd.service
                         systemctl stop electrs.service
+                        echo "Setting bitcoind configuration for 'active initial sync'."
+                        bbb-config.sh set bitcoin_dbcache 2000
+                        redis_set "bitcoind:ibd" "1"
                         ;;
 
                     false)
                         echo "Setting bitcoind configuration for 'fully synced'."
                         bbb-config.sh set bitcoin_dbcache 300
-                        touch /data/triggers/bitcoind_fully_synced
                         echo "Service 'lightningd' and 'electrs' are being started..."
                         systemctl start lightningd.service
                         systemctl start electrs.service
+                        redis_set "bitcoind:ibd" "0"
                         ;;
 
                     *)
@@ -261,22 +308,24 @@ case "${COMMAND}" in
 
             BITCOIN_DBCACHE)
                 if [[ "${3}" -ge 50 ]] && [[ "${3}" -le 3000 ]]; then
-                    # configure bitcoind
-                    sed -i "/DBCACHE=/Ic\dbcache=${3}" /etc/bitcoin/bitcoin.conf
+
+                    DBCACHE_BEFORE=$(redis_get "bitcoind:dbcache")
+                    redis_set "bitcoind:dbcache" "${3}"
+
+                    generateConfig "bitcoin.conf.template"
 
                     # check if service restart is necessary
-                    BITCOIN_DBCACHE=0
-                    source "${SYSCONFIG_PATH}/BITCOIN_DBCACHE" || true
-                    if [[ "${3}" -ne "${BITCOIN_DBCACHE}" ]]; then
-                        echo "Service 'bitcoind' is being restarted..."
-                        systemctl restart bitcoind
+                    if [[ "${DBCACHE_BEFORE}" == "${3}" ]]; then
+                        echo "DBCACHE unchanged (${DBCACHE_BEFORE} MB to ${3} MB), no restart of bitcoind required"
+                    else
+                        echo "DBCACHE changed (${DBCACHE_BEFORE} MB to ${3} MB), restarting bitcoind"
+                        systemctl restart bitcoind.service
                     fi
-                    echo "BITCOIN_DBCACHE=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
+
                 else
                     echo "Invalid argument: '${3}' must be an integer in MB between 50 and 3000."
                     exit 1
                 fi
-                cat "${SYSCONFIG_PATH}/${SETTING}"
                 ;;
 
             HOSTNAME)
@@ -286,26 +335,24 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                     *)
-                        echo "${3}" > /etc/hostname
+                        exec_overlayroot all-layers "echo '${3}' > /etc/hostname"
+                        exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
                         hostname -F /etc/hostname
-                        echo "${SETTING}=${3}" > "${SYSCONFIG_PATH}/${SETTING}"
-                        cat "${SYSCONFIG_PATH}/${SETTING}"
+                        redis_set "base:hostname" "${3}"
                 esac
                 ;;
 
             ROOT_PW)
-                exec_overlayroot both "echo 'root:${3}' | chpasswd"
-                exec_overlayroot both "echo 'base:${3}' | chpasswd"
+                exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"
+                exec_overlayroot all-layers "echo 'base:${3}' | chpasswd"
                 ;;
 
             WIFI_SSID)
-                sed -i "/WPA-SSID/Ic\  wpa-ssid ${BASE_WIFI_SSID}" /opt/shift/config/wifi/wlan0.conf
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:wifi:ssid" "${3}"
                 ;;
 
             WIFI_PW)
-                sed -i "/WPA-PSK/Ic\  wpa-psk ${BASE_WIFI_PW}" /opt/shift/config/wifi/wlan0.conf
-                cat "${SYSCONFIG_PATH}/${SETTING}"
+                redis_set "base:wifi:password" "${3}"
                 ;;
 
             *)
@@ -316,19 +363,6 @@ case "${COMMAND}" in
 
     get)
         case "${SETTING}" in
-            BITCOIN_NETWORK|HOSTNAME|WIFI_SSID|WIFI_PW|DASHBOARD_HDMI|DASHBOARD_WEB|WIFI|AUTOSETUP_SSD|TOR_SSH|TOR_ELECTRUM)
-                if [[ -f "${SYSCONFIG_PATH}/${SETTING}" ]] ; then
-                    cat "${SYSCONFIG_PATH}/${SETTING}"
-                else
-                    echo "Missing setting, value not yet stored in configuration."
-                    exit 1
-                fi
-                ;;
-
-            ALL)
-                cat ${SYSCONFIG_PATH}/*
-                ;;
-
             TOR_SSH_ONION)
                 echo "${SETTING}=$(cat /var/lib/tor/hidden_service_ssh/hostname)"
                 ;;
@@ -337,61 +371,12 @@ case "${COMMAND}" in
                 echo "${SETTING}=$(cat /var/lib/tor/hidden_service_electrum/hostname)"
                 ;;
 
-            ROOT_PW)
-                echo "The root password is stored encrypted and cannot be provided."
-                exit 1
-                ;;
-
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
         esac
         ;;
 
-    # EXEC section deprecated and moved to: bbb-cmd.sh script.
-    # remove once bbbmiddleware is adjusted.
-    exec)
-        case "${SETTING}" in
-            BITCOIN_REINDEX|BITCOIN_RESYNC)
-                # stop systemd services
-                systemctl stop electrs
-                systemctl stop lightningd
-                systemctl stop bitcoind
-
-                if ! /bin/systemctl -q is-active bitcoind.service; then 
-                    # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
-                    rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
-                    rm -rf /mnt/ssd/electrs/db
-                    rm -rf /data/triggers/bitcoind_fully_synced
-
-                    # for RESYNC incl. download, delete `blocks` directory too
-                    if [[ "${SETTING}" == "BITCOIN_RESYNC" ]]; then
-                        rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
-
-                    # otherwise assume REINDEX (only validation, no download), set option reindex-chainstate
-                    else
-                        echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
-
-                    fi
-
-                    # restart bitcoind and remove option
-                    systemctl start bitcoind
-                    sleep 10
-                    sed -i '/reindex/Id' /etc/bitcoin/bitcoin.conf
-
-                else
-                    echo "bitcoind is still running, cannot delete chainstate"
-                    exit 1
-                fi
-
-                echo "Command ${SETTING} successfully executed."
-                ;;
-
-            *)
-                echo "Invalid argument: exec command ${SETTING} unknown."
-        esac
-        ;;
-
     *)
         echo "Invalid argument: command ${COMMAND} unknown."
-        exit 1
+        exit 1//
 esac
