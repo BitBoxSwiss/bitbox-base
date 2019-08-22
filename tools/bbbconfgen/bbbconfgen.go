@@ -74,6 +74,10 @@ Make sure to respect spaces between arguments.
   {{ key #rmLine }}             ...deletes the whole line if key not found
   {{ key #default: some val }}  ...uses default value if key not found
 
+The #check function allows to drop a line if a key is set to '0', or not set at all:
+
+  {{ key #check }}
+
 `
 )
 
@@ -161,12 +165,14 @@ func openOutputFile() (filepointer *os.File, filename string, err error) {
 func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.File) (err error) {
 
 	var (
-		countLines   int
-		countReplace int
-		countKeep    int
-		countRm      int
-		countRmLine  int
-		countDefault int
+		countLines      int
+		countReplace    int
+		countKeep       int
+		countRm         int
+		countRmLine     int
+		countCheckTrue  int
+		countCheckFalse int
+		countDefault    int
 	)
 
 	// Read template file line by line
@@ -190,6 +196,7 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 				placeholderFields []string // individual fields of placeholder, separated by a space (" ")
 				redisKey          string   // Redis key of a placeholder
 				redisVal          string   // value fetched from Redis for a placeholder
+				option            string   // option like #rm or #check
 			)
 
 			// Redis GET
@@ -203,16 +210,31 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 				break
 			}
 
+			// get placeholder option, if present
+			if len(placeholderFields) > 1 {
+				option = placeholderFields[1]
+			}
+
 			redisVal, _ = redis.String(redisConn.Do("GET", redisKey))
 
-			if len(redisVal) > 0 {
+			if option == "#check" {
+				// verify if key with value != 0 exists for #check placeholder
+				if redisVal == "0" || len(redisVal) == 0 {
+					printLine = false
+					countCheckFalse++
+				} else {
+					outputLine = strings.Replace(outputLine, placeholder, "", -1)
+					countCheckTrue++
+				}
+
+			} else if len(redisVal) > 0 {
 				// replace placeholder if Redis key is found
 				outputLine = strings.Replace(outputLine, placeholder, redisVal, -1)
 				countReplace++
 
-			} else if len(placeholderFields) > 1 {
+			} else {
 				// if specified, use fallback options if Redis key is not found
-				switch strings.ToLower(placeholderFields[1]) {
+				switch strings.ToLower(option) {
 				case "#rm":
 					outputLine = strings.Replace(outputLine, placeholder, "", -1)
 					countRm++
@@ -223,9 +245,9 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 					defaultValue := strings.Join(placeholderFields[2:], " ")
 					outputLine = strings.Replace(outputLine, placeholder, defaultValue, -1)
 					countDefault++
+				default:
+					countKeep++
 				}
-			} else {
-				countKeep++
 			}
 		}
 
@@ -245,7 +267,8 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 
 	if !*quietArg {
 		log.Printf("written %v lines\n", countLines)
-		log.Printf("placeholders: %v replaced, %v kept, %v deleted, %v lines deleted, %v set to default\n\n", countReplace, countKeep, countRm, countRmLine, countDefault)
+		log.Printf("placeholders: %v replaced, %v kept, %v deleted, %v lines deleted, %v set to default\n", countReplace, countKeep, countRm, countRmLine, countDefault)
+		log.Printf("checks: %v lines dropped, %v lines kept\n\n", countCheckFalse, countCheckTrue)
 	}
 	return nil
 

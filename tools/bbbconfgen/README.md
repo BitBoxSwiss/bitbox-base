@@ -37,6 +37,10 @@ Make sure to respect spaces between arguments.
   {{ key #rm }}                 ...deletes the placeholder if key not found
   {{ key #rmLine }}             ...deletes the whole line if key not found
   {{ key #default: some val }}  ...uses default value if key not found
+
+The #check function allows to drop a line if a key is set to '0', or not set at all:
+
+  {{ key #check }}
 ```
 
 ## Example
@@ -53,6 +57,8 @@ To prepare the example data, import some keys into Redis and check them.
 $ redis-cli SET bitcoind:mainnet 1
 OK
 $ redis-cli SET bitcoind:rpcconnect 127.0.0.1
+OK
+$ redis-cli SET tor:enabled 1
 OK
 $ redis-cli SET bitcoind:seednode:1 nkf5e6b7pl4jfd4a.onion
 OK
@@ -74,14 +80,18 @@ mainnet={{ bitcoind:mainnet }}
 testnet={{ bitcoind:testnet #default: 0 }}
 rpcconnect={{ bitcoind:rpcconnect }}
 dbcache={{ bitcoind:dbcache #default: 300 }}
-seednode={{ bitcoind:seednode:1 #rmLine }}
-seednode={{ bitcoind:seednode:2 #rmLine }}
-seednode={{ bitcoind:seednode:3 #rmLine }}
+printtoconsole=1                                        {{ bitcoind:testnet #check }}
+seednode={{ bitcoind:seednode:1 #rmLine }}              {{ tor:enabled #check }}
+seednode={{ bitcoind:seednode:2 #rmLine }}              {{ tor:enabled #check }}
+seednode={{ bitcoind:seednode:3 #rmLine }}              {{ tor:enabled #check }}
 
 $ ./bbbconfgen --template test/bitcoin-template.conf --output test/bitcoin-output.conf
-read template file test/bitcoin-template.conf
-written output file test/bitcoin-output.conf
-3 replaced, 0 kept, 0 deleted, 2 lines deleted, 2 set to default
+connected to Redis
+opened template config file test/bitcoin-template.conf
+writing into output file test/bitcoin-output.conf
+written 8 lines
+placeholders: 7 replaced, 0 kept, 0 deleted, 0 lines deleted, 0 set to default
+checks: 1 lines dropped, 3 lines kept
 
 $ cat test/bitcoin-output.conf
 # network
