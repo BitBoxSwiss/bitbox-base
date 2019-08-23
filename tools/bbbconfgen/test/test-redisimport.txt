@@ -26,3 +26,17 @@ $10
 test:key:3
 $8
 testkey3
+*3
+$3
+SET
+$10
+test:key:4
+$1
+0
+*3
+$3
+SET
+$10
+test:key:5
+$1
+1
