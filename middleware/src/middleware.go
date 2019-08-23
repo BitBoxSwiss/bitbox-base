@@ -142,11 +142,12 @@ func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs
 	default:
 	}
 	err := cmd.Run()
-	response := rpcmessages.ResyncBitcoinResponse{Success: true}
 	if err != nil {
 		log.Println(err.Error() + " failed to run resync command, script does not exist")
-		response = rpcmessages.ResyncBitcoinResponse{Success: false}
+		response := rpcmessages.ResyncBitcoinResponse{Success: false}
+		return response, err
 	}
+	response := rpcmessages.ResyncBitcoinResponse{Success: true}
 	return response, nil
 }
 
