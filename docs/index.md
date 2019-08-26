@@ -18,22 +18,28 @@ This documentation is aimed at project members, contributors and intersted peopl
 1. [Overview](overview/)
    1. [Architecture](overview/architecture.md)
    2. [Do It Yourself!](overview/diy.md)
-2. [Hardware](hardware/)
+2. [User Interface](ui/)
+   1. Setup
+   2. Bitcoin node
+   3. Lightning Wallet
+   4. Node Management
+   5. Advanced options
+3. [Hardware](hardware/)
    1. [Components](hardware/components.md)
    2. [UART communication](hardware/uart-communication.md)
-3. [Operating System](os/)
+4. [Operating System](os/)
    1. [Configuration](os/configuration.md)
    2. [Build Armbian image](os/armbian-build.md)
    3. [Security considerations](os/security.md)
    4. [Firmware upgrades](os/upgrade.md)
    5. [Common issues](os/os-faq.md)
-4. [Custom applications](customapps/)
+5. [Custom applications](customapps/)
    1. [Middleware](customapps/bbbmiddleware.md)
    2. [Supervisor](customapps/bbbsupervisor.md)
    3. [Fan control](customapps/bbbfancontrol.md)
    4. [Helper scripts](customapps/helper-scripts.md)
    5. [Compiling binaries](customapps/go-build.md)
-5. [Applications](applications/)
+6. [Applications](applications/)
    1. [Bitcoin Core](applications/bitcoin-core.md)
    2. [c-lightning](applications/c-lightning.md)
    3. [Electrs](applications/electrs.md)
@@ -41,8 +47,8 @@ This documentation is aimed at project members, contributors and intersted peopl
    5. [NGINX](applications/nginx.md)
    6. [Prometheus](applications/prometheus.md)
    7. [Grafana](applications/grafana.md)
-6. [Networking](networking/)
-7. [Contributing](contributing/)
+7. [Networking](networking/)
+8. [Contributing](contributing/)
 
 ## Contributor workflow
 
