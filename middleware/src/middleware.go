@@ -136,10 +136,10 @@ func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs
 	switch option {
 	case rpcmessages.Resync:
 		log.Println("executing full bitcoin resync in config script")
-		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
+		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
 	case rpcmessages.Reindex:
 		log.Println("executing bitcoin reindex in config script")
-		cmd = exec.Command("."+middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
+		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
 	default:
 	}
 	err := cmd.Run()
@@ -253,8 +253,8 @@ func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessag
 
 func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
 	script := middleware.environment.GetBBBCmdScript()
-	cmdAsString := "." + script + " " + method + " " + arg
-	out, err = exec.Command("."+script, method, "check").Output()
+	cmdAsString := script + " " + method + " " + arg
+	out, err = exec.Command(script, method, arg).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())

@@ -17,8 +17,14 @@ func setupTestMiddleware() *middleware.Middleware {
 	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
-	argumentMap["bbbConfigScript"] = "/home/bitcoin/bbb-cmd.sh"
-	argumentMap["bbbCmdScript"] = "/home/bitcoin/cmd-script.sh"
+
+	/* The config and cmd script are mocked with /bin/echo which just returns
+	the passed arguments. The real scripts can't be used here, because
+	- the absolute location of those is different on each host this is run on
+	- the relative location is differen depending here the tests are run from
+	*/
+	argumentMap["bbbConfigScript"] = "/bin/echo"
+	argumentMap["bbbCmdScript"] = "/bin/echo"
 
 	testMiddleware := middleware.NewMiddleware(argumentMap)
 
@@ -60,21 +66,15 @@ func TestVerificationProgress(t *testing.T) {
 	require.Equal(t, verificationProgress, emptyVerificationProgress)
 }
 
-// TestResyncBitcoin only covers the script not found case.
-// We can't know the absolute path of the script, because that depends
-// on the system the tests are executed. e.g. Travis path and local path differ.
 func TestResyncBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	resyncBitcoinResponse, err := testMiddleware.ResyncBitcoin(rpcmessages.Resync)
 
-	require.Equal(t, resyncBitcoinResponse.Success, false)
-	require.Error(t, err)
+	require.Equal(t, resyncBitcoinResponse.Success, true)
+	require.NoError(t, err)
 }
 
-// TestFlashdrive only covers the 'script not found' case.
-// We can't know the absolute path of the script, because that depends
-// on the system the tests are executed. e.g. Travis path and local path differ.
 func TestFlashdrive(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
@@ -86,9 +86,9 @@ func TestFlashdrive(t *testing.T) {
 
 	flashdriveCheck, errCheck := testMiddleware.Flashdrive(checkArgs)
 
-	require.Equal(t, flashdriveCheck.Success, false)
-	require.Empty(t, flashdriveCheck.Message) // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errCheck)
+	require.Equal(t, flashdriveCheck.Success, true)
+	require.Equal(t, flashdriveCheck.Message, "flashdrive check\n")
+	require.NoError(t, errCheck)
 
 	/* --- test mount arg for Flashdrive() ---*/
 	mountArgs := rpcmessages.FlashdriveArgs{
@@ -98,9 +98,9 @@ func TestFlashdrive(t *testing.T) {
 
 	flashdriveMount, errMount := testMiddleware.Flashdrive(mountArgs)
 
-	require.Equal(t, flashdriveMount.Success, false)
-	require.Empty(t, flashdriveMount.Message) // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errMount)
+	require.Equal(t, flashdriveMount.Success, true)
+	require.Equal(t, flashdriveMount.Message, "flashdrive mount /dev/sda\n")
+	require.NoError(t, errMount)
 
 	/* --- test unmount arg for Flashdrive() ---*/
 	unmountArgs := rpcmessages.FlashdriveArgs{
@@ -110,49 +110,46 @@ func TestFlashdrive(t *testing.T) {
 
 	flashdriveUnmount, errUnmount := testMiddleware.Flashdrive(unmountArgs)
 
-	require.Equal(t, flashdriveUnmount.Success, false)
-	require.Empty(t, flashdriveUnmount.Message) // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errUnmount)
+	require.Equal(t, flashdriveUnmount.Success, true)
+	require.Equal(t, flashdriveUnmount.Message, "flashdrive unmount\n")
+	require.NoError(t, errUnmount)
 
-	/* --- test an unkown arg for Flashdrive() ---*/
-	unkownArgs := rpcmessages.FlashdriveArgs{
+	/* --- test an unknown arg for Flashdrive() ---*/
+	unknownArgs := rpcmessages.FlashdriveArgs{
 		Method: -1,
 		Path:   "",
 	}
 
-	flashdriveUnkown, errUnkown := testMiddleware.Flashdrive(unkownArgs)
+	flashdriveUnknown, errUnknown := testMiddleware.Flashdrive(unknownArgs)
 
-	require.Equal(t, flashdriveUnkown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, flashdriveUnkown.Message, "Method -1 not supported for Flashdrive().")
-	require.Error(t, errUnkown)
+	require.Equal(t, flashdriveUnknown.Success, false) // should fail, the method -1 is unknown
+	require.Equal(t, flashdriveUnknown.Message, "Method -1 not supported for Flashdrive().")
+	require.Error(t, errUnknown)
 }
 
-// TestBackup only covers the 'script not found' case.
-// We can't know the absolute path of the script, because that depends
-// on the system the tests are executed. e.g. Travis path and local path differ.
 func TestBackup(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	/* --- test sysconfig arg for Backup() ---*/
 	backupSysconfig, errSysconfig := testMiddleware.Backup(rpcmessages.BackupSysConfig)
 
-	require.Equal(t, backupSysconfig.Success, false) // should fail, because the script location is invalid
-	require.Empty(t, backupSysconfig.Message)        // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errSysconfig)
+	require.Equal(t, backupSysconfig.Success, true)
+	require.Equal(t, backupSysconfig.Message, "backup sysconfig\n")
+	require.NoError(t, errSysconfig)
 
 	/* --- test hsm secret arg for Backup() ---*/
 	backupHSMSecret, errHSMSecret := testMiddleware.Backup(rpcmessages.BackupHSMSecret)
 
-	require.Equal(t, backupHSMSecret.Success, false) // should fail, because the script location is invalid
-	require.Empty(t, backupHSMSecret.Message)        // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errHSMSecret)
+	require.Equal(t, backupHSMSecret.Success, true)
+	require.Equal(t, backupHSMSecret.Message, "backup hsm_secret\n")
+	require.NoError(t, errHSMSecret)
 
 	/* --- test an unknown arg for Backup() ---*/
-	backupUnkown, errUnkown := testMiddleware.Backup(-1)
+	backupUnknown, errUnknown := testMiddleware.Backup(-1)
 
-	require.Equal(t, backupUnkown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, backupUnkown.Message, "Method -1 not supported for Backup().")
-	require.Error(t, errUnkown)
+	require.Equal(t, backupUnknown.Success, false) // should fail, the method -1 is unknown
+	require.Equal(t, backupUnknown.Message, "Method -1 not supported for Backup().")
+	require.Error(t, errUnknown)
 }
 
 // TestRestore only covers the 'script not found' case.
@@ -164,21 +161,21 @@ func TestRestore(t *testing.T) {
 	/* --- test sysconfig arg for Restore() ---*/
 	restoreSysconfig, errSysconfig := testMiddleware.Restore(rpcmessages.RestoreSysConfig)
 
-	require.Equal(t, restoreSysconfig.Success, false) // should fail, because the script location is invalid
-	require.Empty(t, restoreSysconfig.Message)        // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errSysconfig)
+	require.Equal(t, restoreSysconfig.Success, true)
+	require.Equal(t, restoreSysconfig.Message, "restore sysconfig\n")
+	require.NoError(t, errSysconfig)
 
 	/* --- test hsm secret arg for Restore() ---*/
 	restoreHSMSecret, errHSMSecret := testMiddleware.Restore(rpcmessages.RestoreHSMSecret)
 
-	require.Equal(t, restoreHSMSecret.Success, false) // should fail, because the script location is invalid
-	require.Empty(t, restoreHSMSecret.Message)        // should be empty, because the script should not be found and can't acctually return something
-	require.Error(t, errHSMSecret)
+	require.Equal(t, restoreHSMSecret.Success, true)
+	require.Equal(t, restoreHSMSecret.Message, "restore hsm_secret\n")
+	require.NoError(t, errHSMSecret)
 
 	/* --- test an unknown arg for Restore() ---*/
-	restoreUnkown, errUnkown := testMiddleware.Restore(-1)
+	restoreUnknown, errUnknown := testMiddleware.Restore(-1)
 
-	require.Equal(t, restoreUnkown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, restoreUnkown.Message, "Method -1 not supported for Restore().")
-	require.Error(t, errUnkown)
+	require.Equal(t, restoreUnknown.Success, false) // should fail, the method -1 is unknown
+	require.Equal(t, restoreUnknown.Message, "Method -1 not supported for Restore().")
+	require.Error(t, errUnknown)
 }
