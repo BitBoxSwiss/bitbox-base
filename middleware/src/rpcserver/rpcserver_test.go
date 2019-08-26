@@ -51,7 +51,15 @@ func NewTestingRPCServer() TestingRPCServer {
 	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
-	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
+
+	/* The config and cmd script are mocked with /bin/echo which just returns
+	the passed arguments. The real scripts can't be used here, because
+	- the absolute location of those is different on each host this is run on
+	- the relative location is differen depending here the tests are run from
+	*/
+	argumentMap["bbbConfigScript"] = "/bin/echo"
+	argumentMap["bbbCmdScript"] = "/bin/echo"
+
 	middlewareInstance := middleware.NewMiddleware(argumentMap)
 
 	testingRPCServer.rpcServer = rpcserver.NewRPCServer(middlewareInstance)
