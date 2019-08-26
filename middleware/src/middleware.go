@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os/exec"
 	"time"
@@ -195,7 +196,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		errorMessage := "Method " + string(args.Method) + " not supported for Flashdrive()."
+		errorMessage := fmt.Sprintf("Method %d not supported for Flashdrive().", args.Method)
 		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
 }
@@ -220,7 +221,7 @@ func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages
 		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		errorMessage := "Method " + string(method) + " not supported for Backup()."
+		errorMessage := fmt.Sprintf("Method %d not supported for Backup().", method)
 		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
 }
@@ -245,7 +246,7 @@ func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessag
 		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
 
 	default:
-		errorMessage := "Method " + string(method) + " not supported for Restore()."
+		errorMessage := fmt.Sprintf("Method %d not supported for Restore().", method)
 		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
 }
