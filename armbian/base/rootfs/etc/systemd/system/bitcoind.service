@@ -1,0 +1,24 @@
+[Unit]
+Description=Bitcoin daemon
+After=mnt-ssd.mount
+Requires=startup-checks.service
+
+[Service]
+ExecStartPre=/opt/shift/scripts/systemd-bitcoind-startpre.sh
+ExecStart=/usr/bin/bitcoind -conf=/etc/bitcoin/bitcoin.conf
+ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
+RuntimeDirectory=bitcoind
+User=bitcoin
+Group=bitcoin
+Type=simple
+Restart=always
+RestartSec=30
+TimeoutSec=300
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+PrivateDevices=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

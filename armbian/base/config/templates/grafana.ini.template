@@ -1,0 +1,18 @@
+{{ #output: /etc/grafana/grafana.ini }}
+# default grafana.ini with configuration defaults and documentation
+# of every option is located at /etc/grafana/grafana.ini.default
+
+[server]
+http_addr = {{ grafana:server:http_addr #rmLine }}
+root_url = {{ grafana:server:root_url #rmLine }}
+
+[analytics]
+reporting_enabled = {{ grafana:analytics:reporting_enabled #rmLine }}
+check_for_updates = {{ grafana:analytics:check_for_updates #rmLine }}
+
+[users]
+allow_sign_up = {{ grafana:users:allow_sign_up #rmLine }}
+#disable_login_form = {{ grafana:users:disable_login_form #rmLine }}
+
+[auth.anonymous]
+enabled = {{ grafana:auth.anonymous:enabled #rmLine }}

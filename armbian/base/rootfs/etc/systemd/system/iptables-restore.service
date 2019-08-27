@@ -1,0 +1,10 @@
+[Unit]
+Description=BitBox Base: restore iptables rules
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "/sbin/iptables-restore < /etc/iptables/iptables.rules"
+
+[Install]
+WantedBy=multi-user.target

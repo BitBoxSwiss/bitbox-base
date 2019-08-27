@@ -1,6 +1,6 @@
 [Unit]
 Description=Redis In-Memory Data Store
-After=network.target
+After=startup-checks.service
 # original config in /lib/systemd/system/redis-server.service
 
 [Service]
@@ -10,6 +10,9 @@ ExecStop=/bin/kill -s TERM $MAINPID
 User=redis
 Group=redis
 Restart=always
+Restart=always
+RestartSec=10
+TimeoutSec=30
 
 [Install]
 WantedBy=multi-user.target

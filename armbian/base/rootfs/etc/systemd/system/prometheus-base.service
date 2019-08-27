@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus base exporter
+After=prometheus.service
+
+[Service]
+ExecStart=/opt/shift/scripts/prometheus-base.py
+KillMode=process
+User=node_exporter
+Group=system
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
