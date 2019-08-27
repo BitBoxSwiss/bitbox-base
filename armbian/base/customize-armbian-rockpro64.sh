@@ -191,7 +191,7 @@ BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo "root:${BASE_ROOTPW}" | chpasswd
 
 if [ "$BASE_SSH_ROOT_LOGIN" != "true" ]; then 
-passwd -l root
+  passwd -l root
 fi
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
@@ -289,22 +289,32 @@ fi
 ## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
 ln -sf /data_source /data
+touch /data/.datadir_set_up
 
 ## install Redis
 apt install -y --no-install-recommends redis
 mkdir -p /data/redis/
+chown -R redis:redis /data/redis/
 
-cp /opt/shift/config/redis/redis-local.conf /data/redis/
-echo "include /data/redis/redis-local.conf" >> /etc/redis/redis.conf
+### disable standard systemd unit
+systemctl disable redis-server.service
+systemctl mask redis-server.service
 
-rm /etc/systemd/system/redis.service
-cp /opt/shift/config/redis/redis.service /etc/systemd/system/
+echo "include /etc/redis/redis-local.conf" >> /etc/redis/redis.conf
+importFile /etc/redis/redis-local.conf
+
+importFile /etc/systemd/system/redis.service
+systemctl enable redis.service
 
 ## start temporary Redis server for build process
-redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data_source/redis/
+redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data/redis/
 
-## bulk import factory settings
-cat /opt/shift/config/redis/factorysettings.txt | sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+## bulk import factory settings / store build info
+< /opt/shift/config/redis/factorysettings.txt sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+redis-cli SET build:date "$(date +%Y-%m-%d)"
+redis-cli SET build:time "$(date +%H:%M)"
+redis-cli SET build:commit "$(cat /opt/shift/config/latest_commit)"
+redis-cli SET base:version "${BASE_VERSION}"
 redis-cli KEYS "*"
 
 ## bbbconfgen
@@ -328,14 +338,7 @@ fi
 # SYSTEM CONFIGURATION ---------------------------------------------------------
 
 
-## create triggers directory
-mkdir -p /data/triggers/
-touch /data/triggers/datadir_set_up
-
 ## set hostname
-mkdir -p /data/network
-mv /etc/hostname /data/network/hostname
-ln -sf /data/network/hostname /etc/hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
 
 ## set debug console to only use display, not serial console ttyS2 over UART
@@ -427,12 +430,11 @@ BITCOIN_VERSION="0.18.0"
 
 mkdir -p /usr/local/src/bitcoin
 cd /usr/local/src/bitcoin/
-curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
-curl --retry 5 -SLO https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
+curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc"
+curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz"
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /opt/shift/laanwj-releases.asc
-gpg --refresh-keys || true
+gpg --import /opt/shift/config/laanwj-releases.asc
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
 tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
@@ -591,6 +593,7 @@ systemctl enable prometheus-node-exporter.service
 apt install -y python3-pip python3-setuptools
 pip3 install wheel
 pip3 install prometheus_client
+pip3 install redis
 
 importFile "/etc/systemd/system/prometheus-base.service"
 systemctl enable prometheus-base.service
@@ -667,6 +670,7 @@ importFile "/etc/systemd/resolved.conf"
 ## include Wifi credentials, if specified (experimental)
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
   generateConfig "wlan0.conf.template" # --
+  redis-cli SET network:wifi:enabled 1
 fi
 
 ## mDNS services

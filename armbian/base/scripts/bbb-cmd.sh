@@ -1,26 +1,80 @@
 #!/bin/bash
-set -eu
+set -eux
 
 # BitBox Base: system commands repository
 #
 
 # print usage information for script
-function usage() {
+usage() {
   echo "BitBox Base: system commands repository
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
-  bitcoind reindex  wipes UTXO set and validates existing blocks
-  bitcoind resync   re-download and validate all blocks
-
-  base restart      restarts the node
-  base shutdown     shuts down the node
-  
-  flashdrive        <check|mount|umount>
-  backup            <sysconfig|hsm_secret>
-  restore           <sysconfig|hsm_secret>
+  setup         <datadir|hostname_link>
+  base          <restart|shutdown>
+  bitcoind      <reindex|resync>
+  flashdrive    <check|mount|umount>
+  backup        <sysconfig|hsm_secret>
+  restore       <sysconfig|hsm_secret>
                     
 "
+}
+
+# function to execute command, either within overlayroot-chroot or directly
+exec_overlayroot() {
+    if [[ "${1}" != "base-only" ]] && [[ "${1}" != "all-layers" ]]; then
+        echo "exec_overlayroot(): first argument '${1}', but must be either"
+        echo "                    'base-only':  execute base layer (in r/o partition when overlayroot active, or directy when no overlayroot active"
+        echo "                    'all-layers': execute both in overlayroot and directly"
+        exit 1
+    fi
+
+    if [ "${OVERLAYROOT_ENABLED}" -eq 1 ]; then
+        echo "executing in overlayroot-chroot: ${2}"
+        overlayroot-chroot /bin/bash -c "${2}"
+    fi
+
+    if [ "${OVERLAYROOT_ENABLED}" -ne 1 ] || [[ "${1}" == "all-layers" ]]; then
+        echo "executing directly: ${2}"
+        /bin/bash -c "${2}"
+    fi
+}
+
+redis_set() {
+    # usage: redis_set "key" "value"
+    ok=$(redis-cli -h localhost -p 6379 -n 0 SET "${1}" "${2}")
+    if [[ "${ok}"  != "OK" ]]; then
+        echo "ERR: could not SET key ${1}"
+        # exit 1
+    fi
+}
+
+redis_get() {
+    # usage: str=$(redis_get "key")
+    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
+    echo "${ok}"
+}
+
+generateConfig() {
+  # generates a config file using custom bbbconfig
+  #
+  # argument is template filename, without path
+  #
+  local TEMPLATES_DIR="/opt/shift/config/templates"
+
+  if [ ${#} -eq 0 ] || [ ${#} -gt 1 ]; then
+    echo "ERR: generateConfig() expects exactly one argument"
+    exit 1
+  fi
+
+  local FILE="${TEMPLATES_DIR}/${1}"
+  if [ -f "${FILE}" ]; then
+    echo "generateConfig() from ${FILE}"
+    /usr/local/sbin/bbbconfgen --template "${FILE}"
+  else
+    echo "ERR: generateConfig() template file ${FILE} not found"
+    exit 1
+  fi
 }
 
 # ------------------------------------------------------------------------------
@@ -39,6 +93,12 @@ if [[ ${UID} -ne 0 ]]; then
     exit 1
 fi
 
+# check if overlayroot is enabled
+OVERLAYROOT_ENABLED=0
+if grep -q "tmpfs" /etc/overlayroot.local.conf; then
+    OVERLAYROOT_ENABLED=1
+fi
+
 MODULE="${1:-''}"
 COMMAND="${2:-''}"
 ARG="${3:-''}"
@@ -47,40 +107,83 @@ MODULE="${MODULE^^}"
 COMMAND="${COMMAND^^}"
 
 case "${MODULE}" in
-    BITCOIND)
-        # stop systemd services
-        systemctl stop electrs
-        systemctl stop lightningd
-        systemctl stop bitcoind
+    SETUP)
+        case "${COMMAND}" in
+            DATADIR)
 
-        if ! /bin/systemctl -q is-active bitcoind.service; then 
-            # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
-            rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
-            rm -rf /mnt/ssd/electrs/db
-            rm -rf /data/triggers/bitcoind_fully_synced
+                echo "check"
+                if [ ! -f /data/.datadir_set_up ]; then
+                    # if /data is separate partition, data is copied (assume /data is read/write)
+                    echo "mountpoint"
+                    if mountpoint /data -q; then
+                        cp -r /data_source/* /data
+                    
+                    # otherwise create symlink
+                    else
+                        echo "ln"
+                        ln -sf /data_source /data
+                    fi
+                    echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
 
-            # for RESYNC incl. download, delete `blocks` directory too
-            if [[ "${COMMAND}" == "RESYNC" ]]; then
-                rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
+                else
+                    echo "WARN: (DATADIR) data directory already set up (found file /data/.datadir_set_up)"
+                fi
+                ;;
 
-            # otherwise assume REINDEX (only validation, no download), set option reindex-chainstate
-            else
-                echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
+            DATADIR_OVERLAY)
+                # this command needs to be executed within the overlayroot base layer
+                # e.g. by running 'overlayroot-chroot /bin/bash -c "/opt/shift/scripts/bbb-cmd.sh setup datadir_overlay"
+                if [ ! -f /data/.datadir_set_up ]; then
+                    ln -sf /data_source /data
+                    echo "OK: (DATADIR_OVERLAY) symlink /data/ --> /data_source/ created"
+                else
+                    echo "WARN: (DATADIR_OVERLAY) data directory already set up (found file /data/.datadir_set_up)"
+                fi
+                ;;
 
-            fi
-
-            # restart bitcoind and remove option
-            systemctl start bitcoind
-            sleep 10
-            sed -i '/reindex/Id' /etc/bitcoin/bitcoin.conf
-
-        else
-            echo "bitcoind is still running, cannot delete chainstate"
-            exit 1
-        fi
-
-        echo "Command ${MODULE} ${COMMAND} successfully executed."
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
+        esac
         ;;
+
+    BITCOIND)
+        case "${COMMAND}" in
+            RESYNC|REINDEX)
+                # stop systemd services
+                systemctl stop electrs
+                systemctl stop lightningd
+
+                # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
+                rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+                rm -rf /mnt/ssd/electrs/db
+
+                # for RESYNC incl. download, delete `blocks` directory too
+                if [[ "${COMMAND}" == "RESYNC" ]]; then
+                    rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
+                    echo "X"
+                fi
+
+                redis_set "bitcoind:ibd" "1"
+                redis_set "bitcoind:reindex-chainstate" 1
+                generateConfig "bitcoin.conf.template"
+                sleep 5
+
+                # restart bitcoind and remove option
+                systemctl start bitcoind.service
+                sleep 10
+                
+                redis_set "bitcoind:reindex-chainstate" 0
+                generateConfig "bitcoin.conf.template"
+
+                echo "Command ${MODULE} ${COMMAND} successfully executed."
+                ;;
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
+        esac
+        ;;
+        
 
     BASE)
         case "${COMMAND}" in
