@@ -22,6 +22,10 @@ type Middleware struct {
 	events               chan []byte
 	prometheusClient     *prometheus.PromClient
 	verificationProgress rpcmessages.VerificationProgressResponse
+	// Saves state for the dummy setup process
+	// TODO: should be removed as soon as Authentication is implemented
+	dummyIsBaseSetup   bool
+	dummyAdminPassword string
 }
 
 // NewMiddleware returns a new instance of the middleware
@@ -40,6 +44,8 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 			Headers:              0,
 			VerificationProgress: 0.0,
 		},
+		dummyIsBaseSetup:   false,
+		dummyAdminPassword: "",
 	}
 	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
 
@@ -168,6 +174,18 @@ func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationPro
 	return middleware.verificationProgress
 }
 
+// DummyIsBaseSetup returns the current dummyIsBaseSetup bool
+// FIXME: this is a dummy function and should be removed once authentication is implemented
+func (middleware *Middleware) DummyIsBaseSetup() bool {
+	return middleware.dummyIsBaseSetup
+}
+
+// DummyAdminPassword returns the current dummyAdminPassword string
+// FIXME: this is a dummy function and should be removed once authentication is implemented
+func (middleware *Middleware) DummyAdminPassword() string {
+	return middleware.dummyAdminPassword
+}
+
 // Flashdrive returns a GenericResponse struct in response to a rpcserver request
 func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error) {
 	switch args.Method {
@@ -249,6 +267,53 @@ func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessag
 		errorMessage := fmt.Sprintf("Method %d not supported for Restore().", method)
 		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
 	}
+}
+
+// UserAuthenticate returns an ErrorResponse struct in response to a rpcserver request.
+// FIXME: This is a dummy implementation of the UserAuthenticate RPC call.
+// in the future this should return an AuthentificationResponse with e.g. an JWT.
+// This currently uses the `dummyIsBaseSetup` boolean, which should be removed when the proper authentication is implemented.
+func (middleware *Middleware) UserAuthenticate(args rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse {
+
+	// TODO: replace the dummyIsBaseSetup with a proper variable loaded from e.g. redis
+	// dummyIsBaseSetup should only be used for the dummy UserAuthenticate RPC and gets reset on middleware restart
+	if !middleware.dummyIsBaseSetup {
+		if args.Username == "admin" && args.Password == "ICanHasPassword?" {
+			// middleware.dummyIsBaseSetup is only set to true after the initial admin password is changed
+			return rpcmessages.ErrorResponse{Success: true}
+		}
+	} else if middleware.dummyIsBaseSetup {
+		dummyUsers := map[string]string{
+			"admin":   middleware.dummyAdminPassword,
+			"satoshi": "shift1",
+			"dev":     "dev",
+		}
+		if expectedPasssword, userIsInMap := dummyUsers[args.Username]; userIsInMap {
+			if args.Password == expectedPasssword {
+				return rpcmessages.ErrorResponse{Success: true}
+			}
+		}
+	}
+
+	return rpcmessages.ErrorResponse{Success: false, Message: "authentication unsuccessful"}
+}
+
+// UserChangePassword returns an ErrorResponse struct in response to a rpcserver request
+// FIXME: This is a dummy implementation of the UserChangePassword RPC call
+// This dummy method approves all passwords which are longer or equal to 8 chars
+func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse {
+
+	if len(args.NewPassword) >= 8 {
+		if args.Username == "admin" {
+			middleware.dummyAdminPassword = args.NewPassword
+			if !middleware.dummyIsBaseSetup {
+				middleware.dummyIsBaseSetup = true // the change of the admin password completes the dummy setup process (for now)
+			}
+		}
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+
+	return rpcmessages.ErrorResponse{Success: false, Message: "password change unsuccessful (too short)"}
 }
 
 func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
