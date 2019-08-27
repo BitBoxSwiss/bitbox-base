@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
@@ -316,10 +318,55 @@ func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePass
 	return rpcmessages.ErrorResponse{Success: false, Message: "password change unsuccessful (too short)"}
 }
 
+// SetHostname sets the systems hostname
+func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse {
+	log.Println("Setting the hostname via the config script")
+	var r = regexp.MustCompile(`^[a-z0-9]+[a-z0-9-.]{0,62}[a-z0-9]$`)
+	hostname := args.Hostname
+
+	if len(hostname) >= 2 && len(hostname) <= 64 && r.MatchString(hostname) {
+		out, err := middleware.runBBBConfigScript("set", "hostname", hostname)
+		if err != nil {
+			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+		}
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+	return rpcmessages.ErrorResponse{Success: false, Message: "invalid hostname"}
+}
+
+// GetHostname returns a the systems hostname in a GetHostnameResponse
+func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
+	log.Println("Getting the hostname via the config script")
+	out, err := middleware.runBBBConfigScript("get", "hostname", "")
+	if err != nil {
+		return rpcmessages.GetHostnameResponse{
+			ErrorResponse: rpcmessages.ErrorResponse{
+				Success: false,
+				Message: string(out),
+				Code:    err.Error(),
+			},
+		}
+	}
+
+	hostname := strings.TrimSuffix(string(out), "\n")
+	return rpcmessages.GetHostnameResponse{Hostname: hostname, ErrorResponse: rpcmessages.ErrorResponse{Success: true}}
+}
+
 func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
 	script := middleware.environment.GetBBBCmdScript()
 	cmdAsString := script + " " + method + " " + arg
 	out, err = exec.Command(script, method, arg).Output()
+	if err != nil {
+		// no error handling here, only logging.
+		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
+	}
+	return
+}
+
+func (middleware *Middleware) runBBBConfigScript(method string, arg1 string, arg2 string) (out []byte, err error) {
+	script := middleware.environment.GetBBBConfigScript()
+	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
+	out, err = exec.Command(script, method, arg1, arg2).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
