@@ -24,6 +24,8 @@ type Middleware interface {
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
 	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
+	GetHostname() rpcmessages.GetHostnameResponse
+	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

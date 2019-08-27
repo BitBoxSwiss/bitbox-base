@@ -72,6 +72,11 @@ type UserChangePasswordArgs struct {
 	NewPassword string
 }
 
+// SetHostnameArgs is a struct that holds the to be set hostname
+type SetHostnameArgs struct {
+	Hostname string
+}
+
 /*
 Put Response structs below this line. They should have the format of 'RPC Method Name' + 'Response'.
 */
@@ -99,6 +104,12 @@ type VerificationProgressResponse struct {
 	Blocks               int64   `json:"blocks"`
 	Headers              int64   `json:"headers"`
 	VerificationProgress float64 `json:"verificationProgress"`
+}
+
+// GetHostnameResponse is the struct that get sent by the rpc server during a GetHostname rpc call
+type GetHostnameResponse struct {
+	ErrorResponse
+	Hostname string
 }
 
 // GenericResponse is a struct that for example gets sent by the RPC server during a Flashdrive, Backup or Restore call.

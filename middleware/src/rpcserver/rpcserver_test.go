@@ -72,58 +72,46 @@ func NewTestingRPCServer() TestingRPCServer {
 	return testingRPCServer
 }
 
-func (testRPC *TestingRPCServer) RunRPCCall(t *testing.T, method string, request int, reply interface{}) {
+func (testRPC *TestingRPCServer) RunRPCCall(t *testing.T, method string, arg interface{}, reply interface{}) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
-	switch reply {
-	case rpcmessages.GetEnvResponse{}:
-		go func() {
-			defer wg.Done()
-			err := testRPC.client.Call(method, request, &rpcmessages.GetEnvResponse{})
-			require.NoError(t, err)
-		}()
-	case rpcmessages.ResyncBitcoinResponse{}:
-		go func() {
-			defer wg.Done()
-			err := testRPC.client.Call(method, request, &rpcmessages.ResyncBitcoinResponse{})
-			require.NoError(t, err)
-		}()
-	case rpcmessages.SampleInfoResponse{}:
-		go func() {
-			defer wg.Done()
-			err := testRPC.client.Call(method, request, &rpcmessages.SampleInfoResponse{})
-			require.NoError(t, err)
-		}()
-	case rpcmessages.VerificationProgressResponse{}:
-		go func() {
-			defer wg.Done()
-			err := testRPC.client.Call(method, request, &rpcmessages.VerificationProgressResponse{})
-			require.NoError(t, err)
-		}()
-	default:
-	}
+	go func() {
+		defer wg.Done()
+		err := testRPC.client.Call(method, arg, reply)
+		require.NoError(t, err)
+	}()
+
 	msgRequest := <-testRPC.clientWriteChan
 	testRPC.serverReadChan <- msgRequest
 	msgResponse := <-testRPC.serverWriteChan
 	// Cut off the significant Byte in the response
 	testRPC.clientReadChan <- msgResponse[1:]
 	wg.Wait()
-	t.Logf("reply: %v", reply)
+	t.Logf("%s reply: %v", method, reply)
 }
 
 func TestRPCServer(t *testing.T) {
 	testingRPCServer := NewTestingRPCServer()
 	request := 1
 	var systemEnvReply rpcmessages.GetEnvResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", request, systemEnvReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", request, &systemEnvReply)
 
 	var resyncReply rpcmessages.ResyncBitcoinResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", request, resyncReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", request, &resyncReply)
 
 	var sampleInfoReply rpcmessages.SampleInfoResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", request, sampleInfoReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", request, &sampleInfoReply)
+
+	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox.base.test"}
+	setHostnameReply := rpcmessages.ErrorResponse{Code: "test"}
+	testingRPCServer.RunRPCCall(t, "RPCServer.SetHostname", setHostnameArg, &setHostnameReply)
+	require.Equal(t, true, setHostnameReply.Success)
+
+	var getHostnameReply rpcmessages.GetHostnameResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetHostname", true /* dummy Arg */, &getHostnameReply)
+	require.Equal(t, true, getHostnameReply.Success)
 
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", request, verificationProgressReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", request, &verificationProgressReply)
 }

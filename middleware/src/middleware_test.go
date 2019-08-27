@@ -152,9 +152,6 @@ func TestBackup(t *testing.T) {
 	require.Error(t, errUnknown)
 }
 
-// TestRestore only covers the 'script not found' case.
-// We can't know the absolute path of the script, because that depends
-// on the system the tests are executed. e.g. Travis path and local path differ.
 func TestRestore(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
@@ -277,4 +274,45 @@ func TestUserChangePassword(t *testing.T) {
 
 	require.Equal(t, false, changepasswordEmpty.Success)
 	require.Equal(t, "password change unsuccessful (too short)", changepasswordEmpty.Message)
+}
+func TestGetHostname(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+	response := testMiddleware.GetHostname()
+
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "get hostname ", response.Hostname)
+}
+
+func TestSetHostname(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	/* test normal hostname */
+	validArgs1 := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-satoshi"}
+	response1 := testMiddleware.SetHostname(validArgs1)
+	require.Equal(t, true, response1.Success)
+	require.Empty(t, response1.Message)
+
+	/* test special char hostname */
+	validArgs2 := rpcmessages.SetHostnameArgs{Hostname: "a.hostname-with.allowed.-....special.chars"}
+	response2 := testMiddleware.SetHostname(validArgs2)
+	require.Equal(t, true, response2.Success)
+	require.Empty(t, response2.Message)
+
+	/* test a long and valid 64 char hostname */
+	validArgs3 := rpcmessages.SetHostnameArgs{Hostname: "a.loooooooooooooooooooooooooooooooooooooooooong.64-char.hostname"}
+	response3 := testMiddleware.SetHostname(validArgs3)
+	require.Equal(t, true, response3.Success)
+	require.Empty(t, response3.Message)
+
+	/* test a long and invalid 65 char hostname */
+	invalidArgs1 := rpcmessages.SetHostnameArgs{Hostname: "a.tooooo.loooooooooooooooooooooooooooooooooooong.65-char.hostname"}
+	response4 := testMiddleware.SetHostname(invalidArgs1)
+	require.Equal(t, false, response4.Success)
+	require.Equal(t, "invalid hostname", response4.Message)
+
+	/* test an invalid UPPERCASE letter hostname */
+	invalidArgs2 := rpcmessages.SetHostnameArgs{Hostname: "Bitbox"}
+	response5 := testMiddleware.SetHostname(invalidArgs2)
+	require.Equal(t, false, response5.Success)
+	require.Equal(t, "invalid hostname", response5.Message)
 }

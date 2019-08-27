@@ -54,6 +54,8 @@ type Middleware interface {
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
 	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
+	GetHostname() rpcmessages.GetHostnameResponse
+	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -150,6 +152,22 @@ func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs
 func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) {
 	*reply = server.middleware.UserChangePassword(*args)
 	log.Printf("sent reply %v: ", reply)
+}
+
+// SetHostname sends the middleware's ErrorResponse over rpc
+// The argument given specifys the hostname to be set
+func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.SetHostname(*args)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// GetHostname sends the middleware's GetHostnameResponse over rpc
+// The GetHostnameResponse includes the current system hostname
+func (server *RPCServer) GetHostname(dummyArg bool, reply *rpcmessages.GetHostnameResponse) error {
+	*reply = server.middleware.GetHostname()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // Serve starts a gob rpc server
