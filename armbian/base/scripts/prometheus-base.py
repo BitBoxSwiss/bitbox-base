@@ -9,9 +9,8 @@ import json
 import time
 import subprocess
 import sys
+import redis
 from prometheus_client import start_http_server, Gauge, Counter, Info
-
-SYSCONFIG_PATH="/data/sysconfig/"
 
 # Create Prometheus metrics to track Base stats.
 ## metadata
@@ -28,6 +27,10 @@ BASE_SYSTEMD_LIGHTNINGD = Gauge("base_systemd_lightningd", "Systemd unit status 
 BASE_SYSTEMD_PROMETHEUS = Gauge("base_systemd_prometheus", "Systemd unit status for Prometheus")
 BASE_SYSTEMD_GRAFANA = Gauge("base_systemd_grafana", "Systemd unit status for Grafana")
 
+r = redis.Redis(
+    host='127.0.0.1',
+    port=6379,
+)
 
 def readFile(filepath):
     args = [filepath]
@@ -37,13 +40,11 @@ def readFile(filepath):
     return value
 
 def getSystemInfo():
-        configfiles = ['HOSTNAME','BUILD_DATE','BUILD_TIME','BUILD_COMMIT']
+        rediskeys = ['base:hostname','build:date','build:time','build:commit']
         info = {}
-        for filename in configfiles:
-            file = open(SYSCONFIG_PATH + filename,'r')
-            info[filename.lower()] = file.readline().split('=')[1].strip(("\"'\n"))
-            file.close()
-
+        for k in rediskeys:
+            info[k.lower()] = r.get(k).decode("utf-8")
+        
         return info
 
 def getSystemdStatus(unit):
