@@ -28,7 +28,7 @@
 
 set -e
 
-function echoArguments {
+echoArguments() {
   echo "
 ================================================================================
 ==> $1
@@ -43,45 +43,51 @@ CONFIGURATION:
     SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
-    OVERLAYROOT:        ${BASE_OVERLAYROOT}
 
 ================================================================================
 BUILD OPTIONS:
     BUILD MODE:         ${BASE_BUILDMODE}
+    VERSION:            ${BASE_VERSION}
     LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
     MINIMAL IMAGE:      ${BASE_MINIMAL}
+    OVERLAYROOT:        ${BASE_OVERLAYROOT}
     BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
 }
 # get Linux distribution and version
-# (works explicitly only on Armbian Debian Stretch (default), Buster and Ubuntu Bionic)
+# (works explicitly only on Armbian Debian Stretch, Buster and Ubuntu Bionic)
 cat /etc/os-release
+# shellcheck disable=SC1091
 source /etc/os-release
 BASE_DISTRIBUTION=${VERSION_CODENAME}
 
 # Load build configuration, set defaults
+# shellcheck disable=SC1091
 source /opt/shift/build.conf || true
+# shellcheck disable=SC1091
 source /opt/shift/build-local.conf || true
 
 BASE_BUILDMODE=${1:-"armbian-build"}
-BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"stretch"}
+BASE_VERSION=${BASE_VERSION:-"0"}
+BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
-BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"testnet"}
+BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"mainnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
-BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"true"}
+BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"false"}
 BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
 BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
 
 # HDMI dashboard only enabled if image is built to support it
 if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then 
+  echo "WARN: HDMI dashboard is disabled. It cannot be enabled without BASE_HDMI_BUILD option set to 'true'."
   BASE_DASHBOARD_HDMI_ENABLED="false"
 fi
 BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
@@ -120,6 +126,7 @@ export HOME=/root
 # - user 'root' is disabled from logging in with password
 # - user 'base' has sudo rights and is used for low-level user access
 # - user 'hdmi' has minimal access rights
+# - other users are setup as system user, with disabled login 
 
 # add groups
 addgroup --system bitcoin
@@ -128,7 +135,10 @@ addgroup --system system
 # Set root password (either from configuration or random) and lock account
 BASE_ROOTPW=${BASE_ROOTPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
 echo "root:${BASE_ROOTPW}" | chpasswd
+
+if [ "$BASE_SSH_ROOT_LOGIN" != "true" ]; then 
 passwd -l root
+fi
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
 adduser --ingroup system --disabled-password --gecos "" base || true
@@ -136,26 +146,23 @@ usermod -a -G sudo,bitcoin base
 echo "base:${BASE_ROOTPW}" | chpasswd
 
 # Add trusted SSH keys for login
-mkdir -p /root/.ssh/ 
 mkdir -p /home/base/.ssh/
 if [ -f /opt/shift/config/ssh/authorized_keys ]; then
-  cp -f /opt/shift/config/ssh/authorized_keys /root/.ssh/
-  cp -f /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
+  cp /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
 else
   echo "No SSH keys file found (base/authorized_keys), password login only."
 fi
-chmod -R 700 /root/.ssh/
 chown -R base:bitcoin /home/base/
 chmod -R 700 /home/base/.ssh/
 
 # disable password login for SSH (authorized ssh keys only)
-if [ ! "$BASE_SSH_PASSWORD_LOGIN" == "true" ]; then
+if [ "$BASE_SSH_PASSWORD_LOGIN" != "true" ]; then
   sed -i '/PASSWORDAUTHENTICATION/Ic\PasswordAuthentication no' /etc/ssh/sshd_config
   sed -i '/CHALLENGERESPONSEAUTHENTICATION/Ic\ChallengeResponseAuthentication no' /etc/ssh/sshd_config
 fi
 
 # disable root login via SSH
-if [ ! "$BASE_SSH_ROOT_LOGIN" == "true" ]; then
+if [ "$BASE_SSH_ROOT_LOGIN" != "true" ]; then
   sed -i '/PERMITROOTLOGIN/Ic\PermitRootLogin no' /etc/ssh/sshd_config
 fi
 
@@ -210,11 +217,12 @@ fi
 apt install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools curl
 apt install -y --no-install-recommends ifmetric
+apt install -y iptables-persistent
 
 # debug
 apt install -y --no-install-recommends tmux unzip
 
-if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
+if [[ "${BASE_DISTRIBUTION}" == "bionic" ]]; then
     apt install -y --no-install-recommends overlayroot
 fi
 
@@ -352,6 +360,7 @@ export PATH=$PATH:/sbin:/usr/local/sbin
 EOF
 
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
+# shellcheck disable=SC1091
 source /home/base/.bashrc-custom
 
 cat << 'EOF' >> /etc/services
@@ -1052,9 +1061,9 @@ systemctl enable prometheus-bitcoind.service
 systemctl enable grafana-server.service
 systemctl enable iptables-restore.service
 
-## Set to mainnet if configured
-if [ "${BASE_BITCOIN_NETWORK}" == "mainnet" ]; then
-  /opt/shift/scripts/bbb-config.sh set bitcoin_network mainnet
+## Set to testnet if configured
+if [ "${BASE_BITCOIN_NETWORK}" == "testnet" ]; then
+  /opt/shift/scripts/bbb-config.sh set bitcoin_network testnet
 fi
 
 if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
