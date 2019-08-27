@@ -8,33 +8,38 @@ The program reads the current system temperature from a single file, calculates 
 * Fan is controlled by writing a value between `0` (off) and `255` (max) into the file `/sys/class/hwmon/hwmon0/pwm1`
 
 The appropriate fan speed value is calculated linearly for the desired temperature range:
+
 ```
 fanPWM = fanMin + ( ( fanMax - fanMin ) / ( tempMax - tempMin ) ) * ( tempCur - tempMin )
 ```
 
 ## Installation
-The source code can be compiled directly on any single board computer 
 
-* install Go on your SBC, e.g. the ARMv8 version: https://golang.org/dl/
+The source code can be compiled directly on any single board computer
+
+* install Go on your SBC, e.g. the ARMv8 version: <https://golang.org/dl/>
 * download the source code to a temporary directory named `bbbfancontrol`
 * compile the source code inside the temporary directory with `go build`
-* copy the resulting binary to the `/usr/local/sbin` directory 
+* copy the resulting binary to the `/usr/local/sbin` directory
 * check by running `bbbfancontrol --help`
 
-The program is meant to be run in the background by systemd, a sample unit file is provided. 
+The program is meant to be run in the background by systemd, a sample unit file is provided.
+
 * copy systemd unit file `bbbfancontrol.service` into `/etc/systemd/system/` folder
 * enable service with `systemctl enable bbbfancontrol`
 * start service with `systemctl start bbbfancontrol` or reboot
 
 Events are logged into journald by standard and can be viewed with
-```
+
+```bash
 $ journalctl -f -u bbbfancontrol
 ```
 
 ## Usage
+
 Most attributes can be supplied via command line arguments, but default values work fine for most cases.
 
-```
+```bash
 $ bbbfancontrol --help
 
 Usage of bbbfancontrol:
@@ -62,7 +67,8 @@ Usage of bbbfancontrol:
 ```
 
 ## Example
-```
+
+```bash
 $ bbbfancontrol -v -fmin 80 -tmin 40 -tmax 55 -cycle 30 -kickstart 2
 
 BitBox Base fan control, version 0.1
@@ -83,4 +89,23 @@ temperature: 40 / fan set to: 80 / kickstart: 2 / cooldown: true
 Fan turned OFF.
 temperature: 39 / fan set to: 0 / kickstart: 2 / cooldown: false
 ...
+```
+
+## Service management
+
+The application can be started and managed using a simple systemd unit file:
+
+```console
+[Unit]
+Description=BitBox Base fancontrol
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/bbbfancontrol --tmin 60 --tmax 75 --cooldown 55
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
 ```
