@@ -20,62 +20,14 @@ possible commands:
 "
 }
 
-# function to execute command, either within overlayroot-chroot or directly
-exec_overlayroot() {
-    if [[ "${1}" != "base-only" ]] && [[ "${1}" != "all-layers" ]]; then
-        echo "exec_overlayroot(): first argument '${1}', but must be either"
-        echo "                    'base-only':  execute base layer (in r/o partition when overlayroot active, or directy when no overlayroot active"
-        echo "                    'all-layers': execute both in overlayroot and directly"
-        exit 1
-    fi
+# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
+source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
-    if [ "${OVERLAYROOT_ENABLED}" -eq 1 ]; then
-        echo "executing in overlayroot-chroot: ${2}"
-        overlayroot-chroot /bin/bash -c "${2}"
-    fi
+# include functions redis_set() and redis_get()
+source /opt/shift/scripts/include/redis.sh.inc
 
-    if [ "${OVERLAYROOT_ENABLED}" -ne 1 ] || [[ "${1}" == "all-layers" ]]; then
-        echo "executing directly: ${2}"
-        /bin/bash -c "${2}"
-    fi
-}
-
-redis_set() {
-    # usage: redis_set "key" "value"
-    ok=$(redis-cli -h localhost -p 6379 -n 0 SET "${1}" "${2}")
-    if [[ "${ok}"  != "OK" ]]; then
-        echo "ERR: could not SET key ${1}"
-        # exit 1
-    fi
-}
-
-redis_get() {
-    # usage: str=$(redis_get "key")
-    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
-    echo "${ok}"
-}
-
-generateConfig() {
-  # generates a config file using custom bbbconfig
-  #
-  # argument is template filename, without path
-  #
-  local TEMPLATES_DIR="/opt/shift/config/templates"
-
-  if [ ${#} -eq 0 ] || [ ${#} -gt 1 ]; then
-    echo "ERR: generateConfig() expects exactly one argument"
-    exit 1
-  fi
-
-  local FILE="${TEMPLATES_DIR}/${1}"
-  if [ -f "${FILE}" ]; then
-    echo "generateConfig() from ${FILE}"
-    /usr/local/sbin/bbbconfgen --template "${FILE}"
-  else
-    echo "ERR: generateConfig() template file ${FILE} not found"
-    exit 1
-  fi
-}
+# include function generateConfig() to generate config files from templates
+source /opt/shift/scripts/include/generateConfig.sh.inc
 
 # ------------------------------------------------------------------------------
 

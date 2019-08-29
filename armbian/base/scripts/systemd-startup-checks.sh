@@ -6,64 +6,12 @@
 # The Redis config mgmt is not available this early in the boot process.
 #
 
-set -eux
+set -eu
 
-redis_set() {
-    # usage: redis_set "key" "value"
-    ok=$(redis-cli -h localhost -p 6379 -n 0 SET "${1}" "${2}")
-    if [[ "${ok}"  != "OK" ]]; then
-        echo "ERR: could not GET key ${1}"
-        # exit 1
-    fi
-}
-
-redis_get() {
-    # usage: str=$(redis_get "key")
-    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
-    echo "${ok}"
-}
+# include function: exec_overlayroot()
+source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
 # ------------------------------------------------------------------------------
-
-# check if overlayroot is enabled
-OVERLAYROOT_ENABLED=0
-if grep -q "tmpfs" /etc/overlayroot.local.conf; then
-    OVERLAYROOT_ENABLED=1
-fi
-
-# check if /data directory is already set up
-if [ ! -f /data/.datadir_set_up ]; then
-
-    # if /data is separate partition, probably a Mender-enabled image)
-    # the partition is assumed to be persistent and data is copied
-    if mountpoint /data -q; then
-    cp -r /data_source/* /data
-
-    else
-        if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
-            # if overlayroot enabled, create symlink within overlayroot-chroot, 
-            # will only be ready after reboot
-            overlayroot-chroot /bin/bash -c "/opt/shift/scripts/bbb-cmd.sh setup datadir_overlay"
-
-            # also create link in tmpfs until next reboot
-            /opt/shift/scripts/bbb-cmd.sh setup datadir
-
-        else
-            /opt/shift/scripts/bbb-cmd.sh setup datadir
-        fi
-    fi
-fi
-
-# check for TLS certificate and create it if missing
-if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
-    openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
-fi
-
-# make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
-ifmetric eth0 10
-
-timedatectl set-ntp true
-echo "180" > /sys/class/hwmon/hwmon0/pwm1
 
 # UART configuration
 # ------------------------------------------------------------------------------
@@ -86,7 +34,6 @@ echo "180" > /sys/class/hwmon/hwmon0/pwm1
 #     echo "UART_REBOOT=1" > /data/sysconfig/UART_REBOOT
 #     reboot
 #   fi
-
 # else
 #   echo "UART_REBOOT=0" > /data/sysconfig/UART_REBOOT
 # fi
