@@ -87,7 +87,7 @@ func TestFlashdrive(t *testing.T) {
 	flashdriveCheck, errCheck := testMiddleware.Flashdrive(checkArgs)
 
 	require.Equal(t, flashdriveCheck.Success, true)
-	require.Equal(t, flashdriveCheck.Message, "flashdrive check\n")
+	require.Equal(t, flashdriveCheck.Message, "flashdrive check \n")
 	require.NoError(t, errCheck)
 
 	/* --- test mount arg for Flashdrive() ---*/
@@ -111,7 +111,7 @@ func TestFlashdrive(t *testing.T) {
 	flashdriveUnmount, errUnmount := testMiddleware.Flashdrive(unmountArgs)
 
 	require.Equal(t, flashdriveUnmount.Success, true)
-	require.Equal(t, flashdriveUnmount.Message, "flashdrive unmount\n")
+	require.Equal(t, flashdriveUnmount.Message, "flashdrive unmount \n")
 	require.NoError(t, errUnmount)
 
 	/* --- test an unknown arg for Flashdrive() ---*/
@@ -134,14 +134,14 @@ func TestBackup(t *testing.T) {
 	backupSysconfig, errSysconfig := testMiddleware.Backup(rpcmessages.BackupSysConfig)
 
 	require.Equal(t, backupSysconfig.Success, true)
-	require.Equal(t, backupSysconfig.Message, "backup sysconfig\n")
+	require.Equal(t, backupSysconfig.Message, "backup sysconfig \n")
 	require.NoError(t, errSysconfig)
 
 	/* --- test hsm secret arg for Backup() ---*/
 	backupHSMSecret, errHSMSecret := testMiddleware.Backup(rpcmessages.BackupHSMSecret)
 
 	require.Equal(t, backupHSMSecret.Success, true)
-	require.Equal(t, backupHSMSecret.Message, "backup hsm_secret\n")
+	require.Equal(t, backupHSMSecret.Message, "backup hsm_secret \n")
 	require.NoError(t, errHSMSecret)
 
 	/* --- test an unknown arg for Backup() ---*/
@@ -162,14 +162,14 @@ func TestRestore(t *testing.T) {
 	restoreSysconfig, errSysconfig := testMiddleware.Restore(rpcmessages.RestoreSysConfig)
 
 	require.Equal(t, restoreSysconfig.Success, true)
-	require.Equal(t, restoreSysconfig.Message, "restore sysconfig\n")
+	require.Equal(t, restoreSysconfig.Message, "restore sysconfig \n")
 	require.NoError(t, errSysconfig)
 
 	/* --- test hsm secret arg for Restore() ---*/
 	restoreHSMSecret, errHSMSecret := testMiddleware.Restore(rpcmessages.RestoreHSMSecret)
 
 	require.Equal(t, restoreHSMSecret.Success, true)
-	require.Equal(t, restoreHSMSecret.Message, "restore hsm_secret\n")
+	require.Equal(t, restoreHSMSecret.Message, "restore hsm_secret \n")
 	require.NoError(t, errHSMSecret)
 
 	/* --- test an unknown arg for Restore() ---*/

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
@@ -191,7 +192,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 	switch args.Method {
 	case rpcmessages.Check:
 		log.Println("Executing a USB flashdrive check via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "check")
+		out, err := middleware.runBBBCmdScript("flashdrive", "check", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -199,7 +200,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 
 	case rpcmessages.Mount:
 		log.Println("Executing a USB flashdrive mount via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "mount"+" "+args.Path)
+		out, err := middleware.runBBBCmdScript("flashdrive", "mount", args.Path)
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -207,7 +208,7 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 
 	case rpcmessages.Unmount:
 		log.Println("Executing a USB flashdrive unmount via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "unmount")
+		out, err := middleware.runBBBCmdScript("flashdrive", "unmount", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -224,7 +225,7 @@ func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages
 	switch method {
 	case rpcmessages.BackupSysConfig:
 		log.Println("Executing a backup of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "sysconfig")
+		out, err := middleware.runBBBCmdScript("backup", "sysconfig", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -232,7 +233,7 @@ func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages
 
 	case rpcmessages.BackupHSMSecret:
 		log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
+		out, err := middleware.runBBBCmdScript("backup", "hsm_secret", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -249,7 +250,7 @@ func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessag
 	switch method {
 	case rpcmessages.RestoreSysConfig:
 		log.Println("Executing a restore of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "sysconfig")
+		out, err := middleware.runBBBCmdScript("restore", "sysconfig", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -257,7 +258,7 @@ func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessag
 
 	case rpcmessages.RestoreHSMSecret:
 		log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "hsm_secret")
+		out, err := middleware.runBBBCmdScript("restore", "hsm_secret", "")
 		if err != nil {
 			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
 		}
@@ -316,10 +317,10 @@ func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePass
 	return rpcmessages.ErrorResponse{Success: false, Message: "password change unsuccessful (too short)"}
 }
 
-func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
+func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {
 	script := middleware.environment.GetBBBCmdScript()
-	cmdAsString := script + " " + method + " " + arg
-	out, err = exec.Command(script, method, arg).Output()
+	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
+	out, err = exec.Command(script, method, arg1, arg2).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
