@@ -96,6 +96,7 @@ case "${COMMAND}" in
 
             DASHBOARD_WEB)
                 # create / delete symlink to enable NGINX block
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
                     ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
                     systemctl enable grafana-server.service
@@ -111,6 +112,8 @@ case "${COMMAND}" in
 
             WIFI)
                 # copy / delete wlan0 config to include directory
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
+
                 if [[ ${ENABLE} -eq 1 ]]; then
                     generateConfig "wlan0.conf.template"
                 else
@@ -121,6 +124,11 @@ case "${COMMAND}" in
                 ;;
 
             AUTOSETUP_SSD)
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    touch /opt/shift/config/.autosetup-ssd
+                else
+                    exec_overlayroot all-layers "rm /opt/shift/config/.autosetup-ssd"
+                fi
                 redis_set "base:autosetupssd:enabled" "${ENABLE}"
                 ;;
 
@@ -144,6 +152,7 @@ case "${COMMAND}" in
                 ;;
 
             TOR_SSH|TOR_ELECTRUM)
+                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
                     redis_set "base:tor:ssh:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
@@ -321,5 +330,5 @@ case "${COMMAND}" in
 
     *)
         echo "Invalid argument: command ${COMMAND} unknown."
-        exit 1//
+        exit 1
 esac

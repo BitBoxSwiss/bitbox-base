@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eux
+set -eu
 
 # BitBox Base: system commands repository
 #
@@ -63,14 +63,13 @@ case "${MODULE}" in
         case "${COMMAND}" in
             DATADIR)
 
-                echo "check"
                 if [ ! -f /data/.datadir_set_up ]; then
-                    # if /data is separate partition, data is copied (assume /data is read/write)
-                    echo "mountpoint"
+                    # if /data is separate partition, probably a Mender-enabled image)
+                    # the partition is assumed to be persistent and data is copied
                     if mountpoint /data -q; then
                         cp -r /data_source/* /data
                         echo "OK: (DATADIR) /data_source/ copied to /data/"
-
+                    
                     # otherwise create symlink
                     else
                         if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
@@ -93,7 +92,7 @@ case "${MODULE}" in
                         fi
                     fi
                 else
-                    echo "WARN: (DATADIR_OVERLAY) data directory already set up (found file /data/.datadir_set_up)"
+                    echo "WARN: (DATADIR) data directory already set up (found file /data/.datadir_set_up)"
                 fi
                 ;;
 
