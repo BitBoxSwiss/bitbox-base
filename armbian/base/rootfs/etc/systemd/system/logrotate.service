@@ -2,13 +2,13 @@
 Description=BitBox Base logrotation
 
 [Service]
-ExecStart=/usr/sbin/logrotate /etc/logrotate.conf
-Type=oneshot
 
-# harding options
-PrivateDevices=true
-PrivateTmp=true
-ProtectControlGroups=true
-ProtectKernelModules=true
-ProtectSystem=full
-RestrictRealtime=true
+# Service execution
+###################
+
+ExecStart=/usr/sbin/logrotate /etc/logrotate.conf
+
+# Process management
+####################
+
+Type=oneshot

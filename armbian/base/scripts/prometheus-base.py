@@ -40,12 +40,14 @@ def readFile(filepath):
     return value
 
 def getSystemInfo():
-        rediskeys = ['base:hostname','build:date','build:time','build:commit']
-        info = {}
-        for k in rediskeys:
-            info[k.lower()] = r.get(k).decode("utf-8")
-        
-        return info
+    rediskeys = ['base:hostname','build:date','build:time','build:commit']
+    info = {}
+    for k in rediskeys:
+        infoName = k.lower().replace(":", "_")
+        infoValue = r.get(k).decode("utf-8")
+        info[infoName] = infoValue
+
+    return info
 
 def getSystemdStatus(unit):
     try:

@@ -2,7 +2,7 @@
 set -eu
 
 # BitBox Base: batch control system units
-# 
+#
 
 function usage() {
     echo "BitBox Base: batch control system units"
@@ -12,21 +12,22 @@ function usage() {
 ACTION=${1:-"status"}
 
 if [[ ${ACTION} == "-h" ]] || [[ ${ACTION} == "--help" ]]; then
-  usage
-  exit 0
+    usage
+    exit 0
 fi
 
 if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable)$ ]]; then
-  echo "bbb-systemctl.sh: unknown argument."
-  echo
-  usage
-  exit 1
+    echo "bbb-systemctl.sh: unknown argument."
+    echo
+    usage
+    exit 1
 fi
 
 case ${ACTION} in
-        status)
-                echo "
+    status)
+        echo "
 Checking systemd unit status of BitBox Base...
+highlight: failed, activating, inactive
 
 bitcoind:                 $(systemctl is-active bitcoind.service)
 electrs:                  $(systemctl is-active electrs.service)
@@ -41,31 +42,31 @@ prometheus-node-exporter: $(systemctl is-active prometheus-node-exporter.service
 prometheus-base:          $(systemctl is-active prometheus-base.service)
 prometheus-bitcoind:      $(systemctl is-active prometheus-bitcoind.service)
 grafana:                  $(systemctl is-active grafana-server.service)
-" | grep --color -E 'failed|activating|$'
-                ;;
+" | grep --color -zP  '(failed|activating|inactive)'
+        ;;
 
-  start|restart|stop|enable|disable)
+    start|restart|stop|enable|disable)
 
-                if [[ ${UID} -ne 0 ]]; then
-                  echo "bbb-systemctl.sh: needs to be run as superuser." >&2
-                  exit 1
-                fi
+        if [[ ${UID} -ne 0 ]]; then
+            echo "bbb-systemctl.sh: needs to be run as superuser." >&2
+            exit 1
+        fi
 
-                systemctl daemon-reload
+        systemctl daemon-reload
 
-                systemctl $ACTION prometheus
-                systemctl $ACTION prometheus-base.service 
-                systemctl $ACTION prometheus-bitcoind.service 
-                systemctl $ACTION prometheus-node-exporter.service 
-                systemctl $ACTION grafana-server.service 
-                systemctl $ACTION bbbmiddleware.service
-                systemctl $ACTION nginx.service 
-                systemctl $ACTION electrs.service 
-                systemctl $ACTION lightningd.service 
-                systemctl $ACTION bitcoind.service
-                systemctl $ACTION bbbsupervisor.service
-                systemctl $ACTION bbbfancontrol.service
-                systemctl $ACTION redis.service
-                ;;
+        systemctl $ACTION prometheus
+        systemctl $ACTION prometheus-base.service
+        systemctl $ACTION prometheus-bitcoind.service
+        systemctl $ACTION prometheus-node-exporter.service
+        systemctl $ACTION grafana-server.service
+        systemctl $ACTION bbbmiddleware.service
+        systemctl $ACTION nginx.service
+        systemctl $ACTION electrs.service
+        systemctl $ACTION lightningd.service
+        systemctl $ACTION bitcoind.service
+        systemctl $ACTION bbbsupervisor.service
+        systemctl $ACTION bbbfancontrol.service
+        systemctl $ACTION redis.service
+        ;;
 esac
 echo

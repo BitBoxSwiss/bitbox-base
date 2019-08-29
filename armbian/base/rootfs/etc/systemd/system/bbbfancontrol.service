@@ -3,8 +3,19 @@ Description=BitBox Base fancontrol
 After=local-fs.target
 
 [Service]
+
+# Service execution
+###################
+
+ExecStart=/usr/local/sbin/bbbfancontrol \
+    --tmin 60 \
+    --tmax 75 \
+    --cooldown 55
+
+# Process management
+####################
+
 Type=simple
-ExecStart=/usr/local/sbin/bbbfancontrol --tmin 60 --tmax 75 --cooldown 55
 Restart=always
 RestartSec=10
 

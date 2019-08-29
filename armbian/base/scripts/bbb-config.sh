@@ -253,7 +253,6 @@ case "${COMMAND}" in
                         redis_set "bitcoind:network" "mainnet"
                         redis_set "bitcoind:testnet" "0"
                         redis_set "bitcoind:mainnet" "1"
-                        redis_set "bitcoind:rpcport" "8332" # use for other services, or fix for mainnet and testnet
                         redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning"
                         ;;
 
@@ -261,7 +260,6 @@ case "${COMMAND}" in
                         redis_set "bitcoind:network" "testnet"
                         redis_set "bitcoind:testnet" "1"
                         redis_set "bitcoind:mainnet" "0"
-                        redis_set "bitcoind:rpcport" "18332" # use for other services, or fix for mainnet and testnet
                         redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning-testnet"
                         ;;
 
@@ -293,10 +291,10 @@ case "${COMMAND}" in
                     false)
                         echo "Setting bitcoind configuration for 'fully synced'."
                         bbb-config.sh set bitcoin_dbcache 300
+                        redis_set "bitcoind:ibd" "0"
                         echo "Service 'lightningd' and 'electrs' are being started..."
                         systemctl start lightningd.service
                         systemctl start electrs.service
-                        redis_set "bitcoind:ibd" "0"
                         ;;
 
                     *)

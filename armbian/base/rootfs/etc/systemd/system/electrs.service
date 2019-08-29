@@ -4,6 +4,10 @@ Wants=bitcoind.service
 After=bitcoind.service
 
 [Service]
+
+# Service execution
+###################
+
 EnvironmentFile=/etc/electrs/electrs.conf
 EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=+/opt/shift/scripts/systemd-electrs-startpre.sh
@@ -15,18 +19,48 @@ ExecStart=/usr/bin/electrs \
     --monitoring-addr ${MONITORING_ADDR} \
     -${VERBOSITY}
 
-RuntimeDirectory=electrs
-User=electrs
-Group=bitcoin
+# Process management
+####################
+
 Type=simple
-KillMode=process
 Restart=always
 TimeoutSec=120
 RestartSec=30
+KillMode=process
+
+
+# Directory creation and permissions
+####################################
+
+# Run as electrs:bitcoin
+User=electrs
+Group=bitcoin
+
+# /run/electrs
+RuntimeDirectory=electrs
+RuntimeDirectoryMode=0710
+
+# Hardening measures
+####################
+
+# Provide a private /tmp and /var/tmp.
 PrivateTmp=true
+
+# Mount /usr, /boot/ and /etc read-only for the process.
 ProtectSystem=full
+
+# Deny access to /home, /root and /run/user
+ProtectHome=true
+
+# Disallow the process and all of its children to gain
+# new privileges through execve().
 NoNewPrivileges=true
+
+# Use a new /dev namespace only populated with API pseudo devices
+# such as /dev/null, /dev/zero and /dev/random.
 PrivateDevices=true
+
+# Deny the creation of writable and executable memory mappings.
 MemoryDenyWriteExecute=true
 
 [Install]

@@ -3,8 +3,16 @@ Description=BitBox Base Supervisor
 After=redis.service
 
 [Service]
-Type=simple
+
+# Service execution
+###################
+
 ExecStart=/usr/local/sbin/bbbsupervisor
+
+# Process management
+####################
+
+Type=simple
 Restart=always
 RestartSec=10
 

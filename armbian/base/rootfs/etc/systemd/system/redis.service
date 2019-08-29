@@ -4,15 +4,29 @@ After=startup-checks.service
 # original config in /lib/systemd/system/redis-server.service
 
 [Service]
-Type=forking
+
+# Service execution
+###################
+
+ExecStartPre=/opt/shift/scripts/systemd-redis-startpre.sh
 ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
+ExecStop=/opt/shift/scripts/systemd-redis-stop.sh
 ExecStop=/bin/kill -s TERM $MAINPID
-User=redis
-Group=redis
+
+# Process management
+####################
+
+Type=forking
 Restart=always
 Restart=always
 RestartSec=10
 TimeoutSec=30
+
+# Directory creation and permissions
+####################################
+
+User=redis
+Group=redis
 
 [Install]
 WantedBy=multi-user.target

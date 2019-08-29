@@ -3,12 +3,25 @@ Description=Prometheus base exporter
 After=prometheus.service
 
 [Service]
+
+# Service execution
+###################
+
 ExecStart=/opt/shift/scripts/prometheus-base.py
-KillMode=process
-User=node_exporter
-Group=system
+
+# Process management
+####################
+
+Type=simple
 Restart=always
 RestartSec=10
+KillMode=process
+
+# Directory creation and permissions
+####################################
+
+User=node_exporter
+Group=system
 
 [Install]
 WantedBy=multi-user.target

@@ -8,7 +8,7 @@ alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
 alias blog='sudo journalctl -f -u bitcoind'
 
 # Lightning
-alias lcli='lightning-cli --lightning-dir={{ lightningd:basedir #rmLine }}'
+alias lcli='lightning-cli --lightning-dir={{ lightningd:lightning-dir }}'
 alias llog='sudo journalctl -f -u lightningd'
 
 # Logs

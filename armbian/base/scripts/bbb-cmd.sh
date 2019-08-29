@@ -16,7 +16,7 @@ possible commands:
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
-                    
+
 "
 }
 
@@ -117,25 +117,29 @@ case "${MODULE}" in
                     echo "mountpoint"
                     if mountpoint /data -q; then
                         cp -r /data_source/* /data
-                    
+                        echo "OK: (DATADIR) /data_source/ copied to /data/"
+
                     # otherwise create symlink
                     else
-                        echo "ln"
-                        ln -sf /data_source /data
+                        if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
+                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot, 
+                            # will only be ready after reboot
+                            overlayroot-chroot /bin/bash -c "ln -sf /mnt/ssd/data /"
+
+                            # also create link in tmpfs until next reboot
+                            ln -sf /mnt/ssd/data /
+                            echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
+                            
+                            if [ ! -f /data/.datadir_set_up ]; then
+                                cp -r /data_source/* /data
+                                echo "OK: (DATADIR) /data_source/ copied to /data/"
+                            fi
+                            
+                        else
+                            ln -sf /data_source /data
+                            echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
+                        fi
                     fi
-                    echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
-
-                else
-                    echo "WARN: (DATADIR) data directory already set up (found file /data/.datadir_set_up)"
-                fi
-                ;;
-
-            DATADIR_OVERLAY)
-                # this command needs to be executed within the overlayroot base layer
-                # e.g. by running 'overlayroot-chroot /bin/bash -c "/opt/shift/scripts/bbb-cmd.sh setup datadir_overlay"
-                if [ ! -f /data/.datadir_set_up ]; then
-                    ln -sf /data_source /data
-                    echo "OK: (DATADIR_OVERLAY) symlink /data/ --> /data_source/ created"
                 else
                     echo "WARN: (DATADIR_OVERLAY) data directory already set up (found file /data/.datadir_set_up)"
                 fi
@@ -151,8 +155,9 @@ case "${MODULE}" in
         case "${COMMAND}" in
             RESYNC|REINDEX)
                 # stop systemd services
-                systemctl stop electrs
-                systemctl stop lightningd
+                systemctl stop electrs.service
+                systemctl stop lightningd.service
+                systemctl stop bitcoind.service
 
                 # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
                 rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
@@ -161,7 +166,6 @@ case "${MODULE}" in
                 # for RESYNC incl. download, delete `blocks` directory too
                 if [[ "${COMMAND}" == "RESYNC" ]]; then
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
-                    echo "X"
                 fi
 
                 redis_set "bitcoind:ibd" "1"
@@ -329,7 +333,7 @@ case "${MODULE}" in
             SYSCONFIG)
                 if [ -f /mnt/backup/bbb-backup.rdb ]; then
                     cp "/mnt/backup/bbb-backup.rdb" "${REDIS_FILEPATH}"
-                    systemctl restart redis-server.service
+                    systemctl restart redis.service
                 else
                     echo "ERR: backup file /mnt/backup/bbb-backup.rdb not found"
                     exit 1

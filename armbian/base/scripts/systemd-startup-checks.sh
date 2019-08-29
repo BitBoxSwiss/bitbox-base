@@ -3,8 +3,10 @@
 # This script is called by the startup-checks.service on boot
 # to check basic system parameters and assure correct configuration.
 #
+# The Redis config mgmt is not available this early in the boot process.
+#
 
-set -eu
+set -eux
 
 redis_set() {
     # usage: redis_set "key" "value"
@@ -89,6 +91,7 @@ echo "180" > /sys/class/hwmon/hwmon0/pwm1
 #   echo "UART_REBOOT=0" > /data/sysconfig/UART_REBOOT
 # fi
 
+
 # SSD configuration
 # ------------------------------------------------------------------------------
 ## check if SSD mount is configured in /etc/fstab (trailing space is essential!)
@@ -96,22 +99,22 @@ if ! grep -q '/mnt/ssd ' /etc/fstab ; then
 
     ## valid partition present?
     if lsblk | grep -q 'nvme0n1p1'; then
-        echo "/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
+        exec_overlayroot all-layers "echo '/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
     elif lsblk | grep -q 'sda1'; then
-        echo "/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
+        exec_overlayroot all-layers "echo '/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
     else
         ## if no valid partition present, is image configured for autosetup of SSD?
         
-        AUTOSETUP_SSD=$(redis_get "base:autosetupssd:enabled")
-        echo "AUTOSETUP_SSD: ${AUTOSETUP_SSD}"
-        
-        if ! mountpoint /mnt/ssd -q && [[ ${AUTOSETUP_SSD} -eq 1 ]]; then
+        if ! mountpoint /mnt/ssd -q && [ -f /opt/shift/config/.autosetup-ssd ]; then
             # run ssd autosetup, and disable it afterwards on success
             if /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
             then
-                redis_set "base:autosetupssd:enabled" 0
+                echo "INFO: autosetup-ssd.sh successfully executed"
+                /opt/shift/scripts/bbb-config.sh disable autosetup_ssd 
+            else
+                echo "ERR: autosetup-ssd.sh failed"
             fi
         fi
 
@@ -138,6 +141,67 @@ if ! mountpoint /mnt/ssd -q; then
     exit 1
 fi
 
+# Folders & permissions
+# ------------------------------------------------------------------------------
+## create missing directories & always set correct owner
+## access control lists (setfacl) are used to control permissions of newly created files 
+chown bitcoin:system /mnt/ssd/
+
+## bitcoin data storage
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
+chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
+chmod -R 750 /mnt/ssd/bitcoin/
+setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
+setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
+
+## electrs data storage
+mkdir -p /mnt/ssd/electrs/
+chown -R electrs:bitcoin /mnt/ssd/electrs/
+chmod -R 750 /mnt/ssd/electrs/
+
+## persistent data on ssd
+mkdir -p /mnt/ssd/data/ssl
+chown -R root:system /mnt/ssd/data
+
+mkdir -p /mnt/ssd/data/redis/
+chown -R redis:system /mnt/ssd/data/redis/
+
+## system folders
+mkdir -p /mnt/ssd/prometheus
+chown -R prometheus:system /mnt/ssd/prometheus/
+
+mkdir -p /mnt/ssd/system/journal/
+ln -sf /mnt/ssd/system/journal /var/log/journal
+
+## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
+## no way to specify where to expect the bitcoin cookie for c-lightning, so let's
+## create a symlink at the expected testnet location.
+mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
+ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
+
+
+# Configuration Management
+# ------------------------------------------------------------------------------
+## check if /data directory is already set up
+if [ ! -f /data/.datadir_set_up ]; then
+    /opt/shift/scripts/bbb-cmd.sh setup datadir
+fi
+
+# Networking
+# ------------------------------------------------------------------------------
+# make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
+ifmetric eth0 10
+
+timedatectl set-ntp true
+echo "180" > /sys/class/hwmon/hwmon0/pwm1
+
+# check for TLS certificate and create it if missing
+if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
+    mkdir -p /data/ssl/
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
+fi
+
+
 # Swap configuration
 # ------------------------------------------------------------------------------
 ## check if swapfile exists on ssd
@@ -162,35 +226,4 @@ sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
 
 ## mount potentially updated /etc/fstab, activate swapfile
 mount -a
-swapon /mnt/ssd/swapfile
-
-# Folders & permissions
-# ------------------------------------------------------------------------------
-## create missing directories & always set correct owner
-## access control lists (setfacl) are used to control permissions of newly created files 
-chown bitcoin:system /mnt/ssd/
-
-
-## bitcoin data storage
-mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
-chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
-chmod -R 750 /mnt/ssd/bitcoin/
-setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
-setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
-
-## electrs data storage
-mkdir -p /mnt/ssd/electrs/
-chown -R electrs:bitcoin /mnt/ssd/electrs/
-chmod -R 750 /mnt/ssd/electrs/
-
-## system folders
-mkdir -p /mnt/ssd/prometheus
-chown -R prometheus:system /mnt/ssd/prometheus/
-mkdir -p /mnt/ssd/system/journal/
-ln -sf /mnt/ssd/system/journal /var/log/journal
-
-## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
-## no way to specify where to expect the bitcoin cookie for c-lightning, so let's
-## create a symlink at the expected testnet location.
-mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
-ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
+swapon /mnt/ssd/swapfile || true

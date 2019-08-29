@@ -3,8 +3,16 @@ Description=BitBox Base startup checks
 After=network-online.target 
 
 [Service]
+
+# Service execution
+###################
+
 ExecStart=/opt/shift/scripts/systemd-startup-checks.sh
-Type=simple
+
+# Process management
+####################
+
+Type=oneshot
 
 [Install]
 WantedBy=multi-user.target

@@ -3,12 +3,24 @@ Description=Prometheus Node Exporter
 After=prometheus.service
 
 [Service]
-User=node_exporter
-Group=system
-Type=simple
+
+# Service execution
+###################
+
 ExecStart=/usr/local/bin/node_exporter
+
+# Process management
+####################
+
+Type=simple
 Restart=always
 RestartSec=10
+
+# Directory creation and permissions
+####################################
+
+User=node_exporter
+Group=system
 
 [Install]
 WantedBy=multi-user.target
