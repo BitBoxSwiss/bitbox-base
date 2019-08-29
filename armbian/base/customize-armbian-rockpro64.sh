@@ -223,12 +223,19 @@ fi
 # add service users 
 adduser --system --ingroup bitcoin --disabled-login --home /mnt/ssd/bitcoin/      bitcoin || true
 usermod -a -G system bitcoin
+
 adduser --system --ingroup bitcoin --disabled-login --no-create-home              electrs || true
 usermod -a -G system electrs
+
 adduser --system --group          --disabled-login --home /var/run/avahi-daemon   avahi || true
+
 adduser --system --ingroup system --disabled-login --no-create-home               prometheus || true
+
 adduser --system --ingroup system --disabled-login --no-create-home               node_exporter || true
+
 adduser --system --group          --disabled-login --no-create-home               redis || true
+usermod -a -G system redis
+
 adduser --system hdmi
 chsh -s /bin/bash hdmi
 
