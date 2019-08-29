@@ -87,35 +87,19 @@ func TestReindexBitcoin(t *testing.T) {
 func TestFlashdrive(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	/* --- test check arg for Flashdrive() ---*/
-	checkArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Check,
-		Path:   "", // not needed, only needed for mount
-	}
-
-	flashdriveCheck, errCheck := testMiddleware.Flashdrive(checkArgs)
-
-	require.Equal(t, flashdriveCheck.Success, true)
-	require.Equal(t, flashdriveCheck.Message, "flashdrive check \n")
-	require.NoError(t, errCheck)
-
 	/* --- test mount arg for Flashdrive() ---*/
-	mountArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Mount,
-		Path:   "/dev/sda",
-	}
+	mountArgs := rpcmessages.FlashdriveArgs{Method: rpcmessages.Mount}
 
 	flashdriveMount, errMount := testMiddleware.Flashdrive(mountArgs)
 
 	require.Equal(t, flashdriveMount.Success, true)
-	require.Equal(t, flashdriveMount.Message, "flashdrive mount /dev/sda\n")
+	// We end up wit this, because the output of `/bin/echo flashdrive check `
+	// is passed to `/echo/bin flashdrive mount flashdrive check `
+	require.Equal(t, flashdriveMount.Message, "flashdrive mount flashdrive check \n")
 	require.NoError(t, errMount)
 
 	/* --- test unmount arg for Flashdrive() ---*/
-	unmountArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Unmount,
-		Path:   "", // not needed, only needed for mount
-	}
+	unmountArgs := rpcmessages.FlashdriveArgs{Method: rpcmessages.Unmount}
 
 	flashdriveUnmount, errUnmount := testMiddleware.Flashdrive(unmountArgs)
 
@@ -124,10 +108,7 @@ func TestFlashdrive(t *testing.T) {
 	require.NoError(t, errUnmount)
 
 	/* --- test an unknown arg for Flashdrive() ---*/
-	unknownArgs := rpcmessages.FlashdriveArgs{
-		Method: -1,
-		Path:   "",
-	}
+	unknownArgs := rpcmessages.FlashdriveArgs{Method: -1}
 
 	flashdriveUnknown, errUnknown := testMiddleware.Flashdrive(unknownArgs)
 

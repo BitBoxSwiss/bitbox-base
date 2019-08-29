@@ -189,21 +189,20 @@ func (middleware *Middleware) DummyAdminPassword() string {
 // Flashdrive returns a GenericResponse struct in response to a rpcserver request
 func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error) {
 	switch args.Method {
-	case rpcmessages.Check:
-		log.Println("Executing a USB flashdrive check via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "check", "")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
 	case rpcmessages.Mount:
-		log.Println("Executing a USB flashdrive mount via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "mount", args.Path)
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
+		log.Println("Executing a USB flashdrive check via the cmd script")
+		outCheck, errCheck := middleware.runBBBCmdScript("flashdrive", "check", "")
+		if errCheck != nil {
+			return rpcmessages.GenericResponse{Success: false, Message: string(outCheck)}, errCheck
 		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
+		flashDriveName := strings.TrimSuffix(string(outCheck), "\n")
+
+		log.Println("Executing a USB flashdrive mount via the cmd script")
+		outMount, errMount := middleware.runBBBCmdScript("flashdrive", "mount", flashDriveName)
+		if errMount != nil {
+			return rpcmessages.GenericResponse{Success: false, Message: string(outMount)}, errMount
+		}
+		return rpcmessages.GenericResponse{Success: true, Message: string(outMount)}, nil
 
 	case rpcmessages.Unmount:
 		log.Println("Executing a USB flashdrive unmount via the cmd script")

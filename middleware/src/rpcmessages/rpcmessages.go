@@ -19,7 +19,6 @@ Put Incoming Args below this line. They should have the format of 'RPC Method Na
 // FlashdriveArgs is an struct that holds the arguments for the Flashdrive RPC call
 type FlashdriveArgs struct {
 	Method FlashdriveMethod // the method called
-	Path   string           // the method 'mount' needs a path. If not calling 'mount' this path should be empty.
 }
 
 // FlashdriveMethod is an iota that holds the method for the Flashdrive RPC call
@@ -28,8 +27,7 @@ type FlashdriveMethod int
 // FlashdriveMethod can be one of three possible methods.
 // Either check for an existing flashdrive, mount a flash drive or unmount a mounted drive.
 const (
-	Check FlashdriveMethod = iota
-	Mount
+	Mount FlashdriveMethod = iota
 	Unmount
 )
 
