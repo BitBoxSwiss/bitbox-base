@@ -38,9 +38,10 @@ Make sure to respect spaces between arguments.
   {{ key #rmLine }}             ...deletes the whole line if key not found
   {{ key #default: some val }}  ...uses default value if key not found
 
-The #check function allows to drop a line if a key is set to '0', or not set at all:
+The #rmLineTrue and #rmLineFalse functions allows to drop a line conditionally. 
 
-  {{ key #check }}
+  {{ key #rmLineTrue }}         drop line if a key is set to '1', 'true', 'yes' or 'y'
+  {{ key #rmLineFalse }}        drop line if a key is set to '0', 'false', 'no', 'n' or not at all
 ```
 
 ## Example
@@ -80,10 +81,10 @@ mainnet={{ bitcoind:mainnet }}
 testnet={{ bitcoind:testnet #default: 0 }}
 rpcconnect={{ bitcoind:rpcconnect }}
 dbcache={{ bitcoind:dbcache #default: 300 }}
-printtoconsole=1                                        {{ bitcoind:testnet #check }}
-seednode={{ bitcoind:seednode:1 #rmLine }}              {{ tor:enabled #check }}
-seednode={{ bitcoind:seednode:2 #rmLine }}              {{ tor:enabled #check }}
-seednode={{ bitcoind:seednode:3 #rmLine }}              {{ tor:enabled #check }}
+printtoconsole=1                                        {{ bitcoind:mainnet #rmLineTrue }}
+seednode={{ bitcoind:seednode:1 #rmLine }}              {{ tor:enabled #rmLineFalse }}
+seednode={{ bitcoind:seednode:2 #rmLine }}              {{ tor:enabled #rmLineFalse }}
+seednode={{ bitcoind:seednode:3 #rmLine }}              {{ tor:enabled #rmLineFalse }}
 
 $ ./bbbconfgen --template test/bitcoin-template.conf --output test/bitcoin-output.conf
 connected to Redis
