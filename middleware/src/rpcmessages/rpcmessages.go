@@ -95,3 +95,12 @@ type GenericResponse struct {
 	Success bool
 	Message string
 }
+
+// ErrorResponse is a generic RPC response indicating if a RPC call was successful or not.
+// It can be embedded into other RPC responses that return values.
+// In any case the ErrorResponse should be checked first, so that, if an error is returned, we ignore everything else in the response.
+type ErrorResponse struct {
+	Success bool
+	Code    string
+	Message string
+}
