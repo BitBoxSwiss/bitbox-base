@@ -60,6 +60,18 @@ const (
 	RestoreHSMSecret
 )
 
+// UserAuthenticateArgs is an struct that holds the arguments for the UserAuthenticate RPC call
+type UserAuthenticateArgs struct {
+	Username string
+	Password string
+}
+
+// UserChangePasswordArgs is an struct that holds the arguments for the UserChangePassword RPC call
+type UserChangePasswordArgs struct {
+	Username    string
+	NewPassword string
+}
+
 /*
 Put Response structs below this line. They should have the format of 'RPC Method Name' + 'Response'.
 */

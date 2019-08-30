@@ -56,6 +56,8 @@ type Middleware interface {
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
+	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
+	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
 }
 
 // RPCServer provides rpc calls to the middleware
@@ -134,6 +136,20 @@ func (server *RPCServer) Restore(args *rpcmessages.RestoreArgs, reply *rpcmessag
 	*reply, err = server.middleware.Restore(*args)
 	log.Printf("sent reply %v: ", reply)
 	return err
+}
+
+// UserAuthenticate sends the middleware's ErrorResponse over rpc
+// Args given specify the username and the password
+func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.ErrorResponse) {
+	*reply = server.middleware.UserAuthenticate(*args)
+	log.Printf("sent reply %v: ", reply)
+}
+
+// UserChangePassword sends the middleware's ErrorResponse over rpc
+// The Arg given specify the username and the new password
+func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) {
+	*reply = server.middleware.UserChangePassword(*args)
+	log.Printf("sent reply %v: ", reply)
 }
 
 // Serve starts a gob rpc server
