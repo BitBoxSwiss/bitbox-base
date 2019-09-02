@@ -52,7 +52,8 @@ type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
 	ResyncBitcoin() rpcmessages.ErrorResponse
 	ReindexBitcoin() rpcmessages.ErrorResponse
-	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
+	MountFlashdrive() rpcmessages.ErrorResponse
+	UnmountFlashdrive() rpcmessages.ErrorResponse
 	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	GetHostname() rpcmessages.GetHostnameResponse
@@ -120,13 +121,18 @@ func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.Ve
 	return nil
 }
 
-// Flashdrive sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a flashdrive check, mount or unmount
-func (server *RPCServer) Flashdrive(args *rpcmessages.FlashdriveArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Flashdrive(*args)
+// MountFlashdrive sends the middleware's ErrorResponse over RPC.
+func (server *RPCServer) MountFlashdrive(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.MountFlashdrive()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
+}
+
+// UnmountFlashdrive sends the middleware's ErrorResponse over RPC.
+func (server *RPCServer) UnmountFlashdrive(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.UnmountFlashdrive()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // Backup sends the middleware's GenericResponse over rpc

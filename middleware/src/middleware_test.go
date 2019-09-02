@@ -84,37 +84,20 @@ func TestReindexBitcoin(t *testing.T) {
 	require.Equal(t, response.Code, "")
 }
 
-func TestFlashdrive(t *testing.T) {
+func TestMountFlashdrive(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
+	response := testMiddleware.MountFlashdrive()
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, "", response.Code)
+}
 
-	/* --- test mount arg for Flashdrive() ---*/
-	mountArgs := rpcmessages.FlashdriveArgs{Method: rpcmessages.Mount}
-
-	flashdriveMount, errMount := testMiddleware.Flashdrive(mountArgs)
-
-	require.Equal(t, flashdriveMount.Success, true)
-	// We end up wit this, because the output of `/bin/echo flashdrive check `
-	// is passed to `/echo/bin flashdrive mount flashdrive check `
-	require.Equal(t, flashdriveMount.Message, "flashdrive mount flashdrive check \n")
-	require.NoError(t, errMount)
-
-	/* --- test unmount arg for Flashdrive() ---*/
-	unmountArgs := rpcmessages.FlashdriveArgs{Method: rpcmessages.Unmount}
-
-	flashdriveUnmount, errUnmount := testMiddleware.Flashdrive(unmountArgs)
-
-	require.Equal(t, flashdriveUnmount.Success, true)
-	require.Equal(t, flashdriveUnmount.Message, "flashdrive unmount \n")
-	require.NoError(t, errUnmount)
-
-	/* --- test an unknown arg for Flashdrive() ---*/
-	unknownArgs := rpcmessages.FlashdriveArgs{Method: -1}
-
-	flashdriveUnknown, errUnknown := testMiddleware.Flashdrive(unknownArgs)
-
-	require.Equal(t, flashdriveUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, flashdriveUnknown.Message, "Method -1 not supported for Flashdrive().")
-	require.Error(t, errUnknown)
+func TestUnmountFlashdrive(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+	response := testMiddleware.UnmountFlashdrive()
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, "", response.Code)
 }
 
 func TestBackup(t *testing.T) {

@@ -16,21 +16,6 @@ const (
 Put Incoming Args below this line. They should have the format of 'RPC Method Name' + 'Args'.
 */
 
-// FlashdriveArgs is an struct that holds the arguments for the Flashdrive RPC call
-type FlashdriveArgs struct {
-	Method FlashdriveMethod // the method called
-}
-
-// FlashdriveMethod is an iota that holds the method for the Flashdrive RPC call
-type FlashdriveMethod int
-
-// FlashdriveMethod can be one of three possible methods.
-// Either check for an existing flashdrive, mount a flash drive or unmount a mounted drive.
-const (
-	Mount FlashdriveMethod = iota
-	Unmount
-)
-
 // BackupArgs is an iota that holds the method for the Backup RPC call
 type BackupArgs int
 
