@@ -54,7 +54,8 @@ type Middleware interface {
 	ReindexBitcoin() rpcmessages.ErrorResponse
 	MountFlashdrive() rpcmessages.ErrorResponse
 	UnmountFlashdrive() rpcmessages.ErrorResponse
-	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
+	BackupSysconfig() rpcmessages.ErrorResponse
+	BackupHSMSecret() rpcmessages.ErrorResponse
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
@@ -135,13 +136,16 @@ func (server *RPCServer) UnmountFlashdrive(dummyArg bool, reply *rpcmessages.Err
 	return nil
 }
 
-// Backup sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a sysconfig backup or a hsm_secret backup
-func (server *RPCServer) Backup(args *rpcmessages.BackupArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Backup(*args)
+// BackupSysconfig sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) BackupSysconfig(reply *rpcmessages.ErrorResponse) {
+	*reply = server.middleware.BackupSysconfig()
 	log.Printf("sent reply %v: ", reply)
-	return err
+}
+
+// BackupHSMSecret sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) BackupHSMSecret(reply *rpcmessages.ErrorResponse) {
+	*reply = server.middleware.BackupHSMSecret()
+	log.Printf("sent reply %v: ", reply)
 }
 
 // Restore sends the middleware's GenericResponse over rpc

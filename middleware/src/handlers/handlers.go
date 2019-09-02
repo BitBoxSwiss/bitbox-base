@@ -24,7 +24,8 @@ type Middleware interface {
 	ReindexBitcoin() rpcmessages.ErrorResponse
 	MountFlashdrive() rpcmessages.ErrorResponse
 	UnmountFlashdrive() rpcmessages.ErrorResponse
-	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
+	BackupSysconfig() rpcmessages.ErrorResponse
+	BackupHSMSecret() rpcmessages.ErrorResponse
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
