@@ -118,29 +118,22 @@ func TestBackupSysconfig(t *testing.T) {
 	require.Equal(t, response.Code, "")
 }
 
-func TestRestore(t *testing.T) {
+func TestRestoreHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	/* --- test sysconfig arg for Restore() ---*/
-	restoreSysconfig, errSysconfig := testMiddleware.Restore(rpcmessages.RestoreSysConfig)
+	response := testMiddleware.RestoreHSMSecret()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, restoreSysconfig.Success, true)
-	require.Equal(t, restoreSysconfig.Message, "restore sysconfig \n")
-	require.NoError(t, errSysconfig)
+func TestRestoreSysconfig(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
 
-	/* --- test hsm secret arg for Restore() ---*/
-	restoreHSMSecret, errHSMSecret := testMiddleware.Restore(rpcmessages.RestoreHSMSecret)
-
-	require.Equal(t, restoreHSMSecret.Success, true)
-	require.Equal(t, restoreHSMSecret.Message, "restore hsm_secret \n")
-	require.NoError(t, errHSMSecret)
-
-	/* --- test an unknown arg for Restore() ---*/
-	restoreUnknown, errUnknown := testMiddleware.Restore(-1)
-
-	require.Equal(t, restoreUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, restoreUnknown.Message, "Method -1 not supported for Restore().")
-	require.Error(t, errUnknown)
+	response := testMiddleware.RestoreSysconfig()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
 func TestUserAuthenticate(t *testing.T) {

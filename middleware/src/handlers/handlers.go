@@ -26,9 +26,10 @@ type Middleware interface {
 	UnmountFlashdrive() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

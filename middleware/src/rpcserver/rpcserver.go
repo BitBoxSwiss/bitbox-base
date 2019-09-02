@@ -56,9 +56,10 @@ type Middleware interface {
 	UnmountFlashdrive() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -137,24 +138,31 @@ func (server *RPCServer) UnmountFlashdrive(dummyArg bool, reply *rpcmessages.Err
 }
 
 // BackupSysconfig sends the middleware's ErrorResponse over rpc
-func (server *RPCServer) BackupSysconfig(reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) BackupSysconfig(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.BackupSysconfig()
 	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // BackupHSMSecret sends the middleware's ErrorResponse over rpc
-func (server *RPCServer) BackupHSMSecret(reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) BackupHSMSecret(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.BackupHSMSecret()
 	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
-// Restore sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a sysconfig restore or a hsm_secret restore
-func (server *RPCServer) Restore(args *rpcmessages.RestoreArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Restore(*args)
+// RestoreSysconfig sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) RestoreSysconfig(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.RestoreSysconfig()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
+}
+
+// RestoreHSMSecret sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) RestoreHSMSecret(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.RestoreHSMSecret()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // UserAuthenticate sends the middleware's ErrorResponse over rpc
