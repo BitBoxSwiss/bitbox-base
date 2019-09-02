@@ -239,29 +239,24 @@ func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// Restore returns a GenericResponse struct in response to a rpcserver request
-func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error) {
-	switch method {
-	case rpcmessages.RestoreSysConfig:
-		log.Println("Executing a restore of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "sysconfig")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.RestoreHSMSecret:
-		log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "hsm_secret")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	default:
-		errorMessage := fmt.Sprintf("Method %d not supported for Restore().", method)
-		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+// RestoreSysconfig returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
+	log.Println("Executing a restore of the system config via the cmd script")
+	out, err := middleware.runBBBCmdScript("restore", "sysconfig")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// RestoreHSMSecret returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
+	log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
+	out, err := middleware.runBBBCmdScript("restore", "hsm_secret")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // UserAuthenticate returns an ErrorResponse struct in response to a rpcserver request.

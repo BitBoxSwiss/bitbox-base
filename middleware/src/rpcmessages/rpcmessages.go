@@ -42,15 +42,6 @@ const (
 	Unmount
 )
 
-// RestoreArgs is an iota that holds the method for the Backup RPC call
-type RestoreArgs int
-
-// The RestoreArgs has two methods. Restore the system config (sysconfig) or the hsm_secret by c-lightning
-const (
-	RestoreSysConfig RestoreArgs = iota
-	RestoreHSMSecret
-)
-
 // UserAuthenticateArgs is an struct that holds the arguments for the UserAuthenticate RPC call
 type UserAuthenticateArgs struct {
 	Username string

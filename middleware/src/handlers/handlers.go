@@ -24,7 +24,8 @@ type Middleware interface {
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
