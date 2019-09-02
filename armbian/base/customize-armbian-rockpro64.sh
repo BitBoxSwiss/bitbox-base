@@ -343,7 +343,9 @@ fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
-
+## remove SSH Host keys
+echo 'HostKey /data/ssh/ssh_host_ecdsa_key' >> /etc/ssh/sshd_config
+rm -f /etc/ssh/ssh_host_*
 
 ## set hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"

@@ -15,7 +15,7 @@ ExecStart=/usr/local/sbin/bbbmiddleware \
     -rpcpassword=${RPCPASSWORD} \
     -rpcport=${BITCOIN_RPCPORT} \
     -lightning-rpc-path=${LIGHTNING_RPCPATH} \
-    -datadir=/mnt/ssd/bbbmiddleware
+    -datadir=/data/bbbmiddleware
 
 # Process management
 ####################
