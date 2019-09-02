@@ -22,7 +22,8 @@ type Middleware interface {
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
-	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
+	BackupSysconfig() rpcmessages.ErrorResponse
+	BackupHSMSecret() rpcmessages.ErrorResponse
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse

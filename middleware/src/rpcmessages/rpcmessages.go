@@ -42,15 +42,6 @@ const (
 	Unmount
 )
 
-// BackupArgs is an iota that holds the method for the Backup RPC call
-type BackupArgs int
-
-// The BackupArgs has two methods. Backup the system config (sysconfig) or the hsm_secret by c-lightning
-const (
-	BackupSysConfig BackupArgs = iota
-	BackupHSMSecret
-)
-
 // RestoreArgs is an iota that holds the method for the Backup RPC call
 type RestoreArgs int
 

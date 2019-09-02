@@ -127,29 +127,22 @@ func TestFlashdrive(t *testing.T) {
 	require.Error(t, errUnknown)
 }
 
-func TestBackup(t *testing.T) {
+func TestBackupHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	/* --- test sysconfig arg for Backup() ---*/
-	backupSysconfig, errSysconfig := testMiddleware.Backup(rpcmessages.BackupSysConfig)
+	response := testMiddleware.BackupHSMSecret()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, backupSysconfig.Success, true)
-	require.Equal(t, backupSysconfig.Message, "backup sysconfig\n")
-	require.NoError(t, errSysconfig)
+func TestBackupSysconfig(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
 
-	/* --- test hsm secret arg for Backup() ---*/
-	backupHSMSecret, errHSMSecret := testMiddleware.Backup(rpcmessages.BackupHSMSecret)
-
-	require.Equal(t, backupHSMSecret.Success, true)
-	require.Equal(t, backupHSMSecret.Message, "backup hsm_secret\n")
-	require.NoError(t, errHSMSecret)
-
-	/* --- test an unknown arg for Backup() ---*/
-	backupUnknown, errUnknown := testMiddleware.Backup(-1)
-
-	require.Equal(t, backupUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, backupUnknown.Message, "Method -1 not supported for Backup().")
-	require.Error(t, errUnknown)
+	response := testMiddleware.BackupSysconfig()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
 // TestRestore only covers the 'script not found' case.

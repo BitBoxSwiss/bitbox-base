@@ -219,29 +219,24 @@ func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcme
 	}
 }
 
-// Backup returns a GenericResponse struct in response to a rpcserver request
-func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error) {
-	switch method {
-	case rpcmessages.BackupSysConfig:
-		log.Println("Executing a backup of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "sysconfig")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.BackupHSMSecret:
-		log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	default:
-		errorMessage := fmt.Sprintf("Method %d not supported for Backup().", method)
-		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+// BackupSysconfig returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
+	log.Println("Executing a backup of the system config via the cmd script")
+	out, err := middleware.runBBBCmdScript("backup", "sysconfig")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// BackupHSMSecret returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
+	log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
+	out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // Restore returns a GenericResponse struct in response to a rpcserver request
