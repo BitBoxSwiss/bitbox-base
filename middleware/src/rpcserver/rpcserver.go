@@ -89,7 +89,7 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 }
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
-func (server *RPCServer) GetSystemEnv(args int, reply *rpcmessages.GetEnvResponse) error {
+func (server *RPCServer) GetSystemEnv(dummyArg bool, reply *rpcmessages.GetEnvResponse) error {
 	*reply = server.middleware.SystemEnv()
 	log.Printf("sent reply %v: ", reply)
 	return nil
@@ -110,14 +110,14 @@ func (server *RPCServer) ResyncBitcoin(dummyArg bool, reply *rpcmessages.ErrorRe
 }
 
 // GetSampleInfo sends the middleware's SampleInfoResponse over rpc
-func (server *RPCServer) GetSampleInfo(args int, reply *rpcmessages.SampleInfoResponse) error {
+func (server *RPCServer) GetSampleInfo(dummyArg bool, reply *rpcmessages.SampleInfoResponse) error {
 	*reply = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
 
 // GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
-func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.VerificationProgressResponse) error {
+func (server *RPCServer) GetVerificationProgress(dummyArg bool, reply *rpcmessages.VerificationProgressResponse) error {
 	*reply = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)
 	return nil

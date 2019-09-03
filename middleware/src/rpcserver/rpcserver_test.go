@@ -93,20 +93,24 @@ func (testRPC *TestingRPCServer) RunRPCCall(t *testing.T, method string, arg int
 
 func TestRPCServer(t *testing.T) {
 	testingRPCServer := NewTestingRPCServer()
-	request := 1
+
+	// The RPCs must get an argument passed.
+	// We pass a boolean to RPCs that don't need an argument.
+	dummyArg := true
+
 	var systemEnvReply rpcmessages.GetEnvResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", request, &systemEnvReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", dummyArg, &systemEnvReply)
 
 	var reindexBitcoinReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ReindexBitcoin", true /* dummy Arg */, &reindexBitcoinReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ReindexBitcoin", dummyArg, &reindexBitcoinReply)
 	require.Equal(t, true, reindexBitcoinReply.Success)
 
 	var resyncBitcoinReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", true /* dummy Arg */, &resyncBitcoinReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", dummyArg, &resyncBitcoinReply)
 	require.Equal(t, true, resyncBitcoinReply.Success)
 
 	var sampleInfoReply rpcmessages.SampleInfoResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", request, &sampleInfoReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", dummyArg, &sampleInfoReply)
 
 	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox.base.test"}
 	setHostnameReply := rpcmessages.ErrorResponse{Code: "test"}
@@ -114,9 +118,9 @@ func TestRPCServer(t *testing.T) {
 	require.Equal(t, true, setHostnameReply.Success)
 
 	var getHostnameReply rpcmessages.GetHostnameResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetHostname", true /* dummy Arg */, &getHostnameReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetHostname", dummyArg, &getHostnameReply)
 	require.Equal(t, true, getHostnameReply.Success)
 
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", request, &verificationProgressReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
 }
