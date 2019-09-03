@@ -140,16 +140,18 @@ func (server *RPCServer) Restore(args *rpcmessages.RestoreArgs, reply *rpcmessag
 
 // UserAuthenticate sends the middleware's ErrorResponse over rpc
 // Args given specify the username and the password
-func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.UserAuthenticate(*args)
 	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // UserChangePassword sends the middleware's ErrorResponse over rpc
 // The Arg given specify the username and the new password
-func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.UserChangePassword(*args)
 	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // Serve starts a gob rpc server
