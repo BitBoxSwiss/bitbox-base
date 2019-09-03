@@ -20,7 +20,8 @@ type Middleware interface {
 	Start() <-chan []byte
 	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
-	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	ResyncBitcoin() rpcmessages.ErrorResponse
+	ReindexBitcoin() rpcmessages.ErrorResponse
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
 	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)

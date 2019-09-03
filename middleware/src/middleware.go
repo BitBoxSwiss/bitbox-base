@@ -138,26 +138,24 @@ func (middleware *Middleware) Start() <-chan []byte {
 	return middleware.events
 }
 
-// ResyncBitcoin returns a ResyncBitcoinResponse struct in response to a rpcserver request
-func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error) {
-	var cmd *exec.Cmd
-	switch option {
-	case rpcmessages.Resync:
-		log.Println("executing full bitcoin resync in config script")
-		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
-	case rpcmessages.Reindex:
-		log.Println("executing bitcoin reindex in config script")
-		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
-	default:
-	}
-	err := cmd.Run()
+// ResyncBitcoin returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
+	log.Println("executing full bitcoin resync via the config script")
+	out, err := middleware.runBBBConfigScript("exec", "bitcoin_resync", "")
 	if err != nil {
-		log.Println(err.Error() + " failed to run resync command, script does not exist")
-		response := rpcmessages.ResyncBitcoinResponse{Success: false}
-		return response, err
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
-	response := rpcmessages.ResyncBitcoinResponse{Success: true}
-	return response, nil
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// ReindexBitcoin returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
+	log.Println("executing full bitcoin resync via the config script")
+	out, err := middleware.runBBBConfigScript("exec", "bitcoin_reindex", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // SystemEnv returns a new GetEnvResponse struct with the values as read from the environment

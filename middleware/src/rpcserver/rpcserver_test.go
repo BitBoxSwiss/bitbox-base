@@ -97,8 +97,13 @@ func TestRPCServer(t *testing.T) {
 	var systemEnvReply rpcmessages.GetEnvResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", request, &systemEnvReply)
 
-	var resyncReply rpcmessages.ResyncBitcoinResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", request, &resyncReply)
+	var reindexBitcoinReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.ReindexBitcoin", true /* dummy Arg */, &reindexBitcoinReply)
+	require.Equal(t, true, reindexBitcoinReply.Success)
+
+	var resyncBitcoinReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", true /* dummy Arg */, &resyncBitcoinReply)
+	require.Equal(t, true, resyncBitcoinReply.Success)
 
 	var sampleInfoReply rpcmessages.SampleInfoResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", request, &sampleInfoReply)
