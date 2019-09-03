@@ -1,0 +1,9 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name>bitbox base middleware</name>
+  <service>
+    <type>_bitboxbase._tcp</type>
+    <port>8845</port>
+  </service>
+</service-group>

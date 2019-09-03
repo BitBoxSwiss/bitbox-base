@@ -5,23 +5,29 @@ set -eu
 #
 
 # print usage information for script
-function usage() {
+usage() {
   echo "BitBox Base: system commands repository
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
-  bitcoind reindex  wipes UTXO set and validates existing blocks
-  bitcoind resync   re-download and validate all blocks
+  setup         <datadir|hostname_link>
+  base          <restart|shutdown>
+  bitcoind      <reindex|resync>
+  flashdrive    <check|mount|umount>
+  backup        <sysconfig|hsm_secret>
+  restore       <sysconfig|hsm_secret>
 
-  base restart      restarts the node
-  base shutdown     shuts down the node
-  
-  flashdrive        <check|mount|umount>
-  backup            <sysconfig|hsm_secret>
-  restore           <sysconfig|hsm_secret>
-                    
 "
 }
+
+# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
+source /opt/shift/scripts/include/exec_overlayroot.sh.inc
+
+# include functions redis_set() and redis_get()
+source /opt/shift/scripts/include/redis.sh.inc
+
+# include function generateConfig() to generate config files from templates
+source /opt/shift/scripts/include/generateConfig.sh.inc
 
 # ------------------------------------------------------------------------------
 
@@ -39,6 +45,12 @@ if [[ ${UID} -ne 0 ]]; then
     exit 1
 fi
 
+# check if overlayroot is enabled
+OVERLAYROOT_ENABLED=0
+if grep -q "tmpfs" /etc/overlayroot.local.conf; then
+    OVERLAYROOT_ENABLED=1
+fi
+
 MODULE="${1:-''}"
 COMMAND="${2:-''}"
 ARG="${3:-''}"
@@ -47,40 +59,86 @@ MODULE="${MODULE^^}"
 COMMAND="${COMMAND^^}"
 
 case "${MODULE}" in
-    BITCOIND)
-        # stop systemd services
-        systemctl stop electrs
-        systemctl stop lightningd
-        systemctl stop bitcoind
+    SETUP)
+        case "${COMMAND}" in
+            DATADIR)
 
-        if ! /bin/systemctl -q is-active bitcoind.service; then 
-            # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
-            rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
-            rm -rf /mnt/ssd/electrs/db
-            rm -rf /data/triggers/bitcoind_fully_synced
+                if [ ! -f /data/.datadir_set_up ]; then
+                    # if /data is separate partition, probably a Mender-enabled image)
+                    # the partition is assumed to be persistent and data is copied
+                    if mountpoint /data -q; then
+                        cp -r /data_source/* /data
+                        echo "OK: (DATADIR) /data_source/ copied to /data/"
+                    
+                    # otherwise create symlink
+                    else
+                        if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
+                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot, 
+                            # will only be ready after reboot
+                            overlayroot-chroot /bin/bash -c "ln -sf /mnt/ssd/data /"
 
-            # for RESYNC incl. download, delete `blocks` directory too
-            if [[ "${COMMAND}" == "RESYNC" ]]; then
-                rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
+                            # also create link in tmpfs until next reboot
+                            ln -sf /mnt/ssd/data /
+                            echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
+                            
+                            if [ ! -f /data/.datadir_set_up ]; then
+                                cp -r /data_source/* /data
+                                echo "OK: (DATADIR) /data_source/ copied to /data/"
+                            fi
+                            
+                        else
+                            ln -sf /data_source /data
+                            echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
+                        fi
+                    fi
+                else
+                    echo "WARN: (DATADIR) data directory already set up (found file /data/.datadir_set_up)"
+                fi
+                ;;
 
-            # otherwise assume REINDEX (only validation, no download), set option reindex-chainstate
-            else
-                echo "reindex-chainstate=1" >> /etc/bitcoin/bitcoin.conf
-
-            fi
-
-            # restart bitcoind and remove option
-            systemctl start bitcoind
-            sleep 10
-            sed -i '/reindex/Id' /etc/bitcoin/bitcoin.conf
-
-        else
-            echo "bitcoind is still running, cannot delete chainstate"
-            exit 1
-        fi
-
-        echo "Command ${MODULE} ${COMMAND} successfully executed."
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
+        esac
         ;;
+
+    BITCOIND)
+        case "${COMMAND}" in
+            RESYNC|REINDEX)
+                # stop systemd services
+                systemctl stop electrs.service
+                systemctl stop lightningd.service
+                systemctl stop bitcoind.service
+
+                # deleting bitcoind chainstate in /mnt/ssd/bitcoin/.bitcoin/chainstate
+                rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate
+                rm -rf /mnt/ssd/electrs/db
+
+                # for RESYNC incl. download, delete `blocks` directory too
+                if [[ "${COMMAND}" == "RESYNC" ]]; then
+                    rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
+                fi
+
+                redis_set "bitcoind:ibd" "1"
+                redis_set "bitcoind:reindex-chainstate" 1
+                generateConfig "bitcoin.conf.template"
+                sleep 5
+
+                # restart bitcoind and remove option
+                systemctl start bitcoind.service
+                sleep 10
+                
+                redis_set "bitcoind:reindex-chainstate" 0
+                generateConfig "bitcoin.conf.template"
+
+                echo "Command ${MODULE} ${COMMAND} successfully executed."
+                ;;
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
+        esac
+        ;;
+        
 
     BASE)
         case "${COMMAND}" in
@@ -226,7 +284,7 @@ case "${MODULE}" in
             SYSCONFIG)
                 if [ -f /mnt/backup/bbb-backup.rdb ]; then
                     cp "/mnt/backup/bbb-backup.rdb" "${REDIS_FILEPATH}"
-                    systemctl restart redis-server.service
+                    systemctl restart redis.service
                 else
                     echo "ERR: backup file /mnt/backup/bbb-backup.rdb not found"
                     exit 1

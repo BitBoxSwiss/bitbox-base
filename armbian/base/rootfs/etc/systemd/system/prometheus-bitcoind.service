@@ -1,0 +1,27 @@
+[Unit]
+Description=Prometheus bitcoind exporter
+After=bitcoind.service
+
+[Service]
+
+# Service execution
+###################
+
+ExecStart=/opt/shift/scripts/prometheus-bitcoind.py
+
+# Process management
+####################
+
+Type=simple
+Restart=always
+RestartSec=10
+KillMode=process
+
+# Directory creation and permissions
+####################################
+
+User=bitcoin
+Group=bitcoin
+
+[Install]
+WantedBy=multi-user.target

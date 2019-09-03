@@ -2,6 +2,7 @@
 #
 # This script is run by systemd using the ExecStartPost option 
 # after starting bitcoind.service (Bitcoin Core).
+set -eu
 
 # We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
 # no way to specify where to expect the bitcoin cookie for c-lightning, so let's

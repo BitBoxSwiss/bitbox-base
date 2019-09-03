@@ -21,7 +21,7 @@ TODO(Stadicus)
 
 ## Service management
 
-The Base Supervisor is started and managed using a simple [systemd unit file](bbbsupervisor.service):
+The Base Supervisor is started and managed using a simple systemd unit file:
 
 ```console
 [Unit]

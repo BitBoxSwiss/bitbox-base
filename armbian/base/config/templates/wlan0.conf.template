@@ -1,0 +1,5 @@
+{{ #output: /etc/network/interfaces.d/wlan0.conf }}
+auto wlan0
+iface wlan0 inet dhcp
+  wpa-ssid {{ base:wifi:ssid }}
+  wpa-psk  {{ base:wifi:password }}

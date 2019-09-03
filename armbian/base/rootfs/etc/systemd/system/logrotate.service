@@ -1,0 +1,14 @@
+[Unit]
+Description=BitBox Base logrotation
+
+[Service]
+
+# Service execution
+###################
+
+ExecStart=/usr/sbin/logrotate /etc/logrotate.conf
+
+# Process management
+####################
+
+Type=oneshot

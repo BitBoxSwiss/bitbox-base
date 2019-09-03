@@ -1,0 +1,23 @@
+[Unit]
+Description=BitBox Base fancontrol
+After=local-fs.target
+
+[Service]
+
+# Service execution
+###################
+
+ExecStart=/usr/local/sbin/bbbfancontrol \
+    --tmin 60 \
+    --tmax 75 \
+    --cooldown 55
+
+# Process management
+####################
+
+Type=simple
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

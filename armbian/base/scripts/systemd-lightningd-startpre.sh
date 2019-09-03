@@ -4,13 +4,27 @@
 # before starting lightningd.service (c-lightning).
 #
 
+set -eu
+
+redis_get() {
+    # usage: str=$(redis_get "key")
+    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
+    echo "${ok}"
+}
+
+# ------------------------------------------------------------------------------
+
 if ! systemctl is-active bitcoind.service; then
-    echo "${0}: startup checks failed. bitcoind.service is not active. Not starting lightningd.service."
+    echo "ERR: bitcoind.service is not active. Not starting lightningd.service."
     exit 1
 fi
 
-if [ ! -f /data/triggers/bitcoind_fully_synced ]; then
-    echo "${0}: startup checks failed. File /data/triggers/bitcoind_fully_synced not present, thus bitcoind not fully synced. Not starting lightningd.service."
+# check if bitcoind is in Initial Block Download (IBD) mode
+BITCOIN_IBD=$(redis_get 'bitcoind:ibd')
+BITCOIN_IBD=${BITCOIN_IBD:-0}
+
+if [ $BITCOIN_IBD -eq 1 ]; then
+    echo "ERR: bitcoind.service is in IBD mode. Not starting lightningd.service."
     exit 1
 fi
 
@@ -18,8 +32,8 @@ if [ -f /mnt/ssd/bitcoin/.bitcoin/.cookie ]; then
     echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env
     tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env
     chown bitcoin:bitcoin /mnt/ssd/bitcoin/.bitcoin/.cookie.env
-    echo "${0}: file /mnt/ssd/bitcoin/.bitcoin/.cookie.env updated."
+    echo "INFO: file /mnt/ssd/bitcoin/.bitcoin/.cookie.env updated."
 else
-    echo "${0}: startup checks failed. Authentication file /mnt/ssd/bitcoin/.bitcoin/.cookie not present, not starting lightningd.service."
+    echo "ERR: authentication file /mnt/ssd/bitcoin/.bitcoin/.cookie not present. Not starting lightningd.service."
     exit 1
 fi

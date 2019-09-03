@@ -1,0 +1,4 @@
+{{ #output: /etc/bbbmiddleware/bbbmiddleware.conf }}
+BITCOIN_RPCUSER={{      bbbmiddleware:bitcoin-rpcuser   #default: __cookie__ }}
+BITCOIN_RPCPORT={{      bitcoind:rpcport                #default: 8332 }}
+LIGHTNING_RPCPATH={{    lightningd:lightning-dir        #default: /mnt/ssd/bitcoin/.lightning }}

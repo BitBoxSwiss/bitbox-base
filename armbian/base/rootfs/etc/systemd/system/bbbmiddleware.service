@@ -1,0 +1,33 @@
+[Unit]
+Description=BitBox Base Middleware
+Wants=redis.service bitcoind.service lightningd.service electrs.service
+After=bitcoind.service
+
+[Service]
+
+# Service execution
+###################
+
+EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
+EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+ExecStart=/usr/local/sbin/bbbmiddleware \
+    -rpcuser=${BITCOIN_RPCUSER} \
+    -rpcpassword=${RPCPASSWORD} \
+    -rpcport=${BITCOIN_RPCPORT} \
+    -lightning-rpc-path=${LIGHTNING_RPCPATH} \
+    -datadir=/mnt/ssd/bbbmiddleware
+
+# Process management
+####################
+
+Type=simple
+Restart=always
+RestartSec=10
+
+# Hardening measures
+####################
+
+# TODO(Stadicus)
+
+[Install]
+WantedBy=multi-user.target
