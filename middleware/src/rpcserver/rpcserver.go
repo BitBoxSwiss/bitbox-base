@@ -50,7 +50,8 @@ func (conn *rpcConn) Close() error {
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
-	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
+	ResyncBitcoin() rpcmessages.ErrorResponse
+	ReindexBitcoin() rpcmessages.ErrorResponse
 	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
 	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
 	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
@@ -91,12 +92,18 @@ func (server *RPCServer) GetSystemEnv(args int, reply *rpcmessages.GetEnvRespons
 	return nil
 }
 
-// ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
-func (server *RPCServer) ResyncBitcoin(args *rpcmessages.ResyncBitcoinArgs, reply *rpcmessages.ResyncBitcoinResponse) error {
-	var err error
-	*reply, err = server.middleware.ResyncBitcoin(*args)
+// ReindexBitcoin sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) ReindexBitcoin(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.ReindexBitcoin()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
+}
+
+// ResyncBitcoin sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) ResyncBitcoin(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.ResyncBitcoin()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // GetSampleInfo sends the middleware's SampleInfoResponse over rpc

@@ -69,10 +69,19 @@ func TestVerificationProgress(t *testing.T) {
 func TestResyncBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	resyncBitcoinResponse, err := testMiddleware.ResyncBitcoin(rpcmessages.Resync)
+	response := testMiddleware.ResyncBitcoin()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, resyncBitcoinResponse.Success, true)
-	require.NoError(t, err)
+func TestReindexBitcoin(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	response := testMiddleware.ReindexBitcoin()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
 func TestFlashdrive(t *testing.T) {
