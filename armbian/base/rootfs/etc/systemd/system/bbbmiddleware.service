@@ -1,7 +1,6 @@
 [Unit]
 Description=BitBox Base Middleware
-Wants=redis.service bitcoind.service lightningd.service electrs.service
-After=bitcoind.service
+After=multi-user.target
 
 [Service]
 
@@ -30,4 +29,4 @@ RestartSec=10
 # TODO(Stadicus)
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

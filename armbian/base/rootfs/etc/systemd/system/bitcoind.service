@@ -1,6 +1,6 @@
 [Unit]
 Description=Bitcoin daemon
-After=mnt-ssd.mount
+After=multi-user.target
 Requires=startup-checks.service
 
 [Service]
@@ -68,4 +68,4 @@ PrivateDevices=true
 MemoryDenyWriteExecute=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

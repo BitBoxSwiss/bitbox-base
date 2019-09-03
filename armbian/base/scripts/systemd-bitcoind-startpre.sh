@@ -10,4 +10,6 @@ BITCOIN_DIR="/mnt/ssd/bitcoin/.bitcoin"
 if [ ! -d "${BITCOIN_DIR}" ] || [ ! -x "${BITCOIN_DIR}" ]; then
     echo "ERR: cannot start 'bitcoind', directory ${BITCOIN_DIR} not accessible"
     exit 1
+else
+    echo "INFO: starting 'bitcoind', directory ${BITCOIN_DIR} accessible"
 fi

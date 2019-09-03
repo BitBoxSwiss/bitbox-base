@@ -1,6 +1,6 @@
 [Unit]
 Description=Prometheus
-After=mnt-ssd.mount
+After=multi-user.target
 
 [Service]
 
@@ -28,4 +28,4 @@ User=prometheus
 Group=system
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

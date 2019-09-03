@@ -343,6 +343,11 @@ fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
+## create custom default systemd target
+## this allows to start custom applications after regular system boot
+importFile /etc/systemd/system/bitboxbase.target
+ln -sf /etc/systemd/system/bitboxbase.target /etc/systemd/system/default.target
+
 ## remove SSH Host keys
 echo 'HostKey /data/ssh/ssh_host_ecdsa_key' >> /etc/ssh/sshd_config
 rm -f /etc/ssh/ssh_host_*

@@ -1,6 +1,6 @@
 [Unit]
 Description=Prometheus Node Exporter
-After=prometheus.service
+After=multi-user.target prometheus.service
 
 [Service]
 
@@ -23,4 +23,4 @@ User=node_exporter
 Group=system
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

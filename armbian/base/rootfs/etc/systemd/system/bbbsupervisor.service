@@ -1,6 +1,6 @@
 [Unit]
 Description=BitBox Base Supervisor
-After=redis.service
+After=multi-user.target
 
 [Service]
 
@@ -17,4 +17,4 @@ Restart=always
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

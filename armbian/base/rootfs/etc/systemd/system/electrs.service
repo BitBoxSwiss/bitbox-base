@@ -1,7 +1,6 @@
 [Unit]
 Description=Electrs server daemon
-Wants=bitcoind.service
-After=bitcoind.service
+After=multi-user.target bitcoind.service
 
 [Service]
 
@@ -64,4 +63,4 @@ PrivateDevices=true
 MemoryDenyWriteExecute=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target
