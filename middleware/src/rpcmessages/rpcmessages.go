@@ -63,13 +63,6 @@ type GetHostnameResponse struct {
 	Hostname string
 }
 
-// GenericResponse is a struct that for example gets sent by the RPC server during a Flashdrive, Backup or Restore call.
-// Since it simply includes a success boolean and a message it can be used for other/future RPCs as well.
-type GenericResponse struct {
-	Success bool
-	Message string
-}
-
 // ErrorResponse is a generic RPC response indicating if a RPC call was successful or not.
 // It can be embedded into other RPC responses that return values.
 // In any case the ErrorResponse should be checked first, so that, if an error is returned, we ignore everything else in the response.
