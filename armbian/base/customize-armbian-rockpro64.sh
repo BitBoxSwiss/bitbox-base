@@ -295,7 +295,7 @@ fi
 ## 
 ## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
-ln -sf /data_source /data
+ln -sfn /data_source /data
 touch /data/.datadir_set_up
 
 ## install Redis
@@ -381,7 +381,7 @@ systemctl enable logrotate.timer
 
 ## retain journal logs between reboots on the SSD
 rm -rf /var/log/journal
-ln -sf /mnt/ssd/system/journal /var/log/journal
+ln -sfn /mnt/ssd/system/journal /var/log/journal
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
