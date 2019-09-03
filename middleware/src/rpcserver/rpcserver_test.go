@@ -123,4 +123,39 @@ func TestRPCServer(t *testing.T) {
 
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
+
+	var mountFlashdriveReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.MountFlashdrive", dummyArg, &mountFlashdriveReply)
+	require.Equal(t, true, mountFlashdriveReply.Success)
+
+	var unmountFlashdriveReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.UnmountFlashdrive", dummyArg, &unmountFlashdriveReply)
+	require.Equal(t, true, unmountFlashdriveReply.Success)
+
+	var backupSysconfigReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.BackupSysconfig", dummyArg, &backupSysconfigReply)
+	require.Equal(t, true, backupSysconfigReply.Success)
+
+	var backupHSMSecretReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.BackupHSMSecret", dummyArg, &backupHSMSecretReply)
+	require.Equal(t, true, backupSysconfigReply.Success)
+
+	var restoreSysconfigReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreSysconfig", dummyArg, &restoreSysconfigReply)
+	require.Equal(t, true, restoreSysconfigReply.Success)
+
+	var restoreHSMSecretReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreHSMSecret", dummyArg, &restoreHSMSecretReply)
+	require.Equal(t, true, restoreSysconfigReply.Success)
+
+	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
+	var userAuthenticateReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.UserAuthenticate", userAuthenticateArg, &userAuthenticateReply)
+	require.Equal(t, true, userAuthenticateReply.Success)
+
+	userChangePasswordArg := rpcmessages.UserChangePasswordArgs{Username: "admin", NewPassword: "longerpassword"}
+	var userChangePasswordReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.UserChangePassword", userChangePasswordArg, &userChangePasswordReply)
+	require.Equal(t, true, userChangePasswordReply.Success)
+
 }
