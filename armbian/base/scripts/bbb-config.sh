@@ -309,7 +309,7 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
-
+                exit 1
         esac
         ;;
 
@@ -325,6 +325,7 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
+                exit 1
         esac
         ;;
 

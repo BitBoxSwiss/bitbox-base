@@ -284,8 +284,10 @@ case "${MODULE}" in
             # restore system configuration from mounted usb flashdrive
             SYSCONFIG)
                 if [ -f /mnt/backup/bbb-backup.rdb ]; then
+                    systemctl stop redis.service
                     cp "/mnt/backup/bbb-backup.rdb" "${REDIS_FILEPATH}"
-                    systemctl restart redis.service
+                    chown redis:redis "${REDIS_FILEPATH}"
+                    systemctl start redis.service
                 else
                     echo "ERR: backup file /mnt/backup/bbb-backup.rdb not found"
                     exit 1
@@ -297,7 +299,7 @@ case "${MODULE}" in
             HSM_SECRET)
                 # create snapshot of 'hsm_secret'
                 if [ -f "${HSM_FILEPATH}" ]; then
-                    cp "${HSM_FILEPATH}" "${HSM_FILEPATH}_$(date '+%Y%m%d-%H%M').backup"
+                    cp -p "${HSM_FILEPATH}" "${HSM_FILEPATH}_$(date '+%Y%m%d-%H%M').backup"
                 else
                     echo "WARN: no previous 'hsm_secret' found, no local backup created"
                 fi
@@ -305,6 +307,7 @@ case "${MODULE}" in
                 # save base64 encoded 'hsm_secret' as binary file to file system
                 # redis-cli causes script to terminate when Redis not available
                 redis-cli GET lightningd:hsm_secret | base64 -d > /mnt/ssd/bitcoin/.lightning/hsm_secret
+                chown bitcoin:bitcoin /mnt/ssd/bitcoin/.lightning/hsm_secret
                 echo "OK: backup of file 'hsm_secret' restored"
                 ;;
 

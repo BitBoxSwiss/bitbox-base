@@ -8,9 +8,7 @@ After=multi-user.target
 # Service execution
 ###################
 
-ExecStartPre=/opt/shift/scripts/systemd-redis-startpre.sh
 ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
-ExecStop=/opt/shift/scripts/systemd-redis-stop.sh
 ExecStop=/bin/kill -s TERM $MAINPID
 
 # Process management
