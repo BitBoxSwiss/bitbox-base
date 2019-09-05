@@ -13,7 +13,7 @@ usage() {
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
-  setup         <datadir|hostname_link>
+  setup         <datadir>
   base          <restart|shutdown>
   bitcoind      <reindex|resync>
   flashdrive    <check|mount|umount>
