@@ -1,7 +1,6 @@
 [Unit]
 Description=c-lightning daemon
-Wants=bitcoind.service
-After=bitcoind.service
+After=multi-user.target bitcoind.service
 
 [Service]
 
@@ -58,4 +57,4 @@ MemoryDenyWriteExecute=true
 
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

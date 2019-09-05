@@ -106,19 +106,13 @@ mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
 chmod -R 750 /mnt/ssd/electrs/
 
-## persistent data on ssd
-mkdir -p /mnt/ssd/data/ssl
-chown -R root:system /mnt/ssd/data
-
-mkdir -p /mnt/ssd/data/redis/
-chown -R redis:system /mnt/ssd/data/redis/
-
 ## system folders
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 
 mkdir -p /mnt/ssd/system/journal/
-ln -sf /mnt/ssd/system/journal /var/log/journal
+rm -rf /var/log/journal
+ln -sfn /mnt/ssd/system/journal /var/log/journal
 
 ## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
 ## no way to specify where to expect the bitcoin cookie for c-lightning, so let's
@@ -134,6 +128,16 @@ if [ ! -f /data/.datadir_set_up ]; then
     /opt/shift/scripts/bbb-cmd.sh setup datadir
 fi
 
+## create missing directories & always set correct owner
+mkdir -p /data/ssh
+mkdir -p /data/ssl
+mkdir -p /data/bbbmiddleware
+chown -R root:system /data
+
+mkdir -p /data/redis/
+chown -R redis:system /data/redis/
+
+
 # Networking
 # ------------------------------------------------------------------------------
 # make sure wired interface eth0 is used if present (set metric to 10, wifi will have > 1000)
@@ -146,6 +150,11 @@ echo "180" > /sys/class/hwmon/hwmon0/pwm1
 if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
     mkdir -p /data/ssl/
     openssl req -x509 -nodes -newkey rsa:2048 -keyout /data/ssl/nginx-selfsigned.key -out /data/ssl/nginx-selfsigned.crt -subj "/CN=localhost"
+fi
+
+# check for SSH host certificate and create it if missing
+if [ ! -f /data/ssh/ssh_host_ecdsa_key ]; then
+    ssh-keygen -f /data/ssh/ssh_host_ecdsa_key -N '' -t ecdsa
 fi
 
 

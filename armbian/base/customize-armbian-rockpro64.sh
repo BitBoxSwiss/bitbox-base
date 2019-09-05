@@ -295,7 +295,7 @@ fi
 ## 
 ## create symlink for all scripts to work, remove it at the end of build process
 mkdir -p /data_source/
-ln -sf /data_source /data
+ln -sfn /data_source /data
 touch /data/.datadir_set_up
 
 ## install Redis
@@ -343,7 +343,14 @@ fi
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
+## create custom default systemd target
+## this allows to start custom applications after regular system boot
+importFile /etc/systemd/system/bitboxbase.target
+ln -sf /etc/systemd/system/bitboxbase.target /etc/systemd/system/default.target
 
+## remove SSH Host keys
+echo 'HostKey /data/ssh/ssh_host_ecdsa_key' >> /etc/ssh/sshd_config
+rm -f /etc/ssh/ssh_host_*
 
 ## set hostname
 /opt/shift/scripts/bbb-config.sh set hostname "${BASE_HOSTNAME}"
@@ -379,7 +386,7 @@ systemctl enable logrotate.timer
 
 ## retain journal logs between reboots on the SSD
 rm -rf /var/log/journal
-ln -sf /mnt/ssd/system/journal /var/log/journal
+ln -sfn /mnt/ssd/system/journal /var/log/journal
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config

@@ -1,6 +1,6 @@
 [Unit]
 Description=Redis In-Memory Data Store
-After=startup-checks.service
+After=multi-user.target
 # original config in /lib/systemd/system/redis-server.service
 
 [Service]
@@ -29,4 +29,4 @@ User=redis
 Group=redis
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

@@ -67,7 +67,7 @@ case "${MODULE}" in
                     # if /data is separate partition, probably a Mender-enabled image)
                     # the partition is assumed to be persistent and data is copied
                     if mountpoint /data -q; then
-                        cp -r /data_source/* /data
+                        cp -r /data_source/. /data
                         echo "OK: (DATADIR) /data_source/ copied to /data/"
                     
                     # otherwise create symlink
@@ -75,10 +75,11 @@ case "${MODULE}" in
                         if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
                             # if overlayroot enabled, create symlink to ssd within overlayroot-chroot, 
                             # will only be ready after reboot
-                            overlayroot-chroot /bin/bash -c "ln -sf /mnt/ssd/data /"
+                            mkdir -p /mnt/ssd/data
+                            overlayroot-chroot /bin/bash -c "ln -sfn /mnt/ssd/data /"
 
                             # also create link in tmpfs until next reboot
-                            ln -sf /mnt/ssd/data /
+                            ln -sfn /mnt/ssd/data /
                             echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
                             
                             if [ ! -f /data/.datadir_set_up ]; then
@@ -87,7 +88,7 @@ case "${MODULE}" in
                             fi
                             
                         else
-                            ln -sf /data_source /data
+                            ln -sfn /data_source /data
                             echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
                         fi
                     fi

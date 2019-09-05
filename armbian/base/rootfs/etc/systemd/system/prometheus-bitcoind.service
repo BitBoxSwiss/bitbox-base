@@ -1,6 +1,6 @@
 [Unit]
 Description=Prometheus bitcoind exporter
-After=bitcoind.service
+After=multi-user.target bitcoind.service
 
 [Service]
 
@@ -24,4 +24,4 @@ User=bitcoin
 Group=bitcoin
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target

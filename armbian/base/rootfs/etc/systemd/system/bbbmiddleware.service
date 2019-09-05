@@ -1,7 +1,6 @@
 [Unit]
 Description=BitBox Base Middleware
-Wants=redis.service bitcoind.service lightningd.service electrs.service
-After=bitcoind.service
+After=multi-user.target
 
 [Service]
 
@@ -15,7 +14,7 @@ ExecStart=/usr/local/sbin/bbbmiddleware \
     -rpcpassword=${RPCPASSWORD} \
     -rpcport=${BITCOIN_RPCPORT} \
     -lightning-rpc-path=${LIGHTNING_RPCPATH} \
-    -datadir=/mnt/ssd/bbbmiddleware
+    -datadir=/data/bbbmiddleware
 
 # Process management
 ####################
@@ -30,4 +29,4 @@ RestartSec=10
 # TODO(Stadicus)
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target
