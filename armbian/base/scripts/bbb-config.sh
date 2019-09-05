@@ -13,8 +13,8 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
+  enable    <bitcoin_ibd_clearnet|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
+             tor|tor_bbbmiddleware|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
@@ -79,6 +79,19 @@ case "${COMMAND}" in
         fi
 
         case "${SETTING}" in
+            BITCOIN_IBD_CLEARNET)
+                # configure bitcoind to run over IPv4 while in IBD mode
+                if [[ ${ENABLE} -eq 1 ]] && [ $(redis_get 'tor:base:enabled') -eq 0 ] ; then
+                    echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
+                    exit 1
+                else
+                    redis_set "bitcoind:ibd-clearnet" "${ENABLE}"
+                    generateConfig "bitcoin.conf.template"
+                    systemctl restart bitcoind
+                    echo "OK: bitcoind:ibd-clearnet set to ${ENABLE}"
+                fi
+                ;;
+
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
@@ -137,26 +150,31 @@ case "${COMMAND}" in
                 if [[ ${ENABLE} -eq 1 ]]; then
                     exec_overlayroot all-layers "systemctl enable tor.service"
                     redis_set "tor:base:enabled" "${ENABLE}"
-                    redis_set "bitcoind:onlynet:enabled" 0
                     generateConfig "bitcoin.conf.template"
+                    generateConfig "lightningd.conf.template"
                     systemctl start tor.service
                 else
                     exec_overlayroot all-layers "systemctl disable tor.service"
                     redis_set "tor:base:enabled" "${ENABLE}"
-                    redis_set "bitcoind:onlynet:enabled" 1
                     generateConfig "bitcoin.conf.template"
+                    generateConfig "lightningd.conf.template"
                     systemctl stop tor.service
                 fi
+                echo "Restarting services..."
                 systemctl restart networking.service
                 systemctl restart bitcoind.service
+
+                redis_set "tor:base:enabled" "${ENABLE}"
                 ;;
 
-            TOR_SSH|TOR_ELECTRUM)
+            TOR_SSH|TOR_ELECTRUM|TOR_BBBMIDDLEWARE)
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
                     redis_set "base:tor:ssh:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
                     redis_set "base:tor:electrs:enabled" "${ENABLE}"
+                elif [[ ${SETTING} == "TOR_BBBMIDDLEWARE" ]]; then
+                    redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
                 else
                     echo "ERR: invalid argument, setting ${SETTING} not allowed"
                     exit 1

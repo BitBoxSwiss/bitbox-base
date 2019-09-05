@@ -6,14 +6,15 @@ testnet={{ bitcoind:testnet #default: 0 }}
 # server
 server={{           bitcoind:server             #default: 1 }}
 listen={{           bitcoind:listen             #default: 1 }}
-listenonion={{      tor:base:enabled            #default: 1 }}
+listenonion={{      tor:base:enabled            #default: 1 }}              {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
 txindex={{          bitcoind:txindex            #default: 0 }}
 prune={{            bitcoind:prune              #default: 0 }}
 disablewallet={{    bitcoind:disablewallet      #default: 1 }}
 rpccookiefile={{    bitcoind:rpccookiefile      #default: /mnt/ssd/bitcoin/.bitcoin/.cookie }}
 sysparms={{         bitcoind:sysparms           #default: 1 }}
 printtoconsole={{   bitcoind:printtoconsole     #default: 1 }}
-onlynet={{          bitcoind:onlynet            #rmLine }}                  {{ bitcoind:onlynet:enabled #check }}
+onlynet={{          bitcoind:onlynet            #default: ipv4 }}           {{ tor:base:enabled #rmLineTrue }}
+onlynet={{          bitcoind:onlynet            #default: ipv4 }}           {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineFalse }}
 
 # rpc
 rpcconnect={{       bitcoind:rpcconnect         #default: 127.0.0.1 }}
@@ -25,9 +26,9 @@ maxconnections={{   bitcoind:maxconnections     #default: 40 }}
 maxuploadtarget={{  bitcoind:maxuploadtarget    #default: 5000 }}
 
 # tor
-proxy={{            bitcoind:proxy              #default: 127.0.0.1:9050 }} {{ tor:base:enabled #check }}
-seednode={{         bitcoind:seednode:1         #rmLine }}                  {{ tor:base:enabled #check }}
-seednode={{         bitcoind:seednode:2         #rmLine }}                  {{ tor:base:enabled #check }}
-seednode={{         bitcoind:seednode:3         #rmLine }}                  {{ tor:base:enabled #check }}
+proxy={{            bitcoind:proxy              #default: 127.0.0.1:9050 }} {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
+seednode={{         bitcoind:seednode:1         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
+seednode={{         bitcoind:seednode:2         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
+seednode={{         bitcoind:seednode:3         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
 
-#reindex-chainstate={{ bitcoind:reindex-chainstate }}
+reindex-chainstate={{ bitcoind:reindex-chainstate  #rmLine }}               {{ bitcoind:reindex-chainstate #rmLineFalse }}

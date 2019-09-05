@@ -10,7 +10,7 @@ SET base:hostname bitbox-base
 
 SET tor:base:enabled 1
 SET tor:ssh:enabled 0
-SET tor:electrs:enabled 0
+SET tor:electrs:enabled 1
 SET tor:bbbmiddleware:enabled 1
                         
 SET bitcoind:ibd 1
@@ -26,7 +26,6 @@ SET bitcoind:disablewallet 1
 SET bitcoind:rpccookiefile /mnt/ssd/bitcoin/.bitcoin/.cookie
 SET bitcoind:sysparms 1
 SET bitcoind:printtoconsole 1
-SET bitcoind:onlynet:enabled 0
 SET bitcoind:onlynet ipv4
 SET bitcoind:rpcconnect 127.0.0.1
 SET bitcoind:rpcport 8332
