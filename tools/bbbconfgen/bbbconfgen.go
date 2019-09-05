@@ -74,9 +74,10 @@ Make sure to respect spaces between arguments.
   {{ key #rmLine }}             ...deletes the whole line if key not found
   {{ key #default: some val }}  ...uses default value if key not found
 
-The #check function allows to drop a line if a key is set to '0', or not set at all:
+The #rmLineTrue and #rmLineFalse functions allows to drop a line conditionally. 
 
-  {{ key #check }}
+  {{ key #rmLineTrue }}         drop line if a key is set to '1', 'true', 'yes' or 'y'
+  {{ key #rmLineFalse }}        drop line if a key is set to '0', 'false', 'no', 'n' or not at all
 
 `
 )
@@ -196,7 +197,7 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 				placeholderFields []string // individual fields of placeholder, separated by a space (" ")
 				redisKey          string   // Redis key of a placeholder
 				redisVal          string   // value fetched from Redis for a placeholder
-				option            string   // option like #rm or #check
+				option            string   // option like #rm or #rmLineTrue
 			)
 
 			// Redis GET
@@ -217,9 +218,19 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 
 			redisVal, _ = redis.String(redisConn.Do("GET", redisKey))
 
-			if option == "#check" {
-				// verify if key with value != 0 exists for #check placeholder
-				if redisVal == "0" || len(redisVal) == 0 {
+			if option == "#check" || option == "#rmLineFalse" {
+				// if key value is 'false' or empty, drop line
+				if redisVal == "0" || strings.EqualFold(redisVal, "false") || strings.EqualFold(redisVal, "no") || strings.EqualFold(redisVal, "n") || len(redisVal) == 0 {
+					printLine = false
+					countCheckFalse++
+				} else {
+					outputLine = strings.Replace(outputLine, placeholder, "", -1)
+					countCheckTrue++
+				}
+
+			} else if option == "#rmLineTrue" {
+				// if key value is 'true', drop line
+				if redisVal == "1" || strings.EqualFold(redisVal, "true") || strings.EqualFold(redisVal, "yes") || strings.EqualFold(redisVal, "y") {
 					printLine = false
 					countCheckFalse++
 				} else {
@@ -276,7 +287,7 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 
 func main() {
 	var (
-		versionNum = 0.1
+		versionNum = 0.2
 		redisConn  redis.Conn
 		err        error
 	)
