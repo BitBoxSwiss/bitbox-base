@@ -3,18 +3,18 @@ ControlPort 9051
 CookieAuthentication 1
 CookieAuthFileGroupReadable 1
 
-HiddenServiceDir /var/lib/tor/hidden_service_ssh/           {{ tor:ssh:enabled #check }}
-HiddenServiceVersion 3                                      {{ tor:ssh:enabled #check }}
-HiddenServicePort 22 127.0.0.1:22                           {{ tor:ssh:enabled #check }}
+HiddenServiceDir /var/lib/tor/hidden_service_ssh/           {{ tor:ssh:enabled #rmLineFalse }}
+HiddenServiceVersion 3                                      {{ tor:ssh:enabled #rmLineFalse }}
+HiddenServicePort 22 127.0.0.1:22                           {{ tor:ssh:enabled #rmLineFalse }}
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/      {{ tor:electrum:enabled #check }}
-HiddenServiceVersion 3                                      {{ tor:electrum:enabled #check }}
-HiddenServicePort 50002 127.0.0.1:50002                     {{ tor:electrum:enabled #check }}
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/      {{ tor:electrum:enabled #rmLineFalse }}
+HiddenServiceVersion 3                                      {{ tor:electrum:enabled #rmLineFalse }}
+HiddenServicePort 50002 127.0.0.1:50002                     {{ tor:electrum:enabled #rmLineFalse }}
 
-HiddenServiceDir /var/lib/tor/lightningd-service_v3/        {{ tor:base:enabled #check }}
-HiddenServiceVersion 3                                      {{ tor:base:enabled #check }}
-HiddenServicePort 9375 127.0.0.1:9735                       {{ tor:base:enabled #check }}
+HiddenServiceDir /var/lib/tor/lightningd-service_v3/        {{ tor:base:enabled #rmLineFalse }}
+HiddenServiceVersion 3                                      {{ tor:base:enabled #rmLineFalse }}
+HiddenServicePort 9375 127.0.0.1:9735                       {{ tor:base:enabled #rmLineFalse }}
 
-HiddenServiceDir /var/lib/tor/hidden_service_middleware/    {{ tor:bbbmiddleware:enabled #check }}
-HiddenServiceVersion 3                                      {{ tor:bbbmiddleware:enabled #check }}
-HiddenServicePort 9375 127.0.0.1:8845                       {{ tor:bbbmiddleware:enabled #check }}
+HiddenServiceDir /var/lib/tor/hidden_service_middleware/    {{ tor:bbbmiddleware:enabled #rmLineFalse }}
+HiddenServiceVersion 3                                      {{ tor:bbbmiddleware:enabled #rmLineFalse }}
+HiddenServicePort 9375 127.0.0.1:8845                       {{ tor:bbbmiddleware:enabled #rmLineFalse }}
