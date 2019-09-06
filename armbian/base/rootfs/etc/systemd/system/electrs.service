@@ -8,13 +8,12 @@ After=multi-user.target bitcoind.service
 ###################
 
 EnvironmentFile=/etc/electrs/electrs.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
 ExecStartPre=+/opt/shift/scripts/systemd-electrs-startpre.sh
 ExecStart=/usr/bin/electrs \
     --network ${NETWORK} \
     --db-dir ${DB_DIR} \
     --daemon-dir ${DAEMON_DIR} \
-    --cookie "__cookie__:${RPCPASSWORD}" \
+    --cookie "${RPCUSER}:${RPCPASSWORD}" \
     --monitoring-addr ${MONITORING_ADDR} \
     -${VERBOSITY}
 

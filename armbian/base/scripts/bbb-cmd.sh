@@ -12,7 +12,7 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 possible commands:
   setup         <datadir>
   base          <restart|shutdown>
-  bitcoind      <reindex|resync>
+  bitcoind      <reindex|resync|refresh_rpcauth>
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
@@ -134,12 +134,33 @@ case "${MODULE}" in
 
                 echo "Command ${MODULE} ${COMMAND} successfully executed."
                 ;;
+
+            REFRESH_RPCAUTH)
+                # called from systemd-bitcoind-startpre.sh
+                # make sure rpc credentials update succeeds, otherwise refresh again
+                redis_set "bitcoind:refresh-rpcauth" 1
+
+                # generate rpcauth, store values directly in Redis:
+                # bitcoind:rpcauth / bitcoind:rpcuser / bitcoind:rpcpassword
+                /opt/shift/scripts/bitcoind-rpcauth.py base
+
+                # recreate config files, taking overlayroot into account
+                generateConfig "bitcoin.conf.template"
+                generateConfig "lightningd.conf.template"
+                generateConfig "electrs.conf.template"
+                generateConfig "bbbmiddleware.conf.template"
+                generateConfig "bashrc-custom.template"
+
+                echo "INFO: created new bitcoind rpc credentials, updated config files"
+                echo "Command ${MODULE} ${COMMAND} successfully executed."
+                redis_set "bitcoind:refresh-rpcauth" 0
+                ;;
+
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 exit 1
         esac
         ;;
-        
 
     BASE)
         case "${COMMAND}" in

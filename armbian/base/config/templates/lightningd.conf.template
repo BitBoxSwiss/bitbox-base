@@ -1,6 +1,8 @@
 {{ #output: /etc/lightningd/lightningd.conf }}
 {{                      bitcoind:network            #default: mainnet }}
 bitcoin-cli={{          lightningd:bitcoin-cli      #default: /usr/bin/bitcoin-cli }}
+bitcoin-rpcuser={{      bitcoind:rpcuser            #default: base }}
+bitcoin-rpcpassword={{  bitcoind:rpcpassword        #rmLine }}
 bitcoin-rpcconnect={{   bitcoind:rpcconnect         #default: 127.0.0.1 }}
 bitcoin-rpcport={{      bitcoind:rpcport            #default: 8332 }}
 lightning-dir={{        lightningd:lightning-dir    #default: /mnt/ssd/bitcoin/.lightning }}

@@ -4,7 +4,7 @@ alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -la'
 
 # Bitcoin
-alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf'
+alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf -rpcuser=base -rpcpassword={{ bitcoind:rpcpassword }}'
 alias blog='sudo journalctl -f -u bitcoind'
 
 # Lightning

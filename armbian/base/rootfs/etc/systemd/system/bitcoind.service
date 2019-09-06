@@ -1,6 +1,6 @@
 [Unit]
 Description=Bitcoin daemon
-After=multi-user.target
+After=multi-user.target redis.service
 Requires=startup-checks.service
 
 [Service]
@@ -8,7 +8,9 @@ Requires=startup-checks.service
 # Service execution
 ###################
 
-ExecStartPre=/opt/shift/scripts/systemd-bitcoind-startpre.sh
+# run startpre script as root (with =+ )
+ExecStartPre=+/opt/shift/scripts/systemd-bitcoind-startpre.sh
+
 ExecStart=/usr/bin/bitcoind \
     -conf=/etc/bitcoin/bitcoin.conf \
     -pid=/run/bitcoind/bitcoind.pid
@@ -20,7 +22,7 @@ ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
 Type=simple
 PIDFile=/run/bitcoind/bitcoind.pid
 Restart=always
-RestartSec=30
+RestartSec=10
 TimeoutSec=300
 
 
