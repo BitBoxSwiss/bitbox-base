@@ -50,10 +50,16 @@ func (conn *rpcConn) Close() error {
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
 	SystemEnv() rpcmessages.GetEnvResponse
-	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
-	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
-	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
-	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
+	ResyncBitcoin() rpcmessages.ErrorResponse
+	ReindexBitcoin() rpcmessages.ErrorResponse
+	MountFlashdrive() rpcmessages.ErrorResponse
+	UnmountFlashdrive() rpcmessages.ErrorResponse
+	BackupSysconfig() rpcmessages.ErrorResponse
+	BackupHSMSecret() rpcmessages.ErrorResponse
+	GetHostname() rpcmessages.GetHostnameResponse
+	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -83,73 +89,112 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 }
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
-func (server *RPCServer) GetSystemEnv(args int, reply *rpcmessages.GetEnvResponse) error {
+func (server *RPCServer) GetSystemEnv(dummyArg bool, reply *rpcmessages.GetEnvResponse) error {
 	*reply = server.middleware.SystemEnv()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
 
-// ResyncBitcoin sends the middleware's ResyncBitcoinResponse over rpc
-func (server *RPCServer) ResyncBitcoin(args *rpcmessages.ResyncBitcoinArgs, reply *rpcmessages.ResyncBitcoinResponse) error {
-	var err error
-	*reply, err = server.middleware.ResyncBitcoin(*args)
+// ReindexBitcoin sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) ReindexBitcoin(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.ReindexBitcoin()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
+}
+
+// ResyncBitcoin sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) ResyncBitcoin(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.ResyncBitcoin()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // GetSampleInfo sends the middleware's SampleInfoResponse over rpc
-func (server *RPCServer) GetSampleInfo(args int, reply *rpcmessages.SampleInfoResponse) error {
+func (server *RPCServer) GetSampleInfo(dummyArg bool, reply *rpcmessages.SampleInfoResponse) error {
 	*reply = server.middleware.SampleInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
 
 // GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
-func (server *RPCServer) GetVerificationProgress(args int, reply *rpcmessages.VerificationProgressResponse) error {
+func (server *RPCServer) GetVerificationProgress(dummyArg bool, reply *rpcmessages.VerificationProgressResponse) error {
 	*reply = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
 
-// Flashdrive sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a flashdrive check, mount or unmount
-func (server *RPCServer) Flashdrive(args *rpcmessages.FlashdriveArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Flashdrive(*args)
+// MountFlashdrive sends the middleware's ErrorResponse over RPC.
+func (server *RPCServer) MountFlashdrive(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.MountFlashdrive()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
 }
 
-// Backup sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a sysconfig backup or a hsm_secret backup
-func (server *RPCServer) Backup(args *rpcmessages.BackupArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Backup(*args)
+// UnmountFlashdrive sends the middleware's ErrorResponse over RPC.
+func (server *RPCServer) UnmountFlashdrive(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.UnmountFlashdrive()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
 }
 
-// Restore sends the middleware's GenericResponse over rpc
-// Args given can specify e.g. a sysconfig restore or a hsm_secret restore
-func (server *RPCServer) Restore(args *rpcmessages.RestoreArgs, reply *rpcmessages.GenericResponse) error {
-	var err error
-	*reply, err = server.middleware.Restore(*args)
+// BackupSysconfig sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) BackupSysconfig(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.BackupSysconfig()
 	log.Printf("sent reply %v: ", reply)
-	return err
+	return nil
+}
+
+// BackupHSMSecret sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) BackupHSMSecret(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.BackupHSMSecret()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// RestoreSysconfig sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) RestoreSysconfig(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.RestoreSysconfig()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// RestoreHSMSecret sends the middleware's ErrorResponse over rpc
+func (server *RPCServer) RestoreHSMSecret(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.RestoreHSMSecret()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // UserAuthenticate sends the middleware's ErrorResponse over rpc
 // Args given specify the username and the password
-func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.UserAuthenticate(*args)
 	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // UserChangePassword sends the middleware's ErrorResponse over rpc
 // The Arg given specify the username and the new password
-func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) {
+func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePasswordArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.UserChangePassword(*args)
 	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// SetHostname sends the middleware's ErrorResponse over rpc
+// The argument given specifys the hostname to be set
+func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.SetHostname(*args)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// GetHostname sends the middleware's GetHostnameResponse over rpc
+// The GetHostnameResponse includes the current system hostname
+func (server *RPCServer) GetHostname(dummyArg bool, reply *rpcmessages.GetHostnameResponse) error {
+	*reply = server.middleware.GetHostname()
+	log.Printf("sent reply %v: ", reply)
+	return nil
 }
 
 // Serve starts a gob rpc server

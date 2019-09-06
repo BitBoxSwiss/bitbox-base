@@ -69,115 +69,71 @@ func TestVerificationProgress(t *testing.T) {
 func TestResyncBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	resyncBitcoinResponse, err := testMiddleware.ResyncBitcoin(rpcmessages.Resync)
-
-	require.Equal(t, resyncBitcoinResponse.Success, true)
-	require.NoError(t, err)
+	response := testMiddleware.ResyncBitcoin()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
-func TestFlashdrive(t *testing.T) {
+func TestReindexBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	/* --- test check arg for Flashdrive() ---*/
-	checkArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Check,
-		Path:   "", // not needed, only needed for mount
-	}
-
-	flashdriveCheck, errCheck := testMiddleware.Flashdrive(checkArgs)
-
-	require.Equal(t, flashdriveCheck.Success, true)
-	require.Equal(t, flashdriveCheck.Message, "flashdrive check\n")
-	require.NoError(t, errCheck)
-
-	/* --- test mount arg for Flashdrive() ---*/
-	mountArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Mount,
-		Path:   "/dev/sda",
-	}
-
-	flashdriveMount, errMount := testMiddleware.Flashdrive(mountArgs)
-
-	require.Equal(t, flashdriveMount.Success, true)
-	require.Equal(t, flashdriveMount.Message, "flashdrive mount /dev/sda\n")
-	require.NoError(t, errMount)
-
-	/* --- test unmount arg for Flashdrive() ---*/
-	unmountArgs := rpcmessages.FlashdriveArgs{
-		Method: rpcmessages.Unmount,
-		Path:   "", // not needed, only needed for mount
-	}
-
-	flashdriveUnmount, errUnmount := testMiddleware.Flashdrive(unmountArgs)
-
-	require.Equal(t, flashdriveUnmount.Success, true)
-	require.Equal(t, flashdriveUnmount.Message, "flashdrive unmount\n")
-	require.NoError(t, errUnmount)
-
-	/* --- test an unknown arg for Flashdrive() ---*/
-	unknownArgs := rpcmessages.FlashdriveArgs{
-		Method: -1,
-		Path:   "",
-	}
-
-	flashdriveUnknown, errUnknown := testMiddleware.Flashdrive(unknownArgs)
-
-	require.Equal(t, flashdriveUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, flashdriveUnknown.Message, "Method -1 not supported for Flashdrive().")
-	require.Error(t, errUnknown)
+	response := testMiddleware.ReindexBitcoin()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
-func TestBackup(t *testing.T) {
+func TestMountFlashdrive(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
-
-	/* --- test sysconfig arg for Backup() ---*/
-	backupSysconfig, errSysconfig := testMiddleware.Backup(rpcmessages.BackupSysConfig)
-
-	require.Equal(t, backupSysconfig.Success, true)
-	require.Equal(t, backupSysconfig.Message, "backup sysconfig\n")
-	require.NoError(t, errSysconfig)
-
-	/* --- test hsm secret arg for Backup() ---*/
-	backupHSMSecret, errHSMSecret := testMiddleware.Backup(rpcmessages.BackupHSMSecret)
-
-	require.Equal(t, backupHSMSecret.Success, true)
-	require.Equal(t, backupHSMSecret.Message, "backup hsm_secret\n")
-	require.NoError(t, errHSMSecret)
-
-	/* --- test an unknown arg for Backup() ---*/
-	backupUnknown, errUnknown := testMiddleware.Backup(-1)
-
-	require.Equal(t, backupUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, backupUnknown.Message, "Method -1 not supported for Backup().")
-	require.Error(t, errUnknown)
+	response := testMiddleware.MountFlashdrive()
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, "", response.Code)
 }
 
-// TestRestore only covers the 'script not found' case.
-// We can't know the absolute path of the script, because that depends
-// on the system the tests are executed. e.g. Travis path and local path differ.
-func TestRestore(t *testing.T) {
+func TestUnmountFlashdrive(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+	response := testMiddleware.UnmountFlashdrive()
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, "", response.Code)
+}
+
+func TestBackupHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	/* --- test sysconfig arg for Restore() ---*/
-	restoreSysconfig, errSysconfig := testMiddleware.Restore(rpcmessages.RestoreSysConfig)
+	response := testMiddleware.BackupHSMSecret()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, restoreSysconfig.Success, true)
-	require.Equal(t, restoreSysconfig.Message, "restore sysconfig\n")
-	require.NoError(t, errSysconfig)
+func TestBackupSysconfig(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
 
-	/* --- test hsm secret arg for Restore() ---*/
-	restoreHSMSecret, errHSMSecret := testMiddleware.Restore(rpcmessages.RestoreHSMSecret)
+	response := testMiddleware.BackupSysconfig()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, restoreHSMSecret.Success, true)
-	require.Equal(t, restoreHSMSecret.Message, "restore hsm_secret\n")
-	require.NoError(t, errHSMSecret)
+func TestRestoreHSMSecret(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
 
-	/* --- test an unknown arg for Restore() ---*/
-	restoreUnknown, errUnknown := testMiddleware.Restore(-1)
+	response := testMiddleware.RestoreHSMSecret()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
 
-	require.Equal(t, restoreUnknown.Success, false) // should fail, the method -1 is unknown
-	require.Equal(t, restoreUnknown.Message, "Method -1 not supported for Restore().")
-	require.Error(t, errUnknown)
+func TestRestoreSysconfig(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	response := testMiddleware.RestoreSysconfig()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
 }
 
 func TestUserAuthenticate(t *testing.T) {
@@ -277,4 +233,45 @@ func TestUserChangePassword(t *testing.T) {
 
 	require.Equal(t, false, changepasswordEmpty.Success)
 	require.Equal(t, "password change unsuccessful (too short)", changepasswordEmpty.Message)
+}
+func TestGetHostname(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+	response := testMiddleware.GetHostname()
+
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "get hostname ", response.Hostname)
+}
+
+func TestSetHostname(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	/* test normal hostname */
+	validArgs1 := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-satoshi"}
+	response1 := testMiddleware.SetHostname(validArgs1)
+	require.Equal(t, true, response1.Success)
+	require.Empty(t, response1.Message)
+
+	/* test special char hostname */
+	validArgs2 := rpcmessages.SetHostnameArgs{Hostname: "a.hostname-with.allowed.-....special.chars"}
+	response2 := testMiddleware.SetHostname(validArgs2)
+	require.Equal(t, true, response2.Success)
+	require.Empty(t, response2.Message)
+
+	/* test a long and valid 64 char hostname */
+	validArgs3 := rpcmessages.SetHostnameArgs{Hostname: "a.loooooooooooooooooooooooooooooooooooooooooong.64-char.hostname"}
+	response3 := testMiddleware.SetHostname(validArgs3)
+	require.Equal(t, true, response3.Success)
+	require.Empty(t, response3.Message)
+
+	/* test a long and invalid 65 char hostname */
+	invalidArgs1 := rpcmessages.SetHostnameArgs{Hostname: "a.tooooo.loooooooooooooooooooooooooooooooooooong.65-char.hostname"}
+	response4 := testMiddleware.SetHostname(invalidArgs1)
+	require.Equal(t, false, response4.Success)
+	require.Equal(t, "invalid hostname", response4.Message)
+
+	/* test an invalid UPPERCASE letter hostname */
+	invalidArgs2 := rpcmessages.SetHostnameArgs{Hostname: "Bitbox"}
+	response5 := testMiddleware.SetHostname(invalidArgs2)
+	require.Equal(t, false, response5.Success)
+	require.Equal(t, "invalid hostname", response5.Message)
 }

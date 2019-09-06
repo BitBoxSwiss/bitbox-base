@@ -20,10 +20,16 @@ type Middleware interface {
 	Start() <-chan []byte
 	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
-	ResyncBitcoin(rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error)
-	Flashdrive(rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error)
-	Backup(rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error)
-	Restore(rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error)
+	ResyncBitcoin() rpcmessages.ErrorResponse
+	ReindexBitcoin() rpcmessages.ErrorResponse
+	MountFlashdrive() rpcmessages.ErrorResponse
+	UnmountFlashdrive() rpcmessages.ErrorResponse
+	BackupSysconfig() rpcmessages.ErrorResponse
+	BackupHSMSecret() rpcmessages.ErrorResponse
+	GetHostname() rpcmessages.GetHostnameResponse
+	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

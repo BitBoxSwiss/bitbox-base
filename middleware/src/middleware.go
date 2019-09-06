@@ -2,10 +2,10 @@
 package middleware
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
@@ -136,26 +136,24 @@ func (middleware *Middleware) Start() <-chan []byte {
 	return middleware.events
 }
 
-// ResyncBitcoin returns a ResyncBitcoinResponse struct in response to a rpcserver request
-func (middleware *Middleware) ResyncBitcoin(option rpcmessages.ResyncBitcoinArgs) (rpcmessages.ResyncBitcoinResponse, error) {
-	var cmd *exec.Cmd
-	switch option {
-	case rpcmessages.Resync:
-		log.Println("executing full bitcoin resync in config script")
-		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_resync")
-	case rpcmessages.Reindex:
-		log.Println("executing bitcoin reindex in config script")
-		cmd = exec.Command(middleware.environment.GetBBBConfigScript(), "exec", "bitcoin_reindex")
-	default:
-	}
-	err := cmd.Run()
+// ResyncBitcoin returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
+	log.Println("executing full bitcoin resync via the config script")
+	out, err := middleware.runBBBConfigScript("exec", "bitcoin_resync", "")
 	if err != nil {
-		log.Println(err.Error() + " failed to run resync command, script does not exist")
-		response := rpcmessages.ResyncBitcoinResponse{Success: false}
-		return response, err
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
-	response := rpcmessages.ResyncBitcoinResponse{Success: true}
-	return response, nil
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// ReindexBitcoin returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
+	log.Println("executing full bitcoin resync via the config script")
+	out, err := middleware.runBBBConfigScript("exec", "bitcoin_reindex", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // SystemEnv returns a new GetEnvResponse struct with the values as read from the environment
@@ -186,87 +184,71 @@ func (middleware *Middleware) DummyAdminPassword() string {
 	return middleware.dummyAdminPassword
 }
 
-// Flashdrive returns a GenericResponse struct in response to a rpcserver request
-func (middleware *Middleware) Flashdrive(args rpcmessages.FlashdriveArgs) (rpcmessages.GenericResponse, error) {
-	switch args.Method {
-	case rpcmessages.Check:
-		log.Println("Executing a USB flashdrive check via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "check")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.Mount:
-		log.Println("Executing a USB flashdrive mount via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "mount"+" "+args.Path)
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.Unmount:
-		log.Println("Executing a USB flashdrive unmount via the cmd script")
-		out, err := middleware.runBBBCmdScript("flashdrive", "unmount")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	default:
-		errorMessage := fmt.Sprintf("Method %d not supported for Flashdrive().", args.Method)
-		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+// MountFlashdrive returns an ErrorResponse struct in a response to a rpcserver request
+func (middleware *Middleware) MountFlashdrive() rpcmessages.ErrorResponse {
+	log.Println("Executing a USB flashdrive check via the cmd script")
+	outCheck, err := middleware.runBBBCmdScript("flashdrive", "check", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(outCheck), Code: err.Error()}
 	}
+	flashDriveName := strings.TrimSuffix(string(outCheck), "\n")
+
+	log.Println("Executing a USB flashdrive mount via the cmd script")
+	outMount, err := middleware.runBBBCmdScript("flashdrive", "mount", flashDriveName)
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(outMount), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// Backup returns a GenericResponse struct in response to a rpcserver request
-func (middleware *Middleware) Backup(method rpcmessages.BackupArgs) (rpcmessages.GenericResponse, error) {
-	switch method {
-	case rpcmessages.BackupSysConfig:
-		log.Println("Executing a backup of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "sysconfig")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.BackupHSMSecret:
-		log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("backup", "hsm_secret")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	default:
-		errorMessage := fmt.Sprintf("Method %d not supported for Backup().", method)
-		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+// UnmountFlashdrive returns an ErrorResponse struct in a response to a rpcserver request
+func (middleware *Middleware) UnmountFlashdrive() rpcmessages.ErrorResponse {
+	log.Println("Executing a USB flashdrive unmount via the cmd script")
+	out, err := middleware.runBBBCmdScript("flashdrive", "unmount", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// Restore returns a GenericResponse struct in response to a rpcserver request
-func (middleware *Middleware) Restore(method rpcmessages.RestoreArgs) (rpcmessages.GenericResponse, error) {
-	switch method {
-	case rpcmessages.RestoreSysConfig:
-		log.Println("Executing a restore of the system config via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "sysconfig")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	case rpcmessages.RestoreHSMSecret:
-		log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
-		out, err := middleware.runBBBCmdScript("restore", "hsm_secret")
-		if err != nil {
-			return rpcmessages.GenericResponse{Success: false, Message: string(out)}, err
-		}
-		return rpcmessages.GenericResponse{Success: true, Message: string(out)}, nil
-
-	default:
-		errorMessage := fmt.Sprintf("Method %d not supported for Restore().", method)
-		return rpcmessages.GenericResponse{Success: false, Message: errorMessage}, errors.New(errorMessage)
+// BackupSysconfig returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
+	log.Println("Executing a backup of the system config via the cmd script")
+	out, err := middleware.runBBBCmdScript("backup", "sysconfig", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// BackupHSMSecret returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
+	log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
+	out, err := middleware.runBBBCmdScript("backup", "hsm_secret", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// RestoreSysconfig returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
+	log.Println("Executing a restore of the system config via the cmd script")
+	out, err := middleware.runBBBCmdScript("restore", "sysconfig", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// RestoreHSMSecret returns a ErrorResponse struct in response to a rpcserver request
+func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
+	log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
+	out, err := middleware.runBBBCmdScript("restore", "hsm_secret", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // UserAuthenticate returns an ErrorResponse struct in response to a rpcserver request.
@@ -316,10 +298,60 @@ func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePass
 	return rpcmessages.ErrorResponse{Success: false, Message: "password change unsuccessful (too short)"}
 }
 
-func (middleware *Middleware) runBBBCmdScript(method string, arg string) (out []byte, err error) {
+// SetHostname sets the systems hostname
+func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse {
+	log.Println("Setting the hostname via the config script")
+	var r = regexp.MustCompile(`^[a-z0-9]+[a-z0-9-.]{0,62}[a-z0-9]$`)
+	hostname := args.Hostname
+
+	if len(hostname) >= 2 && len(hostname) <= 64 && r.MatchString(hostname) {
+		out, err := middleware.runBBBConfigScript("set", "hostname", hostname)
+		if err != nil {
+			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+		}
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+	return rpcmessages.ErrorResponse{Success: false, Message: "invalid hostname"}
+}
+
+// GetHostname returns a the systems hostname in a GetHostnameResponse
+func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
+	log.Println("Getting the hostname via the config script")
+	out, err := middleware.runBBBConfigScript("get", "hostname", "")
+	if err != nil {
+		return rpcmessages.GetHostnameResponse{
+			ErrorResponse: rpcmessages.ErrorResponse{
+				Success: false,
+				Message: string(out),
+				Code:    err.Error(),
+			},
+		}
+	}
+
+	hostname := strings.TrimSuffix(string(out), "\n")
+	return rpcmessages.GetHostnameResponse{Hostname: hostname, ErrorResponse: rpcmessages.ErrorResponse{Success: true}}
+}
+
+// runBBBCmdScript runs the bbb-cmd.sh script.
+// The script executes commands like for example mounting a USB drive, doing a backup and copying files.
+func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {
 	script := middleware.environment.GetBBBCmdScript()
-	cmdAsString := script + " " + method + " " + arg
-	out, err = exec.Command(script, method, arg).Output()
+	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
+	out, err = exec.Command(script, method, arg1, arg2).Output()
+	if err != nil {
+		// no error handling here, only logging.
+		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
+	}
+	return
+}
+
+// runBBBConfigScript runs the bbb-config.sh script.
+// The script changes the system configuration in redis by setting or unsetting the appropriate keys.
+// If necessary the affected services are restarted.
+func (middleware *Middleware) runBBBConfigScript(method string, arg1 string, arg2 string) (out []byte, err error) {
+	script := middleware.environment.GetBBBConfigScript()
+	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
+	out, err = exec.Command(script, method, arg1, arg2).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
