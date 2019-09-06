@@ -139,7 +139,7 @@ func (middleware *Middleware) Start() <-chan []byte {
 // ResyncBitcoin returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the config script")
-	out, err := middleware.runBBBConfigScript("exec", "bitcoin_resync", "")
+	out, err := middleware.runBBBCmdScript("bitcoind", "resync", "")
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -149,7 +149,7 @@ func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 // ReindexBitcoin returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the config script")
-	out, err := middleware.runBBBConfigScript("exec", "bitcoin_reindex", "")
+	out, err := middleware.runBBBCmdScript("bitcoind", "reindex", "")
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
