@@ -5,6 +5,26 @@
 #
 set -eu
 
+# include functions redis_set() and redis_get()
+# shellcheck disable=SC1091
+source /opt/shift/scripts/include/redis.sh.inc
+
+# ------------------------------------------------------------------------------
+
+# Redis must be available
+redis_require
+
+# check if rpcauth credentials exist, or create new ones
+RPCAUTH="$(redis_get 'bitcoind:rpcauth')"
+REFRESH_RPCAUTH="$(redis_get 'bitcoind:refresh-rpcauth')"
+
+if [ ${#RPCAUTH} -lt 90 ] || [ "${REFRESH_RPCAUTH}" -eq 1 ]; then
+    echo "INFO: creating new bitcoind rpc credentials"
+    /opt/shift/scripts/bbb-cmd.sh bitcoind refresh_rpcauth
+else
+    echo "INFO: found bitcoind rpc credentials, no action taken"
+fi
+
 # check if SSD is already available to avoid failure
 BITCOIN_DIR="/mnt/ssd/bitcoin/.bitcoin"
 if [ ! -d "${BITCOIN_DIR}" ] || [ ! -x "${BITCOIN_DIR}" ]; then
