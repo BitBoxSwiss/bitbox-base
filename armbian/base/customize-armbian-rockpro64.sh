@@ -207,8 +207,7 @@ else
   echo "No SSH keys file found (base/authorized_keys), password login only."
 fi
 chown -R base:bitcoin /home/base/
-chmod 700 /home/base/.ssh/
-chmod 600 /home/base/.ssh/*
+chmod -R u+rw,g-rwx,o-rwx /home/base/.ssh
 
 # disable password login for SSH (authorized ssh keys only)
 if [ "$BASE_SSH_PASSWORD_LOGIN" != "true" ]; then
@@ -244,7 +243,7 @@ chsh -s /bin/bash hdmi
 # also revoke direct write access for service users to local directory
 if ! mountpoint /mnt/ssd -q; then 
   rm -rf /mnt/ssd/bitcoin/
-  chmod 700 /mnt/ssd
+  chmod u+rwx,g-rwx,o-rwx /mnt/ssd
 fi
 
 
@@ -413,7 +412,7 @@ mkdir -p /mnt/ssd/
 ## add bash shortcuts
 generateConfig bashrc-custom.template # -->  /home/base/.bashrc-custom
 chown base:bitcoin /home/base/.bashrc-custom
-chmod 600 /home/base/.bashrc-custom
+chmod u+rw,g-rwx,o-rwx /home/base/.bashrc-custom
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
 # shellcheck disable=SC1091
 source /home/base/.bashrc-custom
@@ -466,15 +465,12 @@ tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.g
 install -m 0755 -o root -g root -t /usr/bin bin/*
 
 mkdir -p /etc/bitcoin/
-chmod 750 /etc/bitcoin/
 generateConfig "bitcoin.conf.template" # --> /etc/bitcoin/bitcoin.conf
-chown -R bitcoin:bitcoin /etc/bitcoin
-chmod 640 /etc/bitcoin/*
+chown -R root:bitcoin /etc/bitcoin
+chmod -R u+rw,g+r,g-w,o-rwx /etc/bitcoin
 importFile "/etc/systemd/system/bitcoind.service"
 systemctl enable bitcoind.service
 
-######## XXX
-cat /etc/bitcoin/bitcoin.conf
 
 # LIGHTNING --------------------------------------------------------------------
 BIN_DEPS_TAG="v0.0.1-alpha"
@@ -515,10 +511,9 @@ else
 fi
 
 mkdir -p /etc/lightningd/
-chmod -R 750 /etc/lightningd/
 generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
-chown -R bitcoin:bitcoin /etc/lightningd
-chmod 640 /etc/lightningd/*
+chown -R root:bitcoin /etc/lightningd
+chmod -R u+rw,g+r,g-w,o-rwx /etc/lightningd
 importFile "/etc/systemd/system/lightningd.service"
 systemctl enable lightningd.service
 
@@ -539,10 +534,9 @@ tar -xzf electrs-${ELECTRS_VERSION}-aarch64-linux-gnu.tar.gz -C /usr/bin
 chmod +x /usr/bin/electrs
 
 mkdir -p /etc/electrs/
-chmod 750 /etc/electrs/
 generateConfig "electrs.conf.template" # --> /etc/electrs/electrs.conf
-chown -R electrs:bitcoin /etc/electrs
-chmod 640 /etc/electrs/*
+chown -R root:bitcoin /etc/electrs
+chmod -R u+rw,g+r,g-w,o-rwx /etc/electrs
 importFile "/etc/systemd/system/electrs.service"
 systemctl enable electrs.service
 
@@ -585,9 +579,8 @@ fi
 if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
   cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
   mkdir -p /etc/bbbmiddleware/
-  chmod 750 /etc/bbbmiddleware/
   generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
-  chmod 640 /etc/bbbmiddleware/*
+  chmod -R u+rw,g+r,g-w,o-rwx /etc/bbbmiddleware
   importFile "/etc/systemd/system/bbbmiddleware.service"
   systemctl enable bbbmiddleware.service
 else

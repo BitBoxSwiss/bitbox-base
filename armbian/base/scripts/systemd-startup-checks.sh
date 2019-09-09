@@ -97,14 +97,14 @@ chown bitcoin:system /mnt/ssd/
 ## bitcoin data storage
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
-chmod -R 750 /mnt/ssd/bitcoin/
+chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/bitcoin/
 setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
 ## electrs data storage
 mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
-chmod -R 750 /mnt/ssd/electrs/
+chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/electrs/
 
 ## system folders
 mkdir -p /mnt/ssd/prometheus
@@ -160,7 +160,7 @@ if [ ! -f /mnt/ssd/swapfile ]; then
         echo "Creating /mnt/ssd/swapfile."
         fallocate --length 2GiB /mnt/ssd/swapfile
         mkswap /mnt/ssd/swapfile
-        chmod 600 /mnt/ssd/swapfile
+        chmod u+rw,g-rwx,o-rwx /mnt/ssd/swapfile
     else
         echo "ERR: No swapfile found, but SSD not mounted."
     fi
