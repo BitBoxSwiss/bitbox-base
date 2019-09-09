@@ -136,6 +136,76 @@ func TestRestoreSysconfig(t *testing.T) {
 	require.Equal(t, response.Code, "")
 }
 
+func TestEnableTor(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTor(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTor(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
+func TestEnableTorMiddleware(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTorMiddleware(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTorMiddleware(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
+func TestEnableTorElectrs(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTorElectrs(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTorElectrs(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
+func TestEnableClearnetIBD(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableClearnetIBD(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableClearnetIBD(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
+func TestEnableTorSSH(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTorSSH(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTorSSH(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
 func TestUserAuthenticate(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 

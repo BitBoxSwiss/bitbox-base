@@ -28,6 +28,14 @@ type Middleware struct {
 	dummyAdminPassword string
 }
 
+const (
+	// Since enable and disable are two often-used parameters passed to bbb-config
+	// and golangci-lint fails because of "string `disable` has 3 occurrences, make it a constant (goconst)"
+	// they are constants.
+	enableAction  string = "enable"
+	disableAction string = "disable"
+)
+
 // NewMiddleware returns a new instance of the middleware
 func NewMiddleware(argumentMap map[string]string) *Middleware {
 	middleware := &Middleware{
@@ -330,6 +338,101 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 
 	hostname := strings.TrimSuffix(string(out), "\n")
 	return rpcmessages.GetHostnameResponse{Hostname: hostname, ErrorResponse: rpcmessages.ErrorResponse{Success: true}}
+}
+
+// EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTor(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling Tor via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// EnableTorMiddleware enables/disables the tor hidden service for the middleware based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTorMiddleware(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor for the middleware via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling Tor for the middleware via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor_bbbmiddleware", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// EnableTorElectrs enables/disables the tor hidden service for electrs based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTorElectrs(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor for electrs via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling Tor for electrs via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor_electrs", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// EnableTorSSH enables/disables the tor hidden service for ssh based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTorSSH(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor for ssh via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling Tor for ssh via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor_ssh", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// EnableClearnetIBD enables/disables initial block download over clearnet based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableClearnetIBD(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling clearnet IDB via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling clearnet IDB via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "bitcoin_ibd_clearnet", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // runBBBCmdScript runs the bbb-cmd.sh script.

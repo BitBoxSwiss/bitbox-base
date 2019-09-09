@@ -148,6 +148,46 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreHSMSecret", dummyArg, &restoreHSMSecretReply)
 	require.Equal(t, true, restoreSysconfigReply.Success)
 
+	var enableTorReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", true, &enableTorReply)
+	require.Equal(t, true, enableTorReply.Success)
+
+	var disableTorReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", false, &disableTorReply)
+	require.Equal(t, true, disableTorReply.Success)
+
+	var enableTorMiddlewareReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", true, &enableTorMiddlewareReply)
+	require.Equal(t, true, enableTorMiddlewareReply.Success)
+
+	var disableTorMiddlewareReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", false, &disableTorMiddlewareReply)
+	require.Equal(t, true, disableTorMiddlewareReply.Success)
+
+	var enableTorElectrsReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", true, &enableTorElectrsReply)
+	require.Equal(t, true, enableTorElectrsReply.Success)
+
+	var disableTorElectrsReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", false, &disableTorElectrsReply)
+	require.Equal(t, true, disableTorElectrsReply.Success)
+
+	var enableTorSSHReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", true, &enableTorSSHReply)
+	require.Equal(t, true, enableTorSSHReply.Success)
+
+	var disableTorSSHReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", false, &disableTorSSHReply)
+	require.Equal(t, true, disableTorSSHReply.Success)
+
+	var enableClearnetIBDReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", true, &enableClearnetIBDReply)
+	require.Equal(t, true, enableClearnetIBDReply.Success)
+
+	var disableClearnetIBDReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", false, &disableClearnetIBDReply)
+	require.Equal(t, true, disableClearnetIBDReply.Success)
+
 	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
 	var userAuthenticateReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserAuthenticate", userAuthenticateArg, &userAuthenticateReply)
