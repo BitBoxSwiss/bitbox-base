@@ -65,6 +65,7 @@ type Middleware interface {
 	EnableTorMiddleware(bool) rpcmessages.ErrorResponse
 	EnableTorElectrs(bool) rpcmessages.ErrorResponse
 	EnableTorSSH(bool) rpcmessages.ErrorResponse
+	EnableClearnetIBD(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -233,6 +234,15 @@ func (server *RPCServer) EnableTorElectrs(enable bool, reply *rpcmessages.ErrorR
 // It sends the middleware's ErrorResponse over rpc.
 func (server *RPCServer) EnableTorSSH(enable bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.EnableTorSSH(enable)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// EnableClearnetIBD enables/disables the tor hidden service for SSH.
+// The boolean argument passed is used to for enabling and disabling.
+// It sends the middleware's ErrorResponse over rpc.
+func (server *RPCServer) EnableClearnetIBD(enable bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableClearnetIBD(enable)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
