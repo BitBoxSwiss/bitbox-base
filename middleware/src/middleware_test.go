@@ -136,6 +136,20 @@ func TestRestoreSysconfig(t *testing.T) {
 	require.Equal(t, response.Code, "")
 }
 
+func TestEnableTor(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTor(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTor(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
 func TestUserAuthenticate(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 

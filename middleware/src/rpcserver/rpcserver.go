@@ -61,6 +61,7 @@ type Middleware interface {
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
+	EnableTor(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -193,6 +194,15 @@ func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *r
 // The GetHostnameResponse includes the current system hostname
 func (server *RPCServer) GetHostname(dummyArg bool, reply *rpcmessages.GetHostnameResponse) error {
 	*reply = server.middleware.GetHostname()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// EnableTor enables/disables the tor.service and configures bitcoind and lightningd.
+// The boolean argument passed is used to for enabling and disabling.
+// It sends the middleware's ErrorResponse over rpc.
+func (server *RPCServer) EnableTor(enable bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTor(enable)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }

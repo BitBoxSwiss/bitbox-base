@@ -30,6 +30,7 @@ type Middleware interface {
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
+	EnableTor(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

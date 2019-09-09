@@ -332,6 +332,25 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 	return rpcmessages.GetHostnameResponse{Hostname: hostname, ErrorResponse: rpcmessages.ErrorResponse{Success: true}}
 }
 
+// EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTor(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor via the config script")
+		action = "enable"
+	} else {
+		log.Println("Disabling Tor via the config script")
+		action = "disable"
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {
