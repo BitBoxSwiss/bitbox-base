@@ -1,6 +1,6 @@
 [Unit]
 Description=BitBox Base Middleware
-After=multi-user.target
+After=multi-user.target bitcoind.service
 
 [Service]
 
@@ -8,10 +8,10 @@ After=multi-user.target
 ###################
 
 EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
-EnvironmentFile=/mnt/ssd/bitcoin/.bitcoin/.cookie.env
+ExecStartPre=/opt/shift/scripts/systemd-bbbmiddleware-startpre.sh
 ExecStart=/usr/local/sbin/bbbmiddleware \
     -rpcuser=${BITCOIN_RPCUSER} \
-    -rpcpassword=${RPCPASSWORD} \
+    -rpcpassword=${BITCOIN_RPCPASSWORD} \
     -rpcport=${BITCOIN_RPCPORT} \
     -lightning-rpc-path=${LIGHTNING_RPCPATH} \
     -datadir=/data/bbbmiddleware

@@ -97,14 +97,14 @@ chown bitcoin:system /mnt/ssd/
 ## bitcoin data storage
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
-chmod -R 750 /mnt/ssd/bitcoin/
+chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/bitcoin/
 setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
 ## electrs data storage
 mkdir -p /mnt/ssd/electrs/
 chown -R electrs:bitcoin /mnt/ssd/electrs/
-chmod -R 750 /mnt/ssd/electrs/
+chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/electrs/
 
 ## system folders
 mkdir -p /mnt/ssd/prometheus
@@ -113,12 +113,6 @@ chown -R prometheus:system /mnt/ssd/prometheus/
 mkdir -p /mnt/ssd/system/journal/
 rm -rf /var/log/journal
 ln -sfn /mnt/ssd/system/journal /var/log/journal
-
-## We set rpccookiefile=/mnt/ssd/bitcoin/.bitcoin/.cookie, but there seems to be
-## no way to specify where to expect the bitcoin cookie for c-lightning, so let's
-## create a symlink at the expected testnet location.
-mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3/
-ln -fs /mnt/ssd/bitcoin/.bitcoin/.cookie /mnt/ssd/bitcoin/.bitcoin/testnet3/.cookie
 
 
 # Configuration Management
@@ -166,7 +160,7 @@ if [ ! -f /mnt/ssd/swapfile ]; then
         echo "Creating /mnt/ssd/swapfile."
         fallocate --length 2GiB /mnt/ssd/swapfile
         mkswap /mnt/ssd/swapfile
-        chmod 600 /mnt/ssd/swapfile
+        chmod u+rw,g-rwx,o-rwx /mnt/ssd/swapfile
     else
         echo "ERR: No swapfile found, but SSD not mounted."
     fi

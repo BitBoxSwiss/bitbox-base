@@ -23,8 +23,10 @@ SET bitcoind:listen 1
 SET bitcoind:txindex 0
 SET bitcoind:prune 0
 SET bitcoind:disablewallet 1
-SET bitcoind:rpccookiefile /mnt/ssd/bitcoin/.bitcoin/.cookie
-SET bitcoind:sysparms 1
+SET bitcoind:refresh-rpcauth 1
+SET bitcoind:rpcauth xxx
+SET bitcoind:rpcuser xxx
+SET bitcoind:rpcpassword xxx
 SET bitcoind:printtoconsole 1
 SET bitcoind:onlynet ipv4
 SET bitcoind:rpcconnect 127.0.0.1

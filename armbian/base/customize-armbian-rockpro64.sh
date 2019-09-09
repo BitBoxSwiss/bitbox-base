@@ -207,7 +207,7 @@ else
   echo "No SSH keys file found (base/authorized_keys), password login only."
 fi
 chown -R base:bitcoin /home/base/
-chmod -R 700 /home/base/.ssh/
+chmod -R u+rw,g-rwx,o-rwx /home/base/.ssh
 
 # disable password login for SSH (authorized ssh keys only)
 if [ "$BASE_SSH_PASSWORD_LOGIN" != "true" ]; then
@@ -243,7 +243,7 @@ chsh -s /bin/bash hdmi
 # also revoke direct write access for service users to local directory
 if ! mountpoint /mnt/ssd -q; then 
   rm -rf /mnt/ssd/bitcoin/
-  chmod 700 /mnt/ssd
+  chmod u+rwx,g-rwx,o-rwx /mnt/ssd
 fi
 
 
@@ -274,11 +274,18 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
   apt -y --fix-broken install
 fi
 
-## install dependecies
+## install required software packages
 apt install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools curl
 apt install -y --no-install-recommends ifmetric
 apt install -y iptables-persistent
+
+## install python dependencies
+apt install -y python3-pip python3-setuptools
+pip3 install wheel
+pip3 install prometheus_client
+pip3 install redis
+pip3 install pylightning
 
 # debug
 apt install -y --no-install-recommends tmux unzip
@@ -286,6 +293,7 @@ apt install -y --no-install-recommends tmux unzip
 if [[ "${BASE_DISTRIBUTION}" == "bionic" ]]; then
     apt install -y --no-install-recommends overlayroot
 fi
+
 
 # REDIS & CONFIGURATION MGMT ---------------------------------------------------
 
@@ -403,6 +411,8 @@ mkdir -p /mnt/ssd/
 
 ## add bash shortcuts
 generateConfig bashrc-custom.template # -->  /home/base/.bashrc-custom
+chown base:bitcoin /home/base/.bashrc-custom
+chmod u+rw,g-rwx,o-rwx /home/base/.bashrc-custom
 echo "source /home/base/.bashrc-custom" >> /home/base/.bashrc
 # shellcheck disable=SC1091
 source /home/base/.bashrc-custom
@@ -456,6 +466,8 @@ install -m 0755 -o root -g root -t /usr/bin bin/*
 
 mkdir -p /etc/bitcoin/
 generateConfig "bitcoin.conf.template" # --> /etc/bitcoin/bitcoin.conf
+chown -R root:bitcoin /etc/bitcoin
+chmod -R u+rw,g+r,g-w,o-rwx /etc/bitcoin
 importFile "/etc/systemd/system/bitcoind.service"
 systemctl enable bitcoind.service
 
@@ -500,6 +512,8 @@ fi
 
 mkdir -p /etc/lightningd/
 generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
+chown -R root:bitcoin /etc/lightningd
+chmod -R u+rw,g+r,g-w,o-rwx /etc/lightningd
 importFile "/etc/systemd/system/lightningd.service"
 systemctl enable lightningd.service
 
@@ -521,6 +535,8 @@ chmod +x /usr/bin/electrs
 
 mkdir -p /etc/electrs/
 generateConfig "electrs.conf.template" # --> /etc/electrs/electrs.conf
+chown -R root:bitcoin /etc/electrs
+chmod -R u+rw,g+r,g-w,o-rwx /etc/electrs
 importFile "/etc/systemd/system/electrs.service"
 systemctl enable electrs.service
 
@@ -564,6 +580,7 @@ if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
   cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
   mkdir -p /etc/bbbmiddleware/
   generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
+  chmod -R u+rw,g+r,g-w,o-rwx /etc/bbbmiddleware
   importFile "/etc/systemd/system/bbbmiddleware.service"
   systemctl enable bbbmiddleware.service
 else
@@ -604,11 +621,6 @@ importFile "/etc/systemd/system/prometheus-node-exporter.service"
 systemctl enable prometheus-node-exporter.service
 
 ## Prometheus Base status exporter
-apt install -y python3-pip python3-setuptools
-pip3 install wheel
-pip3 install prometheus_client
-pip3 install redis
-
 importFile "/etc/systemd/system/prometheus-base.service"
 systemctl enable prometheus-base.service
 
@@ -617,7 +629,6 @@ importFile "/etc/systemd/system/prometheus-bitcoind.service"
 systemctl enable prometheus-bitcoind.service
 
 ## Prometheus plugin for c-lightning
-pip3 install pylightning
 cd /opt/shift/scripts/
 curl --retry 5 -SL https://raw.githubusercontent.com/lightningd/plugins/6d0df3c83bd5098ca084b04ba8f589f33a609b8e/prometheus/prometheus.py -o prometheus-lightningd.py
 if ! echo "5e020696545e0cd00c2b2b93b49dc9fca55d6c3c56facd685f6098b720230fb3  prometheus-lightningd.py" | sha256sum -c -; then exit 1; fi

@@ -27,13 +27,3 @@ if [ $BITCOIN_IBD -eq 1 ]; then
     echo "ERR: bitcoind.service is in IBD mode. Not starting lightningd.service."
     exit 1
 fi
-
-if [ -f /mnt/ssd/bitcoin/.bitcoin/.cookie ]; then
-    echo -n 'RPCPASSWORD=' > /mnt/ssd/bitcoin/.bitcoin/.cookie.env
-    tail -c +12 /mnt/ssd/bitcoin/.bitcoin/.cookie >> /mnt/ssd/bitcoin/.bitcoin/.cookie.env
-    chown bitcoin:bitcoin /mnt/ssd/bitcoin/.bitcoin/.cookie.env
-    echo "INFO: file /mnt/ssd/bitcoin/.bitcoin/.cookie.env updated."
-else
-    echo "ERR: authentication file /mnt/ssd/bitcoin/.bitcoin/.cookie not present. Not starting lightningd.service."
-    exit 1
-fi

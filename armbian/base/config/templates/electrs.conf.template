@@ -7,3 +7,5 @@ DAEMON_DIR={{       electrs:daemon_dir      #default: /mnt/ssd/bitcoin/.bitcoin 
 MONITORING_ADDR={{  electrs:monitoring_addr #default: 127.0.0.1:4224 }}
 VERBOSITY={{        electrs:verbosity       #default: vvvv }}
 RUST_BACKTRACE={{   electrs:rust_backtrace  #default: 1 }}
+RPCUSER={{          bitcoind:rpcuser        #default: base }}
+RPCPASSWORD={{      bitcoind:rpcpassword    #rmLine }}
