@@ -32,6 +32,7 @@ type Middleware interface {
 	RestoreHSMSecret() rpcmessages.ErrorResponse
 	EnableTor(bool) rpcmessages.ErrorResponse
 	EnableTorMiddleware(bool) rpcmessages.ErrorResponse
+	EnableTorElectrs(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

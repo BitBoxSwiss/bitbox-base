@@ -63,6 +63,7 @@ type Middleware interface {
 	SampleInfo() rpcmessages.SampleInfoResponse
 	EnableTor(bool) rpcmessages.ErrorResponse
 	EnableTorMiddleware(bool) rpcmessages.ErrorResponse
+	EnableTorElectrs(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -213,6 +214,15 @@ func (server *RPCServer) EnableTor(enable bool, reply *rpcmessages.ErrorResponse
 // It sends the middleware's ErrorResponse over rpc.
 func (server *RPCServer) EnableTorMiddleware(enable bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.EnableTorMiddleware(enable)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// EnableTorElectrs enables/disables the tor hidden service for Electrs.
+// The boolean argument passed is used to for enabling and disabling.
+// It sends the middleware's ErrorResponse over rpc.
+func (server *RPCServer) EnableTorElectrs(enable bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTorElectrs(enable)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
