@@ -397,6 +397,25 @@ func (middleware *Middleware) EnableTorElectrs(enable bool) rpcmessages.ErrorRes
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
+// EnableTorSSH enables/disables the tor hidden service for ssh based on the passed boolean argument
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableTorSSH(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling Tor for ssh via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling Tor for ssh via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "tor_ssh", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {

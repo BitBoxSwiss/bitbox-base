@@ -172,6 +172,14 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", false, &disableTorElectrsReply)
 	require.Equal(t, true, disableTorElectrsReply.Success)
 
+	var enableTorSSHReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", true, &enableTorSSHReply)
+	require.Equal(t, true, enableTorSSHReply.Success)
+
+	var disableTorSSHReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", false, &disableTorSSHReply)
+	require.Equal(t, true, disableTorSSHReply.Success)
+
 	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
 	var userAuthenticateReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserAuthenticate", userAuthenticateArg, &userAuthenticateReply)

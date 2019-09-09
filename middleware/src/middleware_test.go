@@ -178,6 +178,20 @@ func TestEnableTorElectrs(t *testing.T) {
 	require.Equal(t, responseDisable.Code, "")
 }
 
+func TestEnableTorSSH(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnableTorSSH(true)
+	require.Equal(t, responseEnable.Success, true)
+	require.Equal(t, responseEnable.Message, "")
+	require.Equal(t, responseEnable.Code, "")
+
+	responseDisable := testMiddleware.EnableTorSSH(false)
+	require.Equal(t, responseDisable.Success, true)
+	require.Equal(t, responseDisable.Message, "")
+	require.Equal(t, responseDisable.Code, "")
+}
+
 func TestUserAuthenticate(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
