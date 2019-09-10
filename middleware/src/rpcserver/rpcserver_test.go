@@ -119,7 +119,7 @@ func TestRPCServer(t *testing.T) {
 
 	var getHostnameReply rpcmessages.GetHostnameResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetHostname", dummyArg, &getHostnameReply)
-	require.Equal(t, true, getHostnameReply.Success)
+	require.Equal(t, true, getHostnameReply.ErrorResponse.Success)
 
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
