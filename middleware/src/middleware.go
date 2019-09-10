@@ -328,7 +328,7 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 	out, err := middleware.runBBBConfigScript("get", "hostname", "")
 	if err != nil {
 		return rpcmessages.GetHostnameResponse{
-			ErrorResponse: rpcmessages.ErrorResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
 				Success: false,
 				Message: string(out),
 				Code:    err.Error(),
@@ -337,7 +337,12 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 	}
 
 	hostname := strings.TrimSuffix(string(out), "\n")
-	return rpcmessages.GetHostnameResponse{Hostname: hostname, ErrorResponse: rpcmessages.ErrorResponse{Success: true}}
+	return rpcmessages.GetHostnameResponse{
+		Hostname: hostname,
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+	}
 }
 
 // EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed boolean argument
