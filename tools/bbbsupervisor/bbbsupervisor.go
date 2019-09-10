@@ -48,6 +48,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -160,11 +161,15 @@ func (t trigger) String() string {
 
 // Write implements the io.Writer interface by sending the content as a parsed event through the event channel.
 func (ew eventWriter) Write(p []byte) (int, error) {
-	//fmt.Printf("logWatcher event: %q\n", p) //TODO: cleanup and show information like this with a --verbose flag
-	event := parseEvent(p, ew.unit)
-	if event != nil {
-		ew.events <- *event
+	// sometimes multiple log lines are read as one
+	logLines := strings.Split(strings.TrimSuffix(string(p), "\n"), "\n")
+	for _, line := range logLines {
+		event := parseEvent(line, ew.unit)
+		if event != nil {
+			ew.events <- *event
+		}
 	}
+
 	return len(p), nil
 }
 
@@ -196,7 +201,7 @@ func (lw logWatcher) watch() {
 	cmd.Stdout = eveWriter // stdout of journalctl is written into the events channel
 	cmd.Stderr = errWriter // stderr of journalctl is written into the errs channel
 
-	fmt.Printf("Watching journalctl for unit %s (%s)\n", lw.unit, cmdAsString)
+	log.Printf("Watching journalctl for unit %s (%s)\n", lw.unit, cmdAsString)
 
 	if err := cmd.Run(); err != nil {
 		errWriter.Write([]byte(fmt.Sprintf("failed to start cmd: %v", err)))
@@ -204,24 +209,29 @@ func (lw logWatcher) watch() {
 	errWriter.Write([]byte(fmt.Sprintf("command %v unexpectedly exited", cmdAsString)))
 }
 
-// watch implements watch interface by querying and watching values from a Prometheus server forever.
+// watch implements watch interface by calling the watchHandler repeatedly.
 func (pw prometheusWatcher) watch() {
 	for {
-		json, err := pw.queryJSON()
-		if err != nil {
-			pw.errs <- err
-			return
-		}
-
-		measuredValue, err := pw.parsePrometheusResponseAsFloat(json)
-		if err != nil {
-			pw.errs <- err
-			return
-		}
-
-		pw.events <- watcherEvent{unit: pw.unit, trigger: pw.trigger, measure: pw.expression, value: measuredValue}
-		time.Sleep(pw.interval) // TODO: replace sleep with wait group or context
+		pw.watchHandler()
+		<-time.After(pw.interval)
 	}
+}
+
+//by querying and watching values from a Prometheus server
+func (pw prometheusWatcher) watchHandler() {
+	json, err := pw.queryJSON()
+	if err != nil {
+		pw.errs <- err
+		return
+	}
+
+	measuredValue, err := pw.parsePrometheusResponseAsFloat(json)
+	if err != nil {
+		pw.errs <- err
+		return
+	}
+
+	pw.events <- watcherEvent{unit: pw.unit, trigger: pw.trigger, measure: pw.expression, value: measuredValue}
 }
 
 // query queries prometheus with the specified expression and returns the JSON as a string
@@ -263,21 +273,21 @@ func (pw prometheusWatcher) parsePrometheusResponseAsFloat(json string) (float64
 
 	status := gjson.Get(json, "status").String()
 	if status != "success" {
-		return -1, fmt.Errorf("Prometheus request for %q returned non-success (%s): %v", pw.expression, status, json)
+		return -1, fmt.Errorf("prometheus request for %q returned non-success (%s): %v", pw.expression, status, json)
 	}
 
 	queryResult := gjson.Get(json, "data.result").Array()
 	if len(queryResult) != 1 {
-		return -1, fmt.Errorf("Unexpectedly got %d results from prometheus request for %s: %s", len(queryResult), pw.expression, json)
+		return -1, fmt.Errorf("unexpectedly got %d results from prometheus request for %s: %s", len(queryResult), pw.expression, json)
 	}
 
 	firstResultValue := queryResult[0].Map()["value"].Array()
 	if len(firstResultValue) != 2 {
-		return -1, fmt.Errorf("Unexpectedly got %d values from prometheus request for %d: %s", len(firstResultValue), pw.expression, json)
+		return -1, fmt.Errorf("unexpectedly got %d values from prometheus request for %s: %s", len(firstResultValue), pw.expression, json)
 	}
 
 	if firstResultValue[1].Exists() == false {
-		return -1, fmt.Errorf("The result value for %s does not exist: %s", pw.expression, json)
+		return -1, fmt.Errorf("the result value for %s does not exist: %s", pw.expression, json)
 	}
 
 	measuredValue := firstResultValue[1].Float()
@@ -315,16 +325,16 @@ func startWatchers(ws watchers) {
 }
 
 // parseEvent checks a string for relevant events and potentially returns an event type
-func parseEvent(p []byte, unit string) *watcherEvent {
+func parseEvent(line string, unit string) *watcherEvent {
 	switch {
 	// fully synched electrs
-	case strings.Contains(string(p), "finished full compaction"):
+	case strings.Contains(line, "finished full compaction"):
 		return &watcherEvent{unit: unit, trigger: triggerElectrsFullySynced}
 	// electrs unable to connect bitcoind
-	case strings.Contains(string(p), "WARN - reconnecting to bitcoind: no reply from daemon"):
+	case strings.Contains(line, "WARN - reconnecting to bitcoind: no reply from daemon"):
 		return &watcherEvent{unit: unit, trigger: triggerElectrsNoBitcoindConnectivity}
 	// bbbmiddleware unable to connect bitcoind
-	case strings.Contains(string(p), "GetBlockChainInfo rpc call failed"):
+	case strings.Contains(line, "GetBlockChainInfo rpc call failed"):
 		return &watcherEvent{unit: unit, trigger: triggerMiddlewareNoBitcoindConnectivity}
 	}
 	return nil
@@ -333,54 +343,64 @@ func parseEvent(p []byte, unit string) *watcherEvent {
 // eventLoop loops indefinitely and processes incoming events
 func eventLoop(events chan watcherEvent, errs chan error, pState *supervisorState) {
 	for {
-		select {
-		case err := <-errs:
-			panic(fmt.Sprintf("Fatal: Error from watcher: %v\n", err))
-		case event := <-events:
-			switch {
-			case event.trigger == triggerElectrsFullySynced:
-				handleElectrsFullySynced(event, pState)
-			case event.trigger == triggerElectrsNoBitcoindConnectivity:
-				handleElectrsNoBitcoindConnectivity(event, pState)
-			case event.trigger == triggerMiddlewareNoBitcoindConnectivity:
-				handleMiddlewareNoBitcoindConnectivity(event, pState)
-			case event.trigger == triggerPrometheusBitcoindIDB:
-				err := handleBitcoindIDB(event, pState)
-				if err != nil {
-					fmt.Printf("Could not handleBitcoindIDB: %s", err)
-				}
+		eventHandler(events, errs, pState)
+	}
+}
+
+func eventHandler(events chan watcherEvent, errs chan error, pState *supervisorState) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered: %s\n", r)
+		}
+	}()
+
+	select {
+	case err := <-errs:
+		panic(fmt.Errorf("watcher error: %v", err))
+	case event := <-events:
+		switch {
+		case event.trigger == triggerElectrsFullySynced:
+			handleElectrsFullySynced(event, pState)
+		case event.trigger == triggerElectrsNoBitcoindConnectivity:
+			handleElectrsNoBitcoindConnectivity(event, pState)
+		case event.trigger == triggerMiddlewareNoBitcoindConnectivity:
+			handleMiddlewareNoBitcoindConnectivity(event, pState)
+		case event.trigger == triggerPrometheusBitcoindIDB:
+			err := handleBitcoindIDB(event, pState)
+			if err != nil {
+				panic(fmt.Errorf("could not handleBitcoindIDB: %s", err))
 			}
 		}
 	}
 }
 
 // checks if a trigger is flooding:
-// returns true if the trigger was executed under `minDelay` time ago
-func isTriggerFlooding(minDelay time.Duration, t trigger, pState *supervisorState) (isFlooding bool) {
+// returns an error if the trigger was executed under `minDelay` time ago
+func isTriggerFlooding(minDelay time.Duration, t trigger, pState *supervisorState) error {
 	if lastTimeTriggered, exists := pState.triggerLastExecuted[t]; exists {
 		timeSinceLastTrigger := time.Now().Sub(time.Unix(lastTimeTriggered, 0))
 		if timeSinceLastTrigger < minDelay {
-			fmt.Printf("Trigger %s is flodding. Last executed %v (minDelay %v)", t.String(), timeSinceLastTrigger, minDelay)
-			return true // last trigger less than `minDelay` ago
+			// last trigger less than `minDelay` ago
+			return fmt.Errorf("trigger %s is flodding. Last executed %v (minDelay %v)", t.String(), timeSinceLastTrigger, minDelay)
 		}
-		return false
-	} else {
-		fmt.Printf("No entry for that trigger exist. It can't be flooding.\n")
-		return false // no entry for that trigger exist. It can't be flooding.
 	}
+	// no entry for that trigger exist. It can't be flooding.
+	return nil
 }
 
 // handleElectrsFullySynced restarts electrs after the initial sync is complete
-func handleElectrsFullySynced(event watcherEvent, pState *supervisorState) {
-	if isTriggerFlooding(30*time.Second, event.trigger, pState) == false {
-		fmt.Printf("Handling trigger %s: restarting Electrs.\n", event.trigger.String())
-		err := restartUnit("electrs")
-		if err != nil {
-			fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
-			return
-		}
-		pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+func handleElectrsFullySynced(event watcherEvent, pState *supervisorState) error {
+	err := isTriggerFlooding(30*time.Second, event.trigger, pState)
+	if err != nil {
+		return err
 	}
+	log.Printf("Handling trigger %s: restarting Electrs.\n", event.trigger.String())
+	err = restartUnit("electrs")
+	if err != nil {
+		return fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
+	}
+	pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+	return nil
 }
 
 // restartUnit restarts a systemd unit
@@ -390,9 +410,9 @@ func restartUnit(unit string) error {
 	cmdAsString := "systemctl " + strings.Join(args, " ")
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Command %s threw an error %v", cmdAsString, err)
+		return fmt.Errorf("command %s threw an error %v", cmdAsString, err)
 	}
-	fmt.Printf("restartUnit: command '%v' executed.\n", cmdAsString)
+	log.Printf("restartUnit: command '%v' executed.\n", cmdAsString)
 	return nil
 }
 
@@ -403,36 +423,43 @@ func setBBBConfigValue(argument string, value string) error {
 	cmdAsString := executable + " " + strings.Join(args, " ")
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Command %s threw an error %v", cmdAsString, err)
+		return fmt.Errorf("command %s threw an error %v", cmdAsString, err)
 	}
-	fmt.Printf("setBBBConfigValue: command '%v' executed.\n", cmdAsString)
+	log.Printf("setBBBConfigValue: command '%v' executed.\n", cmdAsString)
 	return nil
 }
 
 // handleElectrsNoBitcoindConnectivity handles the triggerElectrsNoBitcoindConnectivity
 // by restarting electrs which copies the current .cookie file and reloads authorization
-func handleElectrsNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) {
-	if isTriggerFlooding(30*time.Second, event.trigger, pState) == false {
-		fmt.Printf("Handling trigger %s: restarting electrs to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
-		err := restartUnit("electrs")
-		if err != nil {
-			fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
-		}
-		pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+func handleElectrsNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) error {
+	err := isTriggerFlooding(30*time.Second, event.trigger, pState)
+	if err != nil {
+		return err
 	}
+	log.Printf("Handling trigger %s: restarting electrs to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
+	err = restartUnit("electrs")
+	if err != nil {
+		return fmt.Errorf("Handling trigger %s: Restarting electrs failed: %v", event.trigger.String(), err)
+	}
+	pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+	return nil
 }
 
 // handleMiddlewareNoBitcoindConnectivity handles the triggerMiddlewareNoBitcoindConnectivity
 // by restarting bbbmiddleware which copies the current .cookie file and reloads authorization
-func handleMiddlewareNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) {
-	if isTriggerFlooding(30*time.Second, event.trigger, pState) == false {
-		fmt.Printf("Handling trigger %s: restarting bbbmiddleware to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
-		err := restartUnit("bbbmiddleware")
-		if err != nil {
-			fmt.Errorf("Handling trigger %s: Restarting bbbmiddleware failed: %v", event.trigger.String(), err)
-		}
-		pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+func handleMiddlewareNoBitcoindConnectivity(event watcherEvent, pState *supervisorState) error {
+	err := isTriggerFlooding(30*time.Second, event.trigger, pState)
+	if err != nil {
+		return err
 	}
+
+	log.Printf("Handling trigger %s: restarting bbbmiddleware to recreate the bitcoind `.cookie` file.\n", event.trigger.String())
+	err = restartUnit("bbbmiddleware")
+	if err != nil {
+		return fmt.Errorf("Handling trigger %s: Restarting bbbmiddleware failed: %v", event.trigger.String(), err)
+	}
+	pState.triggerLastExecuted[event.trigger] = time.Now().Unix()
+	return nil
 }
 
 // handleBitcoindIDB handles the triggerPrometheusBitcoindIDB
@@ -492,7 +519,6 @@ func connectRedis() (r redis.Conn, err error) {
 
 func main() {
 	flag.Parse()
-
 	handleFlags()
 
 	events := make(chan watcherEvent) // channel to process events a watcher detects
