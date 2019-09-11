@@ -321,20 +321,14 @@ func TestSetHostname(t *testing.T) {
 	require.Equal(t, true, response1.Success)
 	require.Empty(t, response1.Message)
 
-	/* test special char hostname */
-	validArgs2 := rpcmessages.SetHostnameArgs{Hostname: "a.hostname-with.allowed.-....special.chars"}
-	response2 := testMiddleware.SetHostname(validArgs2)
-	require.Equal(t, true, response2.Success)
-	require.Empty(t, response2.Message)
-
-	/* test a long and valid 64 char hostname */
-	validArgs3 := rpcmessages.SetHostnameArgs{Hostname: "a.loooooooooooooooooooooooooooooooooooooooooong.64-char.hostname"}
+	/* test a long and valid 24 char hostname */
+	validArgs3 := rpcmessages.SetHostnameArgs{Hostname: "a-loong-24-char-hostname"}
 	response3 := testMiddleware.SetHostname(validArgs3)
 	require.Equal(t, true, response3.Success)
 	require.Empty(t, response3.Message)
 
-	/* test a long and invalid 65 char hostname */
-	invalidArgs1 := rpcmessages.SetHostnameArgs{Hostname: "a.tooooo.loooooooooooooooooooooooooooooooooooong.65-char.hostname"}
+	/* test a long and invalid 25 char hostname */
+	invalidArgs1 := rpcmessages.SetHostnameArgs{Hostname: "too-long-25-char-hostname"}
 	response4 := testMiddleware.SetHostname(invalidArgs1)
 	require.Equal(t, false, response4.Success)
 	require.Equal(t, "invalid hostname", response4.Message)
@@ -344,4 +338,16 @@ func TestSetHostname(t *testing.T) {
 	response5 := testMiddleware.SetHostname(invalidArgs2)
 	require.Equal(t, false, response5.Success)
 	require.Equal(t, "invalid hostname", response5.Message)
+
+	/* test a hostname that ends with a minus sign  */
+	invalidArgs3 := rpcmessages.SetHostnameArgs{Hostname: "ending-with-"}
+	response6 := testMiddleware.SetHostname(invalidArgs3)
+	require.Equal(t, false, response6.Success)
+	require.Equal(t, "invalid hostname", response6.Message)
+
+	/* test a hostname that starts with a number  */
+	invalidArgs4 := rpcmessages.SetHostnameArgs{Hostname: "0-number-start"}
+	repsonse7 := testMiddleware.SetHostname(invalidArgs4)
+	require.Equal(t, false, repsonse7.Success)
+	require.Equal(t, "invalid hostname", repsonse7.Message)
 }
