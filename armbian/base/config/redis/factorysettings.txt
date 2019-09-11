@@ -1,3 +1,4 @@
+SET base:version xxx
 SET base:overlayroot:enabled 1
 SET base:rootpasslogin:enabled 0
 SET base:dashboard:web:enabled 1

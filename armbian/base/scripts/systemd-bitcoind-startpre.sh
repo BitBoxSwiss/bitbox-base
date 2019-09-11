@@ -13,7 +13,8 @@ source /opt/shift/scripts/include/redis.sh.inc
 
 # ------------------------------------------------------------------------------
 
-# Redis must be available
+# give Redis time to warm up, must be available afterwards
+sleep 2
 redis_require
 
 # check if rpcauth credentials exist, or create new ones
