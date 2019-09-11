@@ -188,6 +188,14 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", false, &disableClearnetIBDReply)
 	require.Equal(t, true, disableClearnetIBDReply.Success)
 
+	var enableRootLoginReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", true, &enableRootLoginReply)
+	require.Equal(t, true, enableRootLoginReply.Success)
+
+	var disableRootLoginReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", false, &disableRootLoginReply)
+	require.Equal(t, true, disableRootLoginReply.Success)
+
 	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
 	var userAuthenticateReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserAuthenticate", userAuthenticateArg, &userAuthenticateReply)
