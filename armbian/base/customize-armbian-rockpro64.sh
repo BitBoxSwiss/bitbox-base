@@ -450,7 +450,7 @@ usermod -a -G debian-tor bitcoin
 
 
 # BITCOIN ----------------------------------------------------------------------
-BITCOIN_VERSION="0.18.0"
+BITCOIN_VERSION="0.18.1"
 
 mkdir -p /usr/local/src/bitcoin
 cd /usr/local/src/bitcoin/
