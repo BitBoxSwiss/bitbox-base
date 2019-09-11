@@ -35,8 +35,8 @@ aarch64: check-go-env fetch-deps ci
 regtest-up:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
 	docker-compose up -d ;\
-	sudo chown ${USER} volumes/clightning1/lightning-rpc ;\
-	sudo chown ${USER} volumes/clightning2/lightning-rpc ;\
+	sudo chown ${USER} ${HOME}/BitBoxBaseRegtest/clightning1/lightning-rpc ;\
+	sudo chown ${USER} ${HOME}/BitBoxBaseRegtest/clightning2/lightning-rpc ;\
 	docker-compose exec -d bitcoind sh /scripts/prometheus-bitcoind.sh ;\
 
 regtest-down:
@@ -56,3 +56,6 @@ regtest-generate:
 regtest-info:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
 	docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} getblockchaininfo
+
+regtest-connect-middleware:
+	middleware -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} -electrsport=60401 -lightning-rpc-path=${HOME}/BitBoxBaseRegtest/clightning1/lightning-rpc -bbbconfigscript=integration_test/bbb-config.sh -bbbcmdscript=integration_test/bbb-cmd.sh

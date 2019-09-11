@@ -22,7 +22,7 @@ services:
     ports:
       - 18443:18443
     volumes:
-      - "./volumes/bitcoin:/data"
+      - "$HOME/BitBoxBaseRegtest/bitcoin:/data"
 
   electrs:
     image: vulpemventures/electrs:latest
@@ -50,7 +50,7 @@ services:
     depends_on:
       - bitcoind
     volumes:
-      - "./volumes/bitcoin:/data"
+      - "$HOME/BitBoxBaseRegtest/bitcoin:/data"
     restart: unless-stopped
     ports:
       - 60401:60401
@@ -71,8 +71,8 @@ services:
     environment:
       EXPOSE_TCP: "true"
     volumes:
-      - "./volumes/clightning1:/data/.lightning"
-      - "./volumes/bitcoin:/data"
+      - "$HOME/BitBoxBaseRegtest/clightning1:/data/.lightning"
+      - "$HOME/BitBoxBaseRegtest/bitcoin:/data"
     depends_on:
       - bitcoind
     networks:
@@ -95,8 +95,8 @@ services:
     environment:
       EXPOSE_TCP: "true"
     volumes:
-      - "./volumes/clightning2:/data/.lightning"
-      - "./volumes/bitcoin:/data"
+      - "$HOME/BitBoxBaseRegtest/clightning2:/data/.lightning"
+      - "$HOME/BitBoxBaseRegtest/bitcoin:/data"
     depends_on:
       - bitcoind
     networks:

@@ -60,7 +60,7 @@ func (client *PromClient) Headers() int64 {
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()
-	log.Println("result")
+	log.Println("Headers: ", firstResultValue[1].Int())
 	return firstResultValue[1].Int()
 }
 
@@ -72,7 +72,7 @@ func (client *PromClient) Blocks() int64 {
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()
-	log.Println("result")
+	log.Println("Blocks: ", firstResultValue[1].Int())
 	return firstResultValue[1].Int()
 }
 
@@ -84,6 +84,6 @@ func (client *PromClient) VerificationProgress() float64 {
 	}
 	queryResult := gjson.Get(response, "data.result").Array()
 	firstResultValue := queryResult[0].Map()["value"].Array()
-	log.Println("result")
+	log.Println("Verification Progress: ", firstResultValue[1].Float())
 	return firstResultValue[1].Float()
 }
