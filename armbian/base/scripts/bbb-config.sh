@@ -299,17 +299,17 @@ case "${COMMAND}" in
                 ;;
 
             HOSTNAME)
-                case "${3}" in
-                    [^0-9A-Za-z]*|*[^-0-9A-Z_a-z]*|*[^0-9A-Za-z]|*-_*|*_-*)
-                        echo "Invalid argument: '${3}' is not a valid hostname."
-                        exit 1
-                        ;;
-                    *)
-                        exec_overlayroot all-layers "echo '${3}' > /etc/hostname"
-                        exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
-                        hostname -F /etc/hostname
-                        redis_set "base:hostname" "${3}"
-                esac
+                # check that hostname is valid
+                regex='^[a-z][a-z0-9-]{0,22}[a-z0-9]$'
+                if [[ "${3}" =~ ${regex} ]]; then
+                    exec_overlayroot all-layers "echo '${3}' > /etc/hostname"
+                    exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
+                    hostname -F /etc/hostname
+                    redis_set "base:hostname" "${3}"
+                else
+                    echo "Invalid argument: ${3} is not a valid hostname."
+                    exit 1
+                fi
                 ;;
 
             ROOT_PW)
