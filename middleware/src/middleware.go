@@ -481,6 +481,24 @@ func (middleware *Middleware) EnableRootLogin(enable bool) rpcmessages.ErrorResp
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
+// SetRootPassword sets the systems root password
+func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse {
+	log.Println("Setting a new root password via the config script")
+	password := args.RootPassword
+
+	// Unicode passwords are allowed, but each Unicode rune is only counted as one when comparing the length
+	// len("₿") = 3
+	// len([]rune("₿")) = 1
+	if len([]rune(password)) >= 8 {
+		out, err := middleware.runBBBConfigScript("set", "root_pw", password)
+		if err != nil {
+			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+		}
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+	return rpcmessages.ErrorResponse{Success: false, Message: "invalid password"}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {

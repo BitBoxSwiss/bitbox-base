@@ -38,6 +38,7 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(bool) rpcmessages.ErrorResponse
+	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
