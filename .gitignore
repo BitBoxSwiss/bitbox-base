@@ -11,6 +11,9 @@
 # Ignore the generated file holding current git commit for Armbian build.
 /armbian/base/config/latest_commit
 
+# File enables loop device cleanup (contrib/cleanup-loop-devices.sh) when building the Armbian image
+armbian/.cleanup-loop-devices
+
 # Ignore compiled Go binaries.
 /tools/bbbfancontrol/bbbfancontrol
 /tools/bbbsupervisor/bbbsupervisor
