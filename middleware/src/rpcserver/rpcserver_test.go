@@ -112,8 +112,8 @@ func TestRPCServer(t *testing.T) {
 	var sampleInfoReply rpcmessages.SampleInfoResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", dummyArg, &sampleInfoReply)
 
-	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox.base.test"}
-	setHostnameReply := rpcmessages.ErrorResponse{Code: "test"}
+	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-test"}
+	setHostnameReply := rpcmessages.ErrorResponse{}
 	testingRPCServer.RunRPCCall(t, "RPCServer.SetHostname", setHostnameArg, &setHostnameReply)
 	require.Equal(t, true, setHostnameReply.Success)
 

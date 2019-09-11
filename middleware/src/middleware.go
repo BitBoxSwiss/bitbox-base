@@ -309,10 +309,10 @@ func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePass
 // SetHostname sets the systems hostname
 func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse {
 	log.Println("Setting the hostname via the config script")
-	var r = regexp.MustCompile(`^[a-z0-9]+[a-z0-9-.]{0,62}[a-z0-9]$`)
+	var r = regexp.MustCompile(`^[a-z][a-z0-9-]{0,22}[a-z0-9]$`)
 	hostname := args.Hostname
 
-	if len(hostname) >= 2 && len(hostname) <= 64 && r.MatchString(hostname) {
+	if r.MatchString(hostname) {
 		out, err := middleware.runBBBConfigScript("set", "hostname", hostname)
 		if err != nil {
 			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
