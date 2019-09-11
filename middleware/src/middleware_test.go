@@ -220,6 +220,34 @@ func TestEnableRootLogin(t *testing.T) {
 	require.Equal(t, responseDisable.Code, "")
 }
 
+func TestSetRootPassword(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	// test valid root password set
+	responseValid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "iusethispasswordeverywhere"})
+	require.Equal(t, responseValid.Success, true)
+	require.Equal(t, responseValid.Message, "")
+	require.Equal(t, responseValid.Code, "")
+
+	// test invalid (to short) root password set
+	responseInvalid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "shrtone"})
+	require.Equal(t, responseInvalid.Success, false)
+	require.Equal(t, responseInvalid.Message, "invalid password")
+	require.Equal(t, responseInvalid.Code, "")
+
+	// test 7 unicode's as password (to short)
+	responseUnicode7 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿₿₿₿₿₿₿"})
+	require.Equal(t, responseUnicode7.Success, false)
+	require.Equal(t, responseUnicode7.Message, "invalid password")
+	require.Equal(t, responseUnicode7.Code, "")
+
+	// test 7 unicode's as password (to short)
+	responseUnicode8 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿😂🔥🌑🚀📈世界"})
+	require.Equal(t, responseUnicode8.Success, true)
+	require.Equal(t, responseUnicode8.Message, "")
+	require.Equal(t, responseUnicode8.Code, "")
+}
+
 func TestUserAuthenticate(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 

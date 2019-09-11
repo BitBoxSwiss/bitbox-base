@@ -35,6 +35,11 @@ type SetHostnameArgs struct {
 	Hostname string
 }
 
+// SetRootPasswordArgs is a struct that holds the to be set root password
+type SetRootPasswordArgs struct {
+	RootPassword string
+}
+
 /*
 Put Response structs below this line. They should have the format of 'RPC Method Name' + 'Response'.
 */
