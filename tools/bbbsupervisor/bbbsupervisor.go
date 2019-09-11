@@ -72,6 +72,9 @@ var (
 	versionArg   = flag.Bool("version", false, "return program version")
 )
 
+// Redis Connection
+var redisConn redis.Conn
+
 const (
 	helpText = `
 Watches systemd logs (via journalctl) and queries Prometheus to detect potential issues and take action.
@@ -89,7 +92,7 @@ Command-line arguments:
 // e.g. that bitcoin or electrs has fully synced, or a service is not reachable
 type watcherEvent struct {
 	unit    string  // unit represents systemd unit name, e.g. 'bitcoind'
-	trigger trigger // trigger could be e.g. 'triggerElectrsNoBitcoindConnectivity' or 'triggerPrometheusBitcoindIDB'
+	trigger trigger // trigger could be e.g. 'triggerElectrsNoBitcoindConnectivity' or 'triggerPrometheusBitcoindIBD'
 	measure string  // measure is something that is measured by the prometheusWatcher
 	value   float64 // value is the value that has been measured
 }
@@ -127,7 +130,7 @@ type eventWriter struct {
 // the state values are filled over time
 type supervisorState struct {
 	triggerLastExecuted    map[trigger]int64 // implements a state (timestamps) when a trigger was fired (to mitigate trigger flooding)
-	prometheusLastStateIBD float64           // implements a state for the last `bitcoin_ibd` measurement value (to detect switches idb <-> no-idb)
+	prometheusLastStateIBD float64           // implements a state for the last `bitcoin_ibd` measurement value (to detect switches ibd <-> no-ibd)
 }
 
 // trigger is something specific that can happen for a service
@@ -140,7 +143,7 @@ const (
 	triggerElectrsFullySynced = 1 + iota
 	triggerElectrsNoBitcoindConnectivity
 	triggerMiddlewareNoBitcoindConnectivity
-	triggerPrometheusBitcoindIDB
+	triggerPrometheusBitcoindIBD
 )
 
 // Map of possible triggers. Mapped by their trigger to a trigger name
@@ -148,7 +151,7 @@ var triggerNames = map[trigger]string{
 	triggerElectrsFullySynced:               "electrsFullySynced",
 	triggerElectrsNoBitcoindConnectivity:    "electrsNoBitcoindConnectivity",
 	triggerMiddlewareNoBitcoindConnectivity: "triggerMiddlewareNoBitcoindConnectivity",
-	triggerPrometheusBitcoindIDB:            "prometheusBitcoindIDB",
+	triggerPrometheusBitcoindIBD:            "prometheusBitcoindIBD",
 }
 
 // String returns a human readable value for a trigger
@@ -312,7 +315,7 @@ func setupWatchers(events chan watcherEvent, errs chan error) (ws watchers) {
 		logWatcher{"lightningd", events, errs},
 		logWatcher{"electrs", events, errs},
 		logWatcher{"bbbmiddleware", events, errs},
-		prometheusWatcher{unit: "bitcoind", expression: "bitcoin_ibd", server: prometheusURL, interval: 10 * time.Second, trigger: triggerPrometheusBitcoindIDB, events: events, errs: errs},
+		prometheusWatcher{unit: "bitcoind", expression: "bitcoin_ibd", server: prometheusURL, interval: 10 * time.Second, trigger: triggerPrometheusBitcoindIBD, events: events, errs: errs},
 	}
 }
 
@@ -358,18 +361,19 @@ func eventHandler(events chan watcherEvent, errs chan error, pState *supervisorS
 	case err := <-errs:
 		panic(fmt.Errorf("watcher error: %v", err))
 	case event := <-events:
+		var err error
 		switch {
 		case event.trigger == triggerElectrsFullySynced:
-			handleElectrsFullySynced(event, pState)
+			err = handleElectrsFullySynced(event, pState)
 		case event.trigger == triggerElectrsNoBitcoindConnectivity:
-			handleElectrsNoBitcoindConnectivity(event, pState)
+			err = handleElectrsNoBitcoindConnectivity(event, pState)
 		case event.trigger == triggerMiddlewareNoBitcoindConnectivity:
-			handleMiddlewareNoBitcoindConnectivity(event, pState)
-		case event.trigger == triggerPrometheusBitcoindIDB:
-			err := handleBitcoindIDB(event, pState)
-			if err != nil {
-				panic(fmt.Errorf("could not handleBitcoindIDB: %s", err))
-			}
+			err = handleMiddlewareNoBitcoindConnectivity(event, pState)
+		case event.trigger == triggerPrometheusBitcoindIBD:
+			err = handleBitcoindIBD(event, pState)
+		}
+		if err != nil {
+			panic(fmt.Errorf("could not trigger %s: %s", triggerNames[triggerPrometheusBitcoindIBD], err))
 		}
 	}
 }
@@ -462,45 +466,73 @@ func handleMiddlewareNoBitcoindConnectivity(event watcherEvent, pState *supervis
 	return nil
 }
 
-// handleBitcoindIDB handles the triggerPrometheusBitcoindIDB
-// by setting (true) or unsetting (false) `bitcoin_idb` via bbb-config.sh
-func handleBitcoindIDB(event watcherEvent, pState *supervisorState) error {
-	oldValue, newValue := pState.prometheusLastStateIBD, event.value
-	// check if newValue is valid (either 1 or 0)
-	if newValue != 1 && newValue != 0 {
-		return fmt.Errorf("Handling trigger %s: newValue (%f) is invalid. Should be either 1 (IDB active) or 0 (IDB inactive)", event.trigger.String(), newValue)
+// handleBitcoindIBD handles the triggerPrometheusBitcoindIBD
+// by setting (true) or unsetting (false) `bitcoin_ibd` via bbb-config.sh
+func handleBitcoindIBD(event watcherEvent, pState *supervisorState) error {
+	wasActive, isActive := pState.prometheusLastStateIBD, event.value
+	// check if isActive is valid (either 1 or 0)
+	if isActive != 1 && isActive != 0 {
+		return fmt.Errorf("Handling trigger %s: isActive (%f) is invalid. Should be either 1 (IBD active) or 0 (IBD inactive)", event.trigger.String(), isActive)
 	}
 
-	if oldValue == newValue {
+	if wasActive == isActive {
 		return nil // no state change (do nothing)
-	} else if oldValue == -1 {
+	} else if wasActive == -1 {
 		// There is no prior state. Set `bitcoin_ibd` via bbbconfig.sh to true or false  (depending on the new state) just to be sure.
-		if newValue == 1 {
+		if isActive == 1 {
 			err := setBBBConfigValue("bitcoin_ibd", "true")
 			if err != nil {
 				return fmt.Errorf("Handling trigger %s: Initial set. Setting BBB config value to `true` failed: %v", event.trigger.String(), err)
 			}
 		} else {
-			err := setBBBConfigValue("bitcoin_ibd", "false")
+			// unset clearnet IBD redis key when the IBD is finished
+			err := unsetClearnetIDB()
+			if err != nil {
+				return fmt.Errorf("Handling trigger %s: %s", event.trigger.String(), err)
+			}
+			err = setBBBConfigValue("bitcoin_ibd", "false")
 			if err != nil {
 				return fmt.Errorf("Handling trigger %s: Initial set. Setting BBB config value `false` failed: %v", event.trigger.String(), err)
 			}
 		}
-		pState.prometheusLastStateIBD = newValue // set the initial value for the state
-	} else if oldValue == 1 && newValue == 0 { // IDB finished
-		err := setBBBConfigValue("bitcoin_ibd", "false")
+		pState.prometheusLastStateIBD = isActive // set the initial value for the state
+	} else if wasActive == 1 && isActive == 0 { // IBD finished
+		// unset clearnet IBD redis key when the IBD is finished
+		err := unsetClearnetIDB()
+		if err != nil {
+			return fmt.Errorf("Handling trigger %s: %s", event.trigger.String(), err)
+		}
+		err = setBBBConfigValue("bitcoin_ibd", "false")
 		if err != nil {
 			return fmt.Errorf("Handling trigger %s: setting BBB config value to `false` failed: %v", event.trigger.String(), err)
 		}
-		pState.prometheusLastStateIBD = newValue
-	} else if oldValue == 0 && newValue == 1 { // IDB (re)started
+		pState.prometheusLastStateIBD = isActive
+	} else if wasActive == 0 && isActive == 1 { // IBD (re)started
 		err := setBBBConfigValue("bitcoin_ibd", "true")
 		if err != nil {
 			return fmt.Errorf("Handling trigger %s: setting BBB config value to `true` failed: %v", event.trigger.String(), err)
 		}
-		pState.prometheusLastStateIBD = newValue
+		pState.prometheusLastStateIBD = isActive
 	}
 	return nil
+}
+
+// unsetClearnetIDB unsets (0 - download blocks over Tor) the ibdClearnetRedisKey if set.
+// The key can only be set back to 1 (download blocks over clearnet) via RPC.
+func unsetClearnetIDB() (err error) {
+	const ibdClearnetRedisKey string = "bitcoind:ibd-clearnet"
+	isIBDClearnet, err := getRedisInt(ibdClearnetRedisKey)
+	if err != nil {
+		return fmt.Errorf("getting redis key %s failed: %v", ibdClearnetRedisKey, err)
+	}
+	if isIBDClearnet == 1 {
+		log.Printf("IDB finished. Setting %s to %d.\n", ibdClearnetRedisKey, 0)
+		err := setBBBConfigValue("bitcoin_ibd_clearnet", "false")
+		if err != nil {
+			return fmt.Errorf("disabling bitcoin_ibd_clearnet via BBB config script failed: %v", err)
+		}
+	}
+	return
 }
 
 func connectRedis() (r redis.Conn, err error) {
@@ -517,6 +549,16 @@ func connectRedis() (r redis.Conn, err error) {
 	return r, err
 }
 
+func setRedisValue(key string, value string) (err error) {
+	_, err = redisConn.Do("SET", key, value)
+	return
+}
+
+func getRedisInt(key string) (value int, err error) {
+	value, err = redis.Int(redisConn.Do("GET", key))
+	return
+}
+
 func main() {
 	flag.Parse()
 	handleFlags()
@@ -530,24 +572,13 @@ func main() {
 		prometheusLastStateIBD: -1,
 	}
 
-	/* Redis connectivity, a sample SET and GET are included, but commented out since it's not used yet
-	redisConn, err := connectRedis()
+	var err error
+	redisConn, err = connectRedis()
 	if err != nil {
-		panic(fmt.Sprintf("Fatal: Could not connect to redis: %v\n", err))
+		log.Printf("Error: Could not connect to redis: %v\n", err)
 	}
-
-	_, err = redisConn.Do("SET", "key", "value")
-	if err != nil {
-		// handle err
-	}
-
-	valueForKey, err := redisConn.Do("GET", "key") // wrap in e.g. redis.String( ) to get as string
-	if err != nil {
-		// handle err
-	}
-	*/
 
 	ws := setupWatchers(events, errs)
 	startWatchers(ws)
-	eventLoop(events, errs, &state) // this is passed as a pointer
+	eventLoop(events, errs, &state)
 }
