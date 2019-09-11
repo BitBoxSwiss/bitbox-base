@@ -462,6 +462,25 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
+// EnableRootLogin enables/disables the login via the root user/password
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnableRootLogin(enable bool) rpcmessages.ErrorResponse {
+	var action string
+	if enable {
+		log.Println("Enabling root login via the config script")
+		action = enableAction
+	} else {
+		log.Println("Disabling root login via the config script")
+		action = disableAction
+	}
+
+	out, err := middleware.runBBBConfigScript(action, "root_pwlogin", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {

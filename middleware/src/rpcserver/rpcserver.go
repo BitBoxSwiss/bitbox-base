@@ -68,6 +68,7 @@ type Middleware interface {
 	EnableClearnetIBD(bool) rpcmessages.ErrorResponse
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
+	EnableRootLogin(bool) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -261,6 +262,15 @@ func (server *RPCServer) ShutdownBase(dummyArg bool, reply *rpcmessages.ErrorRes
 // The RPC calls the bbb-cmd.sh script which initialtes a `reboot`
 func (server *RPCServer) RebootBase(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.RebootBase()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// EnableRootLogin enables/disables login via the root user/password.
+// The boolean argument passed is used to for enabling and disabling.
+// It sends the middleware's ErrorResponse over rpc.
+func (server *RPCServer) EnableRootLogin(enable bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableRootLogin(enable)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
