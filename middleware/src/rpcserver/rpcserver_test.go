@@ -198,4 +198,8 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserChangePassword", userChangePasswordArg, &userChangePasswordReply)
 	require.Equal(t, true, userChangePasswordReply.Success)
 
+	var shutdownBaseReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.ShutdownBase", dummyArg, &shutdownBaseReply)
+	require.Equal(t, true, shutdownBaseReply.Success)
+
 }

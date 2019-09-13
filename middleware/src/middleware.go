@@ -440,6 +440,17 @@ func (middleware *Middleware) EnableClearnetIBD(enable bool) rpcmessages.ErrorRe
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
+// ShutdownBase returns an ErrorResponse struct in response to a rpcserver request
+// It calls the bbb-cmd.sh script which initialtes a shutdown
+func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
+	log.Println("shutting down the Base via the cmd script")
+	out, err := middleware.runBBBCmdScript("base", "shutdown", "")
+	if err != nil {
+		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {
