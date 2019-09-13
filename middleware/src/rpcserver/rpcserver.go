@@ -67,6 +67,7 @@ type Middleware interface {
 	EnableTorSSH(bool) rpcmessages.ErrorResponse
 	EnableClearnetIBD(bool) rpcmessages.ErrorResponse
 	ShutdownBase() rpcmessages.ErrorResponse
+	RebootBase() rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -252,6 +253,14 @@ func (server *RPCServer) EnableClearnetIBD(enable bool, reply *rpcmessages.Error
 // The RPC calls the bbb-cmd.sh script which initialtes a `shutdown now`
 func (server *RPCServer) ShutdownBase(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.ShutdownBase()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// RebootBase sends the middleware's ErrorResponse over rpc
+// The RPC calls the bbb-cmd.sh script which initialtes a `reboot`
+func (server *RPCServer) RebootBase(dummyArg bool, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.RebootBase()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }

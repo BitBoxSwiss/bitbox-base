@@ -347,15 +347,24 @@ func TestSetHostname(t *testing.T) {
 
 	/* test a hostname that starts with a number  */
 	invalidArgs4 := rpcmessages.SetHostnameArgs{Hostname: "0-number-start"}
-	repsonse7 := testMiddleware.SetHostname(invalidArgs4)
-	require.Equal(t, false, repsonse7.Success)
-	require.Equal(t, "invalid hostname", repsonse7.Message)
+	response7 := testMiddleware.SetHostname(invalidArgs4)
+	require.Equal(t, false, response7.Success)
+	require.Equal(t, "invalid hostname", response7.Message)
 }
 
 func TestShutdownBase(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.ShutdownBase()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
+
+func TestRebootBase(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	response := testMiddleware.RebootBase()
 	require.Equal(t, response.Success, true)
 	require.Equal(t, response.Message, "")
 	require.Equal(t, response.Code, "")

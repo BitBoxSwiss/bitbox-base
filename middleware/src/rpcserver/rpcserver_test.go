@@ -202,4 +202,8 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.ShutdownBase", dummyArg, &shutdownBaseReply)
 	require.Equal(t, true, shutdownBaseReply.Success)
 
+	var rebootBaseReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", dummyArg, &rebootBaseReply)
+	require.Equal(t, true, rebootBaseReply.Success)
+
 }
