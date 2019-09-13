@@ -36,6 +36,7 @@ type Middleware interface {
 	EnableTorSSH(bool) rpcmessages.ErrorResponse
 	EnableClearnetIBD(bool) rpcmessages.ErrorResponse
 	ShutdownBase() rpcmessages.ErrorResponse
+	RebootBase() rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
