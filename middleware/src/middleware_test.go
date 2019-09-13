@@ -351,3 +351,12 @@ func TestSetHostname(t *testing.T) {
 	require.Equal(t, false, repsonse7.Success)
 	require.Equal(t, "invalid hostname", repsonse7.Message)
 }
+
+func TestShutdownBase(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	response := testMiddleware.ShutdownBase()
+	require.Equal(t, response.Success, true)
+	require.Equal(t, response.Message, "")
+	require.Equal(t, response.Code, "")
+}
