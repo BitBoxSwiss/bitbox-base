@@ -421,19 +421,19 @@ func (middleware *Middleware) EnableTorSSH(enable bool) rpcmessages.ErrorRespons
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// EnableClearnetIBD enables/disables initial block download over clearnet based on the passed boolean argument
-// and returns a ErrorResponse indicating if the call was successful.
+// EnableClearnetIBD sets the initial block download over clearnet to either true or false
+// based on the passed boolean argument and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableClearnetIBD(enable bool) rpcmessages.ErrorResponse {
-	var action string
+	var value string
 	if enable {
-		log.Println("Enabling clearnet IDB via the config script")
-		action = enableAction
+		log.Println("Setting clearnet IDB to true via the config script")
+		value = "true"
 	} else {
-		log.Println("Disabling clearnet IDB via the config script")
-		action = disableAction
+		log.Println("Setting clearnet IDB to false via the config script")
+		value = "false"
 	}
 
-	out, err := middleware.runBBBConfigScript(action, "bitcoin_ibd_clearnet", "")
+	out, err := middleware.runBBBConfigScript("set", "bitcoin_ibd_clearnet", value)
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
