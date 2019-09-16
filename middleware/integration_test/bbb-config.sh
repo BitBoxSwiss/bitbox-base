@@ -91,7 +91,7 @@ case "${COMMAND}" in
                 esac
                 ;;
 
-            BITCOIN_IBD)
+            BITCOIN_IBD|BITCOIN_IBD_CLEARNET)
                 case "${3}" in
                     true|false)
                         echo "OK: ${COMMAND} -- ${SETTING} ${3}"
