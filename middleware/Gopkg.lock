@@ -77,12 +77,15 @@
   revision = "2492fe189ae688d7edbeae0fd575de2f1c5fec8e"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  digest = "1:38ec74012390146c45af1f92d46e5382b50531247929ff3a685d2b2be65155ac"
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis",
+  ]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
 
 [[projects]]
   digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
@@ -175,10 +178,11 @@
     "github.com/btcsuite/btcd/rpcclient",
     "github.com/fiatjaf/lightningd-gjson-rpc",
     "github.com/flynn/noise",
-    "github.com/golang/protobuf/proto",
+    "github.com/gomodule/redigo/redis",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/stretchr/testify/require",
+    "github.com/tidwall/gjson",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
