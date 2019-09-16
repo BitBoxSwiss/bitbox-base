@@ -10,6 +10,7 @@ import (
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
@@ -21,6 +22,7 @@ type Middleware struct {
 	environment          system.Environment
 	events               chan []byte
 	prometheusClient     *prometheus.PromClient
+	redisClient          *redis.Client
 	verificationProgress rpcmessages.VerificationProgressResponse
 	// Saves state for the dummy setup process
 	// TODO: should be removed as soon as Authentication is implemented
@@ -56,7 +58,7 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 		dummyAdminPassword: "",
 	}
 	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
-
+	middleware.redisClient = redis.NewRedisClient(middleware.environment.GetRedisPort())
 	return middleware
 }
 
