@@ -12,9 +12,15 @@ function usage() {
 	echo "Usage: ${0} [envinit|build]"
 }
 
+if [ -f .cleanup-loop-devices ]; then
+	../contrib/cleanup-loop-devices.sh
+fi
+
 ACTION=${1:-"build"}
 SOURCE_NAME="BitBoxBase_Armbian_RockPro64"
-TARGET_NAME="${SOURCE_NAME}-`date +%Y%m%d`"
+VERSION="$(head -n1 base/config/version)"
+TEMP_NAME="BitBoxBase"
+TARGET_NAME="BitBoxBase-v${VERSION}-RockPro64"
 
 if ! [[ "${ACTION}" =~ ^(envinit|build)$ ]]; then
 	usage
@@ -36,8 +42,8 @@ case ${ACTION} in
 		# conversion settings
 		DEVICE_TYPE="rockpro64"
 		RAW_DISK_IMAGE="input/${SOURCE_NAME}.img"
-		ARTIFACT_NAME="${TARGET_NAME}"
-		MENDER_DISK_IMAGE="${TARGET_NAME}"
+		ARTIFACT_NAME="${TEMP_NAME}"
+		MENDER_DISK_IMAGE="${TEMP_NAME}"
 
 		# retrieve latest Armbian image
 		if [ ! -f "../../bin/img-armbian/${SOURCE_NAME}.img" ]; then
@@ -57,15 +63,20 @@ case ${ACTION} in
 		# move converted images and update artefacts to /provisioning
 		echo "Cleaning up..."
 		rm "input/${SOURCE_NAME}.img"
-		rm "output/${TARGET_NAME}.ext4"
-		mv "output/${TARGET_NAME}.sdimg" "output/${TARGET_NAME}.img"
-		mv output/${SOURCE_NAME}* ../../bin/img-mender/
+		rm "output/${TEMP_NAME}.ext4"
+		mv "output/${TEMP_NAME}.sdimg" "output/${TARGET_NAME}.img"
+		mv "output/${TEMP_NAME}.mender" "output/${TARGET_NAME}.base"
+		mv output/${TARGET_NAME}* ../../bin/img-mender/
 
 		echo "Mender files ready for provisioning:"
 		stat -c "%y %s %n" ../../bin/img-mender/${TARGET_NAME}*
 		echo 
 		echo "Write to eMMC with the following command (check target device /dev/sdX first!):"
-		echo "dd if=./bin/img-armbian/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
+		echo "dd if=./bin/img-mender/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
 		echo
         ;;
 esac
+
+if [ -f .cleanup-loop-devices ]; then
+	../contrib/cleanup-loop-devices.sh
+fi
