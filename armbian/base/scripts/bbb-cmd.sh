@@ -47,12 +47,6 @@ if [[ ${UID} -ne 0 ]]; then
     exit 1
 fi
 
-# check if overlayroot is enabled
-OVERLAYROOT_ENABLED=0
-if grep -q "tmpfs" /etc/overlayroot.local.conf; then
-    OVERLAYROOT_ENABLED=1
-fi
-
 MODULE="${1:-}"
 COMMAND="${2:-}"
 ARG="${3:-}"
@@ -341,6 +335,12 @@ case "${MODULE}" in
         ;;    
 
     MENDER-UPDATE)
+        # check if mender application is available
+        if ! mender --version 2>/dev/null; then 
+            echo "ERR: image is not Mender enabled."
+            exit 1
+        fi
+
         case "${COMMAND}" in
             # initiate Mender update from URL
             INSTALL)

@@ -54,14 +54,14 @@ else
 
         if [[ $(redis_get "base:wifi:enabled") -eq 1 ]]; then
             generateConfig "wlan0.conf.template"
-            echo "INFO: restarted Tor dae and networking daemon"
+            echo "INFO: restarted Tor and networking daemon"
         fi
         echo "INFO: system configuration recreated"
 
         # restart services (don't exit on failure)
         if [[ $(redis_get "tor:base:enabled") -eq 1 ]]; then
             systemctl restart tor.service || true
-            echo "INFO: restarted Tor dae and networking daemon"
+            echo "INFO: restarted Tor and networking daemon"
         fi
 
         set -x
