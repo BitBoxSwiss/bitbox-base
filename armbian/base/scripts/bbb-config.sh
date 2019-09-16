@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 set -eu
 
 # BitBox Base: system configuration utility
@@ -63,12 +64,6 @@ fi
 COMMAND="${1}"
 SETTING="${2^^}"
 
-# check if overlayroot is enabled
-OVERLAYROOT_ENABLED=0
-if grep -q "tmpfs" /etc/overlayroot.local.conf; then
-    OVERLAYROOT_ENABLED=1
-fi
-
 # parse COMMAND: enable, disable, get, set
 case "${COMMAND}" in
     enable|disable)
@@ -79,19 +74,6 @@ case "${COMMAND}" in
         fi
 
         case "${SETTING}" in
-            BITCOIN_IBD_CLEARNET)
-                # configure bitcoind to run over IPv4 while in IBD mode
-                if [[ ${ENABLE} -eq 1 ]] && [ $(redis_get 'tor:base:enabled') -eq 0 ] ; then
-                    echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
-                    exit 1
-                else
-                    redis_set "bitcoind:ibd-clearnet" "${ENABLE}"
-                    generateConfig "bitcoin.conf.template"
-                    systemctl restart bitcoind
-                    echo "OK: bitcoind:ibd-clearnet set to ${ENABLE}"
-                fi
-                ;;
-
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
@@ -274,6 +256,32 @@ case "${COMMAND}" in
                         exit 1
                         ;;
                 esac
+                ;;
+
+            BITCOIN_IBD_CLEARNET)
+                case "${3}" in
+                    true)
+                        # don't set option if Tor is disabled globally
+                        if [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
+                            echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
+                            exit 1
+                        fi
+                        SET=1
+                        ;;
+
+                    false)
+                        SET=0
+                        ;;
+                    *)
+                        echo "ERR: argument needs to be either 'true' or 'false'"
+                        exit 1
+                esac
+
+                # configure bitcoind to run over IPv4 while in IBD mode
+                redis_set "bitcoind:ibd-clearnet" "${SET}"
+                generateConfig "bitcoin.conf.template"
+                systemctl restart bitcoind
+                echo "OK: bitcoind:ibd-clearnet set to ${SET}"
                 ;;
 
             BITCOIN_DBCACHE)
