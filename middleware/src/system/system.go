@@ -1,4 +1,4 @@
-//package system provides functionality to get data such as open ports and services running on the system the middleware is deployed on
+// Package system provides functionality to get data such as open ports and services running on the system the middleware is deployed on
 package system
 
 // Environment provides some information on the system we are running on.
@@ -12,6 +12,7 @@ type Environment struct {
 	bbbConfigScript    string
 	bbbCmdScript       string
 	prometheusURL      string
+	redisPort          string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -28,6 +29,7 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		bbbConfigScript:    argumentMap["bbbConfigScript"],
 		bbbCmdScript:       argumentMap["bbbCmdScript"],
 		prometheusURL:      argumentMap["prometheusURL"],
+		redisPort:          argumentMap["redisPort"],
 	}
 	return environment
 }
@@ -65,4 +67,9 @@ func (environment *Environment) GetBBBCmdScript() string {
 // GetPrometheusURL is a getter for the url the prometheus server is reachable on
 func (environment *Environment) GetPrometheusURL() string {
 	return environment.prometheusURL
+}
+
+// GetRedisPort is a getter for the port the redis server is listening on
+func (environment *Environment) GetRedisPort() string {
+	return environment.redisPort
 }

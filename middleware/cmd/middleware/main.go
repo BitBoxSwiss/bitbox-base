@@ -22,6 +22,7 @@ func main() {
 	bbbConfigScript := flag.String("bbbconfigscript", "/opt/shift/scripts/bbb-config.sh", "Path to the bbb-config file that allows setting system configuration")
 	bbbCmdScript := flag.String("bbbcmdscript", "/opt/shift/scripts/bbb-cmd.sh", "Path to the bbb-cmd file that allows executing system commands")
 	prometheusURL := flag.String("prometheusurl", "http://localhost:9090", "Url of the prometheus server in the form of 'http://localhost:9090'")
+	redisPort := flag.String("redisport", "6379", "Port of the Redis server")
 	flag.Parse()
 
 	argumentMap := make(map[string]string)
@@ -34,6 +35,7 @@ func main() {
 	argumentMap["bbbConfigScript"] = *bbbConfigScript
 	argumentMap["bbbCmdScript"] = *bbbCmdScript
 	argumentMap["prometheusURL"] = *prometheusURL
+	argumentMap["redisPort"] = *redisPort
 
 	logBeforeExit := func() {
 		// Recover from all panics and log error before panicking again.
