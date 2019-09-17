@@ -161,10 +161,10 @@ case "${MODULE}" in
     BASE)
         case "${COMMAND}" in
             RESTART)
-                reboot
+                ( sleep 5 ; reboot ) & 
                 ;;
             SHUTDOWN)
-                shutdown now
+                ( sleep 5 ; shutdown now ) & 
                 ;;
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
