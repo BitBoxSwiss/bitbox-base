@@ -473,6 +473,8 @@ chmod -R u+rw,g+r,g-w,o-rwx /etc/bitcoin
 importFile "/etc/systemd/system/bitcoind.service"
 systemctl enable bitcoind.service
 
+redis-cli SET bitcoind:version "${BITCOIN_VERSION}"
+
 
 # LIGHTNING --------------------------------------------------------------------
 BIN_DEPS_TAG="v0.0.1-alpha"
@@ -497,6 +499,8 @@ if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   make -j 4
   make install
 
+  redis-cli SET lightningd:version "${LIGHTNING_VERSION_BUILD}"
+
 else
   cd /usr/local/src/
   ## temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
@@ -509,6 +513,8 @@ else
 
   ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
   ln -sf /usr/bin/lightningd /usr/local/bin/lightningd
+
+  redis-cli SET lightningd:version "${LIGHTNING_VERSION_BIN}"
   
 fi
 
@@ -541,6 +547,8 @@ chown -R root:bitcoin /etc/electrs
 chmod -R u+rw,g+r,g-w,o-rwx /etc/electrs
 importFile "/etc/systemd/system/electrs.service"
 systemctl enable electrs.service
+
+redis-cli SET electrs:version "${ELECTRS_VERSION}"
 
 
 # TOOLS & MIDDLEWARE -------------------------------------------------------------------

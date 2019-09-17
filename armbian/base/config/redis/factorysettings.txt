@@ -13,7 +13,8 @@ SET tor:base:enabled 1
 SET tor:ssh:enabled 0
 SET tor:electrs:enabled 1
 SET tor:bbbmiddleware:enabled 1
-                        
+
+SET bitcoind:version xxx      
 SET bitcoind:ibd 1
 SET bitcoind:ibd-clearnet 0
 SET bitcoind:network mainnet
@@ -41,6 +42,7 @@ SET bitcoind:seednode:2 xqzfakpeuvrobvpj.onion
 SET bitcoind:seednode:3 tsyvzsqwa2kkf6b2.onion
 SET bitcoind:reindex-chainstate 0
 
+SET lightningd:version xxx
 SET lightningd:bitcoin-cli /usr/bin/bitcoin-cli
 SET lightningd:lightning-dir /mnt/ssd/bitcoin/.lightning
 SET lightningd:bind-addr 127.0.0.1:9735
@@ -48,13 +50,12 @@ SET lightningd:proxy 127.0.0.1:9050
 SET lightningd:log-level debug
 SET lightningd:plugin:1 /opt/shift/scripts/prometheus-lightningd.py
 
+SET electrs:version xxx
 SET electrs:db_dir /mnt/ssd/electrs/db
 SET electrs:daemon_dir /mnt/ssd/bitcoin/.bitcoin
 SET electrs:monitoring_addr 127.0.0.1:4224
 SET electrs:verbosity vvvv
 SET electrs:rust_backtrace 1
-
-SET bbbmiddleware:bitcoin-rpcuser __cookie__
 
 SET grafana:server:http_addr 127.0.0.1                 
 SET grafana:server:root_url http://127.0.0.1:3000/info/ 
