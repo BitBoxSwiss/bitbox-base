@@ -94,12 +94,14 @@ fi
 ## access control lists (setfacl) are used to control permissions of newly created files 
 chown bitcoin:system /mnt/ssd/
 
-## bitcoin data storage
+## bitcoind data storage
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/bitcoin/
-setfacl -dR -m g::rx /mnt/ssd/bitcoin/.bitcoin/
-setfacl -dR -m o::- /mnt/ssd/bitcoin/.bitcoin/
+
+## lightningd socket
+chmod 770 /mnt/ssd/bitcoin/.lightning/lightning-rpc || true
+chmod 770 /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc || true
 
 ## electrs data storage
 mkdir -p /mnt/ssd/electrs/
