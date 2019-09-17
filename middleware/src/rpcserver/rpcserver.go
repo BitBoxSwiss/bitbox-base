@@ -69,6 +69,7 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(bool) rpcmessages.ErrorResponse
+	GetBaseVersion() rpcmessages.GetBaseVersionResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -276,11 +277,19 @@ func (server *RPCServer) EnableRootLogin(enable bool, reply *rpcmessages.ErrorRe
 	return nil
 }
 
-// EnableRootLogin enables/disables login via the root user/password.
-// The boolean argument passed is used to for enabling and disabling.
+// SetRootPassword sets the systems root password.
+// Passwords have to be at least 8 chars in length.
+// For Unicode passwords the number of unicode chars is counted and not the byte count.
 // It sends the middleware's ErrorResponse over rpc.
 func (server *RPCServer) SetRootPassword(args rpcmessages.SetRootPasswordArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.SetRootPassword(args)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// GetBaseVersion returns a GetBaseVersionResponse containing the base version.
+func (server *RPCServer) GetBaseVersion(dummyArg bool, reply *rpcmessages.GetBaseVersionResponse) error {
+	*reply = server.middleware.GetBaseVersion()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
