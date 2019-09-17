@@ -42,23 +42,29 @@ source /opt/shift/scripts/include/redis.sh.inc
 # include function generateConfig() to generate config files from templates
 source /opt/shift/scripts/include/generateConfig.sh.inc
 
+# error handling function
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
+
 # ------------------------------------------------------------------------------
 
 # check script arguments
 if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
-  usage
-  exit 0
+    usage
+    exit 0
 elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
-  echo "bbb-config version 0.1"
-  exit 0
+    echo "bbb-config version 0.1"
+    exit 0
 elif [[ ${#} -eq 1 ]]; then
-  usage
-  exit 0
+    usage
+    exit 0
 fi
 
 if [[ ${UID} -ne 0 ]]; then
-  echo "${0}: needs to be run as superuser." >&2
-  exit 1
+    echo "${0}: needs to be run as superuser." >&2
+    errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
 
 COMMAND="${1}"
@@ -159,7 +165,7 @@ case "${COMMAND}" in
                     redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
                 else
                     echo "ERR: invalid argument, setting ${SETTING} not allowed"
-                    exit 1
+                    errorExit CONFIG_SCRIPT_INVALID_ARG
                 fi
 
                 generateConfig "torrc.template"
@@ -190,14 +196,14 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
-                exit 1
+                errorExit CONFIG_SCRIPT_INVALID_ARG
         esac
         ;;
 
     set)
         if [[ ${#} -lt 3 ]]; then
             echo "Missing argument: command 'set' needs two arguments."
-            exit 1
+            errorExit SET_NEEDS_TWO_ARGUMENTS
         fi
 
         case "${SETTING}" in
@@ -219,7 +225,7 @@ case "${COMMAND}" in
 
                     *)
                         echo "Invalid argument: ${SETTING} can only be set to 'mainnet' or 'testnet'."
-                        exit 1
+                        errorExit SET_BITCOINETWORK_INVALID_VALUE
                 esac
 
                 generateConfig "bashrc-custom.template"
@@ -253,7 +259,7 @@ case "${COMMAND}" in
 
                     *)
                         echo "Invalid argument: '${3}' must be either 'true' or 'false'."
-                        exit 1
+                        errorExit SET_BITCOINIBD_INVALID_VALUE
                         ;;
                 esac
                 ;;
@@ -264,7 +270,7 @@ case "${COMMAND}" in
                         # don't set option if Tor is disabled globally
                         if [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
                             echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
-                            exit 1
+                            errorExit ENABLE_CLEARNETIBD_TOR_ALREADY_DISABLED
                         fi
                         SET=1
                         ;;
@@ -274,7 +280,7 @@ case "${COMMAND}" in
                         ;;
                     *)
                         echo "ERR: argument needs to be either 'true' or 'false'"
-                        exit 1
+                        errorExit SET_BITCOINIBD_CLEARNET_INVALID_VALUE
                 esac
 
                 # configure bitcoind to run over IPv4 while in IBD mode
@@ -302,7 +308,7 @@ case "${COMMAND}" in
 
                 else
                     echo "Invalid argument: '${3}' must be an integer in MB between 50 and 3000."
-                    exit 1
+                    errorExit SET_BITCOINDBCACHE_INVALID_VALUE
                 fi
                 ;;
 
@@ -316,7 +322,7 @@ case "${COMMAND}" in
                     redis_set "base:hostname" "${3}"
                 else
                     echo "Invalid argument: ${3} is not a valid hostname."
-                    exit 1
+                    errorExit SET_HOSTNAME_INVALID_VALUE
                 fi
                 ;;
 
@@ -335,7 +341,7 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
-                exit 1
+                errorExit CONFIG_SCRIPT_INVALID_ARG
         esac
         ;;
 
@@ -351,11 +357,11 @@ case "${COMMAND}" in
 
             *)
                 echo "Invalid argument: setting ${SETTING} unknown."
-                exit 1
+                errorExit CONFIG_SCRIPT_INVALID_ARG
         esac
         ;;
 
     *)
         echo "Invalid argument: command ${COMMAND} unknown."
-        exit 1
+        errorExit CONFIG_SCRIPT_INVALID_ARG
 esac

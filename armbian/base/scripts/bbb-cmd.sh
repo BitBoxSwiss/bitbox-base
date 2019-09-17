@@ -31,6 +31,12 @@ source /opt/shift/scripts/include/redis.sh.inc
 # include function generateConfig() to generate config files from templates
 source /opt/shift/scripts/include/generateConfig.sh.inc
 
+# error handling function
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
+
 # ------------------------------------------------------------------------------
 
 # check script arguments
@@ -43,8 +49,8 @@ elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
 fi
 
 if [[ ${UID} -ne 0 ]]; then
-    echo "${0}: needs to be run as superuser." >&2
-    exit 1
+    echo "${0}: needs to be run as superuser."
+    errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
 
 MODULE="${1:-}"
@@ -95,7 +101,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;
 
@@ -154,7 +160,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;
 
@@ -168,7 +174,7 @@ case "${MODULE}" in
                 ;;
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;
 
@@ -197,11 +203,11 @@ case "${MODULE}" in
 
                 elif [[ flashdrive_count -eq 0 ]]; then
                     echo "FLASHDRIVE CHECK: no target found"
-                    exit 1
+                    errorExit FLASHDRIVE_CHECK_NONE
 
                 else
                     echo "FLASHDRIVE CHECK: too many targets found (${flashdrive_count} in total)"
-                    exit 1
+                    errorExit FLASHDRIVE_CHECK_MULTI
                 fi               
                 ;;
 
@@ -212,11 +218,11 @@ case "${MODULE}" in
                 # check if ARG is valid flashdrive
                 if ! lsblk "${ARG}" > /dev/null 2>&1; then
                     echo "FLASHDRIVE MOUNT: device ${ARG} not found."
-                    exit 1
+                    errorExit FLASHDRIVE_MOUNT_NOT_FOUND
 
                 elif [ "$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}" | wc -l)" -ne 1 ]; then
                     echo "FLASHDRIVE MOUNT: device ${ARG} is not unique and/or has partitions."
-                    exit 1
+                    errorExit FLASHDRIVE_MOUNT_NOT_UNIQUE
 
                 else
                     scsidev=$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}")
@@ -239,7 +245,7 @@ case "${MODULE}" in
 
                     else
                         echo "FLASHDRIVE MOUNT: device ${name} is either bigger than 64GB (${size}) or does the filesystem (${fstype}) is not supported."
-                        exit 1
+                        errorExit FLASHDRIVE_MOUNT_NOT_SUPPORTED
                     fi
 
                 fi
@@ -248,7 +254,7 @@ case "${MODULE}" in
             UNMOUNT)
                 if ! mountpoint /mnt/backup -q; then
                     echo "FLASHDRIVE UNMOUNT: no drive mounted at /mnt/backup"
-                    exit 1
+                    errorExit FLASHDRIVE_UNMOUNT_NOT_MOUNTED
                 else
                     umount /mnt/backup
                     echo "FLASHDRIVE UNMOUNT: /mnt/backup unmounted."
@@ -257,7 +263,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;        
     
@@ -275,7 +281,7 @@ case "${MODULE}" in
                     cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup_$(date '+%Y%m%d-%H%M').rdb"
                 else
                     echo "ERR: /mnt/backup is not a mountpoint"
-                    exit 1
+                    errorExit BACKUP_SYSCONFIG_NOT_A_MOUNTPOINT
                 fi
                 echo "OK: backup created as /mnt/backup/bbb-backup.rdb"
                 ;;
@@ -289,7 +295,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;    
 
@@ -307,7 +313,7 @@ case "${MODULE}" in
                     systemctl start redis.service
                 else
                     echo "ERR: backup file /mnt/backup/bbb-backup.rdb not found"
-                    exit 1
+                    errorExit RESTORE_SYSCONFIG_BACKUP_NOT_FOUND
                 fi
                 echo "OK: backup file /mnt/backup/bbb-backup.rdb restored to ${REDIS_FILEPATH}."
                 ;;
@@ -330,7 +336,7 @@ case "${MODULE}" in
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;    
 
@@ -338,15 +344,15 @@ case "${MODULE}" in
         # check if mender application is available
         if ! mender --version 2>/dev/null; then 
             echo "ERR: image is not Mender enabled."
-            exit 1
+            errorExit MENDER_UPDATE_IMAGE_NOT_MENDER_ENABLED
         fi
 
         case "${COMMAND}" in
             # initiate Mender update from URL
             INSTALL)
                 if [[ ${#} -lt 3 ]]; then
-                    echo "ERR: no version number (e.g. 0.0.2) argument provided"
-                    exit 1
+                    echo "ERR: no version number (e.g. 0.0.2) supplied"
+                    errorExit MENDER_UPDATE_NO_VERSION
                 fi
 
                 # check for valid version number
@@ -358,12 +364,12 @@ case "${MODULE}" in
                     else
                         ERR=${?}
                         echo "ERR: mender install failed with error code ${ERR}"
-                        exit ${ERR}
+                        errorExit MENDER_UPDATE_INSTALL_FAILED
                     fi
 
                 else
                     echo "ERR: '${ARG}' is not a valid version number"
-                    exit 1
+                    errorExit MENDER_UPDATE_INVALID_VERSION
                 fi
                 echo "OK: mender update successfully installed, please restart"
                 ;;
@@ -377,17 +383,17 @@ case "${MODULE}" in
                 else
                     ERR=${?}
                     echo "ERR: mender commit failed with error code ${ERR}"
-                    exit ${ERR}
+                    errorExit MENDER_UPDATE_COMMIT_FAILED
                 fi        
                 ;;
 
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                exit 1
+                errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;
 
     *)
         echo "Invalid argument: module ${MODULE} unknown."
-        exit 1
+        errorExit CMD_SCRIPT_INVALID_ARG
 esac
