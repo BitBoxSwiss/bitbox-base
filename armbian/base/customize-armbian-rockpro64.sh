@@ -47,7 +47,6 @@ CONFIGURATION:
 ================================================================================
 BUILD OPTIONS:
     BUILD MODE:         ${BASE_BUILDMODE}
-    VERSION:            ${BASE_VERSION}
     LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
     MINIMAL IMAGE:      ${BASE_MINIMAL}
     OVERLAYROOT:        ${BASE_OVERLAYROOT}
@@ -124,7 +123,6 @@ source /opt/shift/build.conf || true
 source /opt/shift/build-local.conf || true
 
 BASE_BUILDMODE=${1:-"armbian-build"}
-BASE_VERSION=${BASE_VERSION:-"0"}
 BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
@@ -329,7 +327,6 @@ redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /da
 redis-cli SET build:date "$(date +%Y-%m-%d)"
 redis-cli SET build:time "$(date +%H:%M)"
 redis-cli SET build:commit "$(cat /opt/shift/config/latest_commit)"
-redis-cli SET base:version "${BASE_VERSION}"
 redis-cli KEYS "*"
 
 ## bbbconfgen
@@ -402,6 +399,11 @@ sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 
 ## startup checks
 importFile /etc/systemd/system/startup-checks.service
+systemctl enable startup-checks.service
+
+## update checks
+importFile /etc/systemd/system/update-checks.service
+systemctl enable update-checks.service
 
 ## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd

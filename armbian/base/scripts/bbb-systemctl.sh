@@ -16,7 +16,7 @@ if [[ ${ACTION} == "-h" ]] || [[ ${ACTION} == "--help" ]]; then
     exit 0
 fi
 
-if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable)$ ]]; then
+if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable|verify)$ ]]; then
     echo "bbb-systemctl.sh: unknown argument."
     echo
     usage
@@ -68,5 +68,29 @@ grafana:                  $(systemctl is-active grafana-server.service)
         systemctl $ACTION bbbfancontrol.service
         systemctl $ACTION redis.service
         ;;
+
+    verify)
+        # verify that all services are running
+
+        if  systemctl is-active -q prometheus                       && \
+            systemctl is-active -q prometheus-base.service          && \
+            systemctl is-active -q prometheus-bitcoind.service      && \
+            systemctl is-active -q prometheus-node-exporter.service && \
+            systemctl is-active -q grafana-server.service           && \
+            systemctl is-active -q bbbmiddleware.service            && \
+            systemctl is-active -q nginx.service                    && \
+            systemctl is-active -q electrs.service                  && \
+            systemctl is-active -q lightningd.service               && \
+            systemctl is-active -q bitcoind.service                 && \
+            systemctl is-active -q bbbsupervisor.service            && \
+            systemctl is-active -q bbbfancontrol.service            && \
+            systemctl is-active -q redis.service
+        then
+            echo "OK: all services are active"
+            exit 0
+        else
+            echo "ERR: not all services are active"
+            exit 1
+        fi
+        ;;
 esac
-echo

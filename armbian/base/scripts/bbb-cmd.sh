@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 set -eu
 
 # BitBox Base: system commands repository
@@ -16,6 +17,7 @@ possible commands:
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
+  mender-update <install|commit>
 
 "
 }
@@ -32,7 +34,7 @@ source /opt/shift/scripts/include/generateConfig.sh.inc
 # ------------------------------------------------------------------------------
 
 # check script arguments
-if [[ ${#} == 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
+if [[ ${#} -lt 2 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
     usage
     exit 0
 elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
@@ -45,15 +47,9 @@ if [[ ${UID} -ne 0 ]]; then
     exit 1
 fi
 
-# check if overlayroot is enabled
-OVERLAYROOT_ENABLED=0
-if grep -q "tmpfs" /etc/overlayroot.local.conf; then
-    OVERLAYROOT_ENABLED=1
-fi
-
-MODULE="${1:-''}"
-COMMAND="${2:-''}"
-ARG="${3:-''}"
+MODULE="${1:-}"
+COMMAND="${2:-}"
+ARG="${3:-}"
 
 MODULE="${MODULE^^}"
 COMMAND="${COMMAND^^}"
@@ -120,7 +116,7 @@ case "${MODULE}" in
                     rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks
                 fi
 
-                redis_set "bitcoind:ibd" "1"
+                redis_set "bitcoind:ibd" 1
                 redis_set "bitcoind:reindex-chainstate" 1
                 generateConfig "bitcoin.conf.template"
                 sleep 5
@@ -337,6 +333,59 @@ case "${MODULE}" in
                 exit 1
         esac
         ;;    
+
+    MENDER-UPDATE)
+        # check if mender application is available
+        if ! mender --version 2>/dev/null; then 
+            echo "ERR: image is not Mender enabled."
+            exit 1
+        fi
+
+        case "${COMMAND}" in
+            # initiate Mender update from URL
+            INSTALL)
+                if [[ ${#} -lt 3 ]]; then
+                    echo "ERR: no version number (e.g. 0.0.2) argument provided"
+                    exit 1
+                fi
+
+                # check for valid version number
+                regex='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+                if [[ ${ARG} =~ ${regex} ]]; then
+                    if mender -install "https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"; then
+                        redis_set "base:updating" 10
+                    
+                    else
+                        ERR=${?}
+                        echo "ERR: mender install failed with error code ${ERR}"
+                        exit ${ERR}
+                    fi
+
+                else
+                    echo "ERR: '${ARG}' is not a valid version number"
+                    exit 1
+                fi
+                echo "OK: mender update successfully installed, please restart"
+                ;;
+
+            # commit Mender update
+            COMMIT)
+
+                if mender -commit; then
+                    redis_set "base:updating" 40
+                
+                else
+                    ERR=${?}
+                    echo "ERR: mender commit failed with error code ${ERR}"
+                    exit ${ERR}
+                fi        
+                ;;
+
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                exit 1
+        esac
+        ;;
 
     *)
         echo "Invalid argument: module ${MODULE} unknown."
