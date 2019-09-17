@@ -14,9 +14,10 @@ SET tor:ssh:enabled 0
 SET tor:electrs:enabled 1
 SET tor:bbbmiddleware:enabled 1
 
-SET bitcoind:version xxx      
+SET bitcoind:version xxx
 SET bitcoind:ibd 1
 SET bitcoind:ibd-clearnet 0
+SET bitcoind:assumevalid 1
 SET bitcoind:network mainnet
 SET bitcoind:testnet 0
 SET bitcoind:mainnet 1
@@ -57,11 +58,11 @@ SET electrs:monitoring_addr 127.0.0.1:4224
 SET electrs:verbosity vvvv
 SET electrs:rust_backtrace 1
 
-SET grafana:server:http_addr 127.0.0.1                 
-SET grafana:server:root_url http://127.0.0.1:3000/info/ 
-SET grafana:analytics:reporting_enabled false         
-SET grafana:analytics:check_for_updates false           
-SET grafana:users:allow_sign_up false                   
+SET grafana:server:http_addr 127.0.0.1
+SET grafana:server:root_url http://127.0.0.1:3000/info/
+SET grafana:analytics:reporting_enabled false
+SET grafana:analytics:check_for_updates false
+SET grafana:users:allow_sign_up false
 SET grafana:users:disable_login_form false
 SET grafana:auth.anonymous:enabled true
 
