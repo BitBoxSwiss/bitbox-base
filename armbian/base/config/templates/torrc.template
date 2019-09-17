@@ -7,9 +7,9 @@ HiddenServiceDir /var/lib/tor/hidden_service_ssh/           {{ tor:ssh:enabled #
 HiddenServiceVersion 3                                      {{ tor:ssh:enabled #rmLineFalse }}
 HiddenServicePort 22 127.0.0.1:22                           {{ tor:ssh:enabled #rmLineFalse }}
 
-HiddenServiceDir /var/lib/tor/hidden_service_electrum/      {{ tor:electrum:enabled #rmLineFalse }}
-HiddenServiceVersion 3                                      {{ tor:electrum:enabled #rmLineFalse }}
-HiddenServicePort 50002 127.0.0.1:50002                     {{ tor:electrum:enabled #rmLineFalse }}
+HiddenServiceDir /var/lib/tor/hidden_service_electrum/      {{ tor:electrs:enabled #rmLineFalse }}
+HiddenServiceVersion 3                                      {{ tor:electrs:enabled #rmLineFalse }}
+HiddenServicePort 50002 127.0.0.1:50002                     {{ tor:electrs:enabled #rmLineFalse }}
 
 HiddenServiceDir /var/lib/tor/lightningd-service_v3/        {{ tor:base:enabled #rmLineFalse }}
 HiddenServiceVersion 3                                      {{ tor:base:enabled #rmLineFalse }}

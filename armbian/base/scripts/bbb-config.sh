@@ -158,9 +158,9 @@ case "${COMMAND}" in
             TOR_SSH|TOR_ELECTRUM|TOR_BBBMIDDLEWARE)
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
-                    redis_set "base:tor:ssh:enabled" "${ENABLE}"
+                    redis_set "tor:ssh:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
-                    redis_set "base:tor:electrs:enabled" "${ENABLE}"
+                    redis_set "tor:electrs:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_BBBMIDDLEWARE" ]]; then
                     redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
                 else
