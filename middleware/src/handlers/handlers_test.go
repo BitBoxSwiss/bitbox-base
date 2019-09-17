@@ -32,7 +32,7 @@ func TestRootHandler(t *testing.T) {
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 
-	middlewareInstance := middleware.NewMiddleware(argumentMap)
+	middlewareInstance := middleware.NewMiddleware(argumentMap, true)
 	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	req, err := http.NewRequest("GET", "/", nil)
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestWebsocketHandler(t *testing.T) {
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
 
-	middlewareInstance := middleware.NewMiddleware(argumentMap)
+	middlewareInstance := middleware.NewMiddleware(argumentMap, true)
 	handlers := handlers.NewHandlers(middlewareInstance, ".base")
 	rr := httptest.NewServer(handlers.Router)
 	defer rr.Close()

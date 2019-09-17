@@ -7,14 +7,21 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// Client represents a redis client that has a connection pool.
+// Redis is an interface representing a redis Client
+type Redis interface {
+	SetString(string, string) error
+	GetInt(string) (int, error)
+	GetString(string) (string, error)
+}
+
+// Client is a redis client
 type Client struct {
 	pool *redis.Pool
 }
 
-// NewRedisClient returns a new redis client.
+// NewClient returns a new redis client.
 // It does not ensure that the client has connectivity.
-func NewRedisClient(port string) (client *Client) {
+func NewClient(port string) (client Client) {
 	pool := newPool(port)
 
 	err := ping(pool.Get())
@@ -23,8 +30,7 @@ func NewRedisClient(port string) (client *Client) {
 		// supervisor should take over and restart (i.e. fix) the Redis server.
 		log.Printf("Warning redis server connectivity could not be established: %s", err.Error())
 	}
-	client = &Client{pool: pool}
-	return
+	return Client{pool: pool}
 }
 
 func newPool(port string) *redis.Pool {
@@ -51,12 +57,12 @@ func ping(c redis.Conn) (err error) {
 }
 
 // getConnection gets a connection from the pool
-func (c *Client) getConnection() redis.Conn {
+func (c Client) getConnection() redis.Conn {
 	return c.pool.Get()
 }
 
 // GetInt gets an integer value for a given key.
-func (c *Client) GetInt(key string) (val int, err error) {
+func (c Client) GetInt(key string) (val int, err error) {
 	conn := c.getConnection()
 	val, err = redis.Int(conn.Do("GET", key))
 	if err != nil {
@@ -65,12 +71,22 @@ func (c *Client) GetInt(key string) (val int, err error) {
 	return val, nil
 }
 
-// GetString gets an string for a given key.
-func (c *Client) GetString(key string) (val string, err error) {
+// GetString gets a string for a given key.
+func (c Client) GetString(key string) (val string, err error) {
 	conn := c.getConnection()
 	val, err = redis.String(conn.Do("GET", key))
 	if err != nil {
 		return "", fmt.Errorf("could not get key %s as string: %s", key, err.Error())
 	}
 	return val, nil
+}
+
+// SetString sets a string for a given key.
+func (c Client) SetString(key string, value string) error {
+	conn := c.getConnection()
+	_, err := conn.Do("SET", key, value)
+	if err != nil {
+		return fmt.Errorf("could not et key %s: %s", key, err.Error())
+	}
+	return nil
 }

@@ -26,8 +26,7 @@ func setupTestMiddleware() *middleware.Middleware {
 	argumentMap["bbbConfigScript"] = "/bin/echo"
 	argumentMap["bbbCmdScript"] = "/bin/echo"
 
-	testMiddleware := middleware.NewMiddleware(argumentMap)
-
+	testMiddleware := middleware.NewMiddleware(argumentMap, true)
 	return testMiddleware
 }
 
@@ -392,6 +391,14 @@ func TestSetHostname(t *testing.T) {
 	response7 := testMiddleware.SetHostname(invalidArgs4)
 	require.Equal(t, false, response7.Success)
 	require.Equal(t, "invalid hostname", response7.Message)
+}
+
+func TestGetBaseVersion(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	response := testMiddleware.GetBaseVersion()
+	require.Equal(t, true, response.ErrorResponse.Success)
+	require.Equal(t, "0.0.1", response.Version)
 }
 
 func TestShutdownBase(t *testing.T) {
