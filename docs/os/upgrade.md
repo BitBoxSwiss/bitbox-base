@@ -29,7 +29,7 @@ This solution has the following features:
 * **atomic**: the update process is atomic, as it either succeeds in full (including custom application tests), or not at all. In case of failure, a full rollback is performed.
 * **on-demand**: the BitBox App will prompt you when an update is available, but you're not forced to upgrade. 
 * **secure**: all upgrades are provided over a secure TLS communication connection and are cryptographically signed by Shift Cryptosecurity. By default, no unsigned updates are accepted by the device.
-* **efficient**: update images are compressed and are streamed directly to the device. Small patches can be provided using application-level updates (single files or deb packages).
+* **efficient**: update images are compressed and are streamed directly to the device. As of today, a full update (operating system and all applications) is ~300 MB in size.
 * **minimal downtime**: the update is performed in the background, while applications continue to run. Only a single reboot is necessary to start the updated configuration.
 * **persistent data**: the eMMC contains multiple partitions, one of which is used to store persistent data like the device configuration.
 * **custom firmware**: more in the #reckless category, updating custom-built firmware can be enabled through the BitBox App.
@@ -37,7 +37,7 @@ This solution has the following features:
 ### Upgrade process
 
 After building the custom Armbian image, it is post-processed using [mender-convert](https://github.com/mendersoftware/mender-convert).
-As this tool is currently not available for the RockPro64 board, we collaborate with Mender to extend it, with all results being released as open-source for other projects to use.
+We collaborated with Mender to extend their solution to support the RockPro64 board, with all extension being released as open-source for other projects to use.
 
 This post-processing creates Mender upgrade artifacts for over-the-air (OTA) updates, as well as a new full disk image for initial flashing on the device, containing four partitions:
 
@@ -48,8 +48,7 @@ This post-processing creates Mender upgrade artifacts for over-the-air (OTA) upd
 
 ![Mender architecture](upgrade_mender_architecture.png)
 
-The disk image has the Mender client built in, running as a system daemon user space in the currently booted root filesystem.
-It communicates with the BitBox App and can be triggered to to update the device.
+The disk image has the Mender client built in. It is executed on demand by the Middleware to update the device.
 
 On the BitBox Base, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "root filesystem A".
 When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "root filesystem B".

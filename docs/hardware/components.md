@@ -35,5 +35,3 @@ This component, running a modified Bitcoin-only BitBox firmware, allows for new 
 ### Case
 
 For the first low quantity batches, the BitBox Base **cases are 3D printed** with a size of approximately 95 x 142 mm. Due to the tinted glass cover, the final product will have a premium-feel nonetheless.
-
-![BitBox Base](bbb-photo.jpg)
