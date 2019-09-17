@@ -64,6 +64,12 @@ type VerificationProgressResponse struct {
 	VerificationProgress float64 `json:"verificationProgress"`
 }
 
+// GetBaseVersionResponse is the struct that get sent by the rpc server during a GetBaseVersion rpc call
+type GetBaseVersionResponse struct {
+	ErrorResponse *ErrorResponse
+	Version       string
+}
+
 // GetHostnameResponse is the struct that get sent by the rpc server during a GetHostname rpc call
 type GetHostnameResponse struct {
 	ErrorResponse *ErrorResponse

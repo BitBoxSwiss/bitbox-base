@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 	"os/exec"
 	"regexp"
@@ -462,6 +463,28 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
 	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// GetBaseVersion returns an GetBaseVersionResponse struct containing the base version in response to a rpcserver request
+func (middleware *Middleware) GetBaseVersion() rpcmessages.GetBaseVersionResponse {
+	log.Println("getting the Base version from redis")
+	const baseVersionKey string = "base:version"
+	version, err := middleware.redisClient.GetString(baseVersionKey)
+	if err != nil {
+		return rpcmessages.GetBaseVersionResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: fmt.Errorf("could not get %s from redis: %s", baseVersionKey, err.Error()).Error(),
+				Code:    "PLACEHOLDER", // TODO(0xb10c): replace with ErrorCode once defined.
+			},
+		}
+	}
+	return rpcmessages.GetBaseVersionResponse{
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+		Version: version,
+	}
 }
 
 // EnableRootLogin enables/disables the login via the root user/password
