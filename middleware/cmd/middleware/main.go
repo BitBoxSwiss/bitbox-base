@@ -46,7 +46,7 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
-	middleware := middleware.NewMiddleware(argumentMap)
+	middleware := middleware.NewMiddleware(argumentMap, false)
 	log.Println("--------------- Started middleware --------------")
 
 	handlers := handlers.NewHandlers(middleware, *dataDir)

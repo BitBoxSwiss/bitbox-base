@@ -23,7 +23,7 @@ type Middleware struct {
 	environment          system.Environment
 	events               chan []byte
 	prometheusClient     *prometheus.PromClient
-	redisClient          *redis.Client
+	redisClient          redis.Redis
 	verificationProgress rpcmessages.VerificationProgressResponse
 	// Saves state for the dummy setup process
 	// TODO: should be removed as soon as Authentication is implemented
@@ -39,8 +39,9 @@ const (
 	disableAction string = "disable"
 )
 
-// NewMiddleware returns a new instance of the middleware
-func NewMiddleware(argumentMap map[string]string) *Middleware {
+// NewMiddleware returns a new instance of the middleware.
+// For testing a mock boolean can be passed, which mocks e.g. redis.
+func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
@@ -59,7 +60,12 @@ func NewMiddleware(argumentMap map[string]string) *Middleware {
 		dummyAdminPassword: "",
 	}
 	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
-	middleware.redisClient = redis.NewRedisClient(middleware.environment.GetRedisPort())
+
+	if !mock {
+		middleware.redisClient = redis.NewClient(middleware.environment.GetRedisPort())
+	} else if mock {
+		middleware.redisClient = redis.NewMockClient("")
+	}
 	return middleware
 }
 

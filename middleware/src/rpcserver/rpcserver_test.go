@@ -60,7 +60,7 @@ func NewTestingRPCServer() TestingRPCServer {
 	argumentMap["bbbConfigScript"] = "/bin/echo"
 	argumentMap["bbbCmdScript"] = "/bin/echo"
 
-	middlewareInstance := middleware.NewMiddleware(argumentMap)
+	middlewareInstance := middleware.NewMiddleware(argumentMap, true)
 
 	testingRPCServer.rpcServer = rpcserver.NewRPCServer(middlewareInstance)
 	testingRPCServer.serverWriteChan = testingRPCServer.rpcServer.RPCConnection.WriteChan()
@@ -213,5 +213,9 @@ func TestRPCServer(t *testing.T) {
 	var rebootBaseReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", dummyArg, &rebootBaseReply)
 	require.Equal(t, true, rebootBaseReply.Success)
+
+	var getBaseVersionReply rpcmessages.GetBaseVersionResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetBaseVersion", dummyArg, &getBaseVersionReply)
+	require.Equal(t, true, getBaseVersionReply.ErrorResponse.Success)
 
 }
