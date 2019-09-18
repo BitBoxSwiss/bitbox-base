@@ -35,7 +35,7 @@ redis_set "base:version" "${VERSION}"
 #   40: mender update committed
 #   90: mender update failed
 
-if [[ $(redis_get "base:updating") -eq 0 ]]; then
+if [[ $(redis_get "base:updating") -eq 0 ]] && [[ $(redis_get "base:updating") != "" ]]; then
     echo "INFO: not updating"
 
 else
@@ -66,6 +66,7 @@ else
 
         set -x
         systemctl restart networking.service        || true
+        systemctl restart avahi-daemon.service      || true
         systemctl restart bitcoind.service          || true
         systemctl restart electrs.service           || true
         systemctl restart lightningd.service        || true

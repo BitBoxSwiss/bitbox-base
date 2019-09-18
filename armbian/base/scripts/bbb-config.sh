@@ -326,6 +326,8 @@ case "${COMMAND}" in
                     exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
                     hostname -F /etc/hostname
                     redis_set "base:hostname" "${3}"
+                    systemctl restart networking.service        || true
+                    systemctl restart avahi-daemon.service      || true
                 else
                     echo "Invalid argument: ${3} is not a valid hostname."
                     errorExit SET_HOSTNAME_INVALID_VALUE

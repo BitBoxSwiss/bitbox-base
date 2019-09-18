@@ -70,7 +70,8 @@ importFile() {
   fi
 
   # create directory
-  local DIR=$(dirname "${1}")
+  local DIR
+  DIR=$(dirname "${1}")
   mkdir -p "${DIR}"
 
   # strip leading slash and import file
