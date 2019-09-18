@@ -69,18 +69,18 @@ func TestResyncBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.ResyncBitcoin()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestReindexBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.ReindexBitcoin()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestMountFlashdrive(t *testing.T) {
@@ -88,7 +88,7 @@ func TestMountFlashdrive(t *testing.T) {
 	response := testMiddleware.MountFlashdrive()
 	require.Equal(t, true, response.Success)
 	require.Equal(t, "", response.Message)
-	require.Equal(t, "", response.Code)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestUnmountFlashdrive(t *testing.T) {
@@ -96,57 +96,57 @@ func TestUnmountFlashdrive(t *testing.T) {
 	response := testMiddleware.UnmountFlashdrive()
 	require.Equal(t, true, response.Success)
 	require.Equal(t, "", response.Message)
-	require.Equal(t, "", response.Code)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestBackupHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.BackupHSMSecret()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestBackupSysconfig(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.BackupSysconfig()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message, "")
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestRestoreHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.RestoreHSMSecret()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestRestoreSysconfig(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.RestoreSysconfig()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestEnableTor(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	responseEnable := testMiddleware.EnableTor(rpcmessages.ToggleSettingEnable)
-	require.Equal(t, responseEnable.Success, true)
-	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableTor(rpcmessages.ToggleSettingDisable)
-	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, true, responseDisable.Success)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestEnableTorMiddleware(t *testing.T) {
@@ -155,68 +155,68 @@ func TestEnableTorMiddleware(t *testing.T) {
 	responseEnable := testMiddleware.EnableTorMiddleware(rpcmessages.ToggleSettingEnable)
 	require.Equal(t, responseEnable.Success, true)
 	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableTorMiddleware(rpcmessages.ToggleSettingDisable)
-	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, true, responseDisable.Success)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestEnableTorElectrs(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	responseEnable := testMiddleware.EnableTorElectrs(rpcmessages.ToggleSettingEnable)
-	require.Equal(t, responseEnable.Success, true)
-	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableTorElectrs(rpcmessages.ToggleSettingDisable)
-	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, true, responseDisable.Success)
+	require.Equal(t, "", responseDisable.Message, "")
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestEnableClearnetIBD(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	responseEnable := testMiddleware.EnableClearnetIBD(rpcmessages.ToggleSettingEnable)
-	require.Equal(t, responseEnable.Success, true)
-	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableClearnetIBD(rpcmessages.ToggleSettingDisable)
-	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, true, responseDisable.Success)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestEnableTorSSH(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	responseEnable := testMiddleware.EnableTorSSH(rpcmessages.ToggleSettingEnable)
-	require.Equal(t, responseEnable.Success, true)
-	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableTorSSH(rpcmessages.ToggleSettingDisable)
 	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestEnableRootLogin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	responseEnable := testMiddleware.EnableRootLogin(rpcmessages.ToggleSettingEnable)
-	require.Equal(t, responseEnable.Success, true)
-	require.Equal(t, responseEnable.Message, "")
-	require.Equal(t, responseEnable.Code, "")
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
 	responseDisable := testMiddleware.EnableRootLogin(rpcmessages.ToggleSettingDisable)
-	require.Equal(t, responseDisable.Success, true)
-	require.Equal(t, responseDisable.Message, "")
-	require.Equal(t, responseDisable.Code, "")
+	require.Equal(t, true, responseDisable.Success, true)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
 func TestSetRootPassword(t *testing.T) {
@@ -224,27 +224,27 @@ func TestSetRootPassword(t *testing.T) {
 
 	// test valid root password set
 	responseValid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "iusethispasswordeverywhere"})
-	require.Equal(t, responseValid.Success, true)
-	require.Equal(t, responseValid.Message, "")
-	require.Equal(t, responseValid.Code, "")
+	require.Equal(t, true, responseValid.Success)
+	require.Equal(t, "", responseValid.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseValid.Code)
 
-	// test invalid (to short) root password set
+	// test invalid (too short) root password set
 	responseInvalid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "shrtone"})
-	require.Equal(t, responseInvalid.Success, false)
-	require.Equal(t, responseInvalid.Message, "invalid password")
-	require.Equal(t, responseInvalid.Code, "")
+	require.Equal(t, false, responseInvalid.Success)
+	require.Equal(t, "The password has to be at least 8 chars. An unicode char is counted as one.", responseInvalid.Message)
+	require.Equal(t, rpcmessages.ErrorSetRootPasswordTooShort, responseInvalid.Code)
 
-	// test 7 unicode's as password (to short)
+	// test 7 unicode's as password (too short)
 	responseUnicode7 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿₿₿₿₿₿₿"})
-	require.Equal(t, responseUnicode7.Success, false)
-	require.Equal(t, responseUnicode7.Message, "invalid password")
-	require.Equal(t, responseUnicode7.Code, "")
+	require.Equal(t, false, responseUnicode7.Success)
+	require.Equal(t, "The password has to be at least 8 chars. An unicode char is counted as one.", responseUnicode7.Message)
+	require.Equal(t, rpcmessages.ErrorSetRootPasswordTooShort, responseUnicode7.Code)
 
-	// test 7 unicode's as password (to short)
+	// test 8 unicode's as password (valid)
 	responseUnicode8 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿😂🔥🌑🚀📈世界"})
-	require.Equal(t, responseUnicode8.Success, true)
-	require.Equal(t, responseUnicode8.Message, "")
-	require.Equal(t, responseUnicode8.Code, "")
+	require.Equal(t, true, responseUnicode8.Success)
+	require.Equal(t, "", responseUnicode8.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseUnicode8.Code)
 }
 
 func TestUserAuthenticate(t *testing.T) {
@@ -331,7 +331,7 @@ func TestUserChangePassword(t *testing.T) {
 	require.Equal(t, true, changepasswordAdminChange.Success)
 	require.Equal(t, true, testMiddleware.DummyIsBaseSetup())
 
-	/* test invalid password change (to short, needs to be 7 chars) */
+	/* test invalid password change (too short, needs to be 7 chars) */
 	invalidArgs := rpcmessages.UserChangePasswordArgs{NewPassword: "1234567"}
 	changepasswordInvalid := testMiddleware.UserChangePassword(invalidArgs)
 
@@ -345,12 +345,15 @@ func TestUserChangePassword(t *testing.T) {
 	require.Equal(t, false, changepasswordEmpty.Success)
 	require.Equal(t, "password change unsuccessful (too short)", changepasswordEmpty.Message)
 }
+
 func TestGetHostname(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 	response := testMiddleware.GetHostname()
 
-	require.Equal(t, true, response.ErrorResponse.Success)
-	require.Equal(t, "get hostname", response.Hostname)
+	require.Equal(t, false, response.ErrorResponse.Success)
+	require.Equal(t, "GetHostname is not implemnted", response.ErrorResponse.Message)
+	require.Equal(t, rpcmessages.ErrorUnexpected, response.ErrorResponse.Code)
+	require.Equal(t, "", response.Hostname)
 }
 
 func TestSetHostname(t *testing.T) {
@@ -399,22 +402,23 @@ func TestGetBaseVersion(t *testing.T) {
 	response := testMiddleware.GetBaseVersion()
 	require.Equal(t, true, response.ErrorResponse.Success)
 	require.Equal(t, "0.0.1", response.Version)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.ErrorResponse.Code)
 }
 
 func TestShutdownBase(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.ShutdownBase()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
 func TestRebootBase(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
 	response := testMiddleware.RebootBase()
-	require.Equal(t, response.Success, true)
-	require.Equal(t, response.Message, "")
-	require.Equal(t, response.Code, "")
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
