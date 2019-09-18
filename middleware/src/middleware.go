@@ -252,7 +252,6 @@ func (middleware *Middleware) MountFlashdrive() rpcmessages.ErrorResponse {
 func (middleware *Middleware) UnmountFlashdrive() rpcmessages.ErrorResponse {
 	log.Println("Executing a USB flashdrive unmount via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"flashdrive", "unmount"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorFlashdriveUnmountNotMounted,
@@ -272,7 +271,6 @@ func (middleware *Middleware) UnmountFlashdrive() rpcmessages.ErrorResponse {
 func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
 	log.Println("Executing a backup of the system config via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"backup", "sysconfig"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorBackupSysconfigNotAMountpoint,
@@ -292,7 +290,6 @@ func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
 func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 	log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"backup", "hsm_secret"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -309,7 +306,6 @@ func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
 	log.Println("Executing a restore of the system config via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"restore", "sysconfig"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorRestoreSysconfigBackupNotFound,
@@ -329,7 +325,6 @@ func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
 func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
 	log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"restore", "hsm_secret"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -423,8 +418,6 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 
 // GetHostname returns a the systems hostname in a GetHostnameResponse
 func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
-	log.Println("Getting the hostname from redis")
-
 	// TODO: Implement get hostname from redis
 	// TODO: define error codes for this
 	return rpcmessages.GetHostnameResponse{
@@ -531,7 +524,6 @@ func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleS
 func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	log.Println("shutting down the Base via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"base", "shutdown"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -549,7 +541,6 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	log.Println("rebooting the Base via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"base", "reboot"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -611,7 +602,6 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 	// len([]rune("₿")) = 1
 	if len([]rune(password)) >= 8 {
 		out, err := middleware.runBBBConfigScript([]string{"set", "root_pw", password})
-
 		if err != nil {
 			errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 				rpcmessages.ErrorSetNeedsTwoArguments,
