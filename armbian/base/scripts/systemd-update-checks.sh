@@ -18,6 +18,12 @@ source /opt/shift/scripts/include/redis.sh.inc
 # include function generateConfig() to generate config files from templates
 source /opt/shift/scripts/include/generateConfig.sh.inc
 
+# error handling function
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
+
 # ------------------------------------------------------------------------------
 
 redis_require
@@ -34,6 +40,12 @@ redis_set "base:version" "${VERSION}"
 #   30: system tested OK
 #   40: mender update committed
 #   90: mender update failed
+
+# if Redis key is not set, assume update
+if [[ $(redis_get "base:updating") == "" ]]; then
+    echo "INFO: Redis key 'base:updating' is not set, assuming update"
+    redis_set "base:updating" 10
+fi
 
 if [[ $(redis_get "base:updating") -eq 0 ]]; then
     echo "INFO: not updating"
@@ -66,6 +78,7 @@ else
 
         set -x
         systemctl restart networking.service        || true
+        systemctl restart avahi-daemon.service      || true
         systemctl restart bitcoind.service          || true
         systemctl restart electrs.service           || true
         systemctl restart lightningd.service        || true
@@ -93,6 +106,7 @@ else
                 echo "ERR: service verification try ${run} of 100 unsuccessful, falling back to previous firmware version"
                 redis_set "base:updating" 90
                 /opt/shift/scripts/bbb-cmd.sh base restart
+                errorExit MENDER_UPDATE_SYSCONFIG_FAILED
             fi
         done
 

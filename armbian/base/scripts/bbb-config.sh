@@ -14,16 +14,17 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_ibd_clearnet|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
+  enable    <bitcoin_incoming|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
              tor|tor_bbbmiddleware|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
   set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
-            bitcoin_network     <mainnet|testnet>
-            bitcoin_ibd         <true|false>
-            bitcoin_dbcache     int (MB)
-            other arguments     string
+            bitcoin_network         <mainnet|testnet>
+            bitcoin_ibd             <true|false>
+            bitcoin_ibd_clearnet    <true|false>
+            bitcoin_dbcache         int (MB)
+            other arguments         string
 
   get       <tor_ssh_onion|tor_electrum_onion>
 
@@ -80,6 +81,12 @@ case "${COMMAND}" in
         fi
 
         case "${SETTING}" in
+            BITCOIN_INCOMING)
+                redis_set "bitcoind:listen" "${ENABLE}"
+                generateConfig "bitcoin.conf.template"
+                systemctl restart bitcoind.service
+                ;;
+                
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
@@ -156,11 +163,10 @@ case "${COMMAND}" in
                 ;;
 
             TOR_SSH|TOR_ELECTRUM|TOR_BBBMIDDLEWARE)
-                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
-                    redis_set "base:tor:ssh:enabled" "${ENABLE}"
+                    redis_set "tor:ssh:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
-                    redis_set "base:tor:electrs:enabled" "${ENABLE}"
+                    redis_set "tor:electrs:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_BBBMIDDLEWARE" ]]; then
                     redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
                 else
@@ -320,6 +326,8 @@ case "${COMMAND}" in
                     exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
                     hostname -F /etc/hostname
                     redis_set "base:hostname" "${3}"
+                    systemctl restart networking.service        || true
+                    systemctl restart avahi-daemon.service      || true
                 else
                     echo "Invalid argument: ${3} is not a valid hostname."
                     errorExit SET_HOSTNAME_INVALID_VALUE

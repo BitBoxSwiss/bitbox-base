@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1563182374556,
+  "iteration": 1568818067203,
   "links": [],
   "panels": [
     {
@@ -1021,14 +1021,14 @@
       "panels": [
         {
           "cacheTimeout": null,
-          "content": "<center><h2>$base_build_date</h2></center>",
+          "content": "<center><h2>$base_version</h2></center>",
           "gridPos": {
             "h": 2,
             "w": 3,
             "x": 0,
             "y": 6
           },
-          "id": 87,
+          "id": 99,
           "links": [],
           "mode": "html",
           "targets": [
@@ -1041,7 +1041,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "build date",
+          "title": "firmware version",
           "type": "text"
         },
         {
@@ -1278,12 +1278,37 @@
         },
         {
           "cacheTimeout": null,
-          "content": "<center><h2>$base_build_time</h2></center>",
+          "content": "<center><h2>$base_build_date</h2></center>",
           "gridPos": {
             "h": 2,
             "w": 3,
             "x": 0,
             "y": 8
+          },
+          "id": 87,
+          "links": [],
+          "mode": "html",
+          "targets": [
+            {
+              "expr": "",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "build date",
+          "type": "text"
+        },
+        {
+          "cacheTimeout": null,
+          "content": "<center><h2>$base_build_time</h2></center>",
+          "gridPos": {
+            "h": 2,
+            "w": 3,
+            "x": 0,
+            "y": 10
           },
           "id": 88,
           "links": [],
@@ -1308,7 +1333,7 @@
             "h": 2,
             "w": 3,
             "x": 0,
-            "y": 10
+            "y": 12
           },
           "id": 90,
           "links": [],
@@ -2421,7 +2446,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "3,4",
+      "thresholds": "3,6",
       "timeFrom": null,
       "timeShift": null,
       "title": "Chaintips",
@@ -4117,7 +4142,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "node",
           "value": "node"
         },
@@ -4143,7 +4167,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "127.0.0.1",
           "value": "127.0.0.1"
         },
@@ -4169,7 +4192,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "9100",
           "value": "9100"
         },
@@ -4195,8 +4217,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "HAPPYMAESTRO",
-          "value": "HAPPYMAESTRO"
+          "text": "ORANGESCAN",
+          "value": "ORANGESCAN"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -4220,8 +4242,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "0245f7f2b0df21faba7965b0e6365dfe6edcd147bf936a39126f4fef2fe98afdaa",
-          "value": "0245f7f2b0df21faba7965b0e6365dfe6edcd147bf936a39126f4fef2fe98afdaa"
+          "text": "03cf3fe6592961579e5408a80290b22682b8d8915e7f58705d151b72134f9d507b",
+          "value": "03cf3fe6592961579e5408a80290b22682b8d8915e7f58705d151b72134f9d507b"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -4270,8 +4292,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "v0.7.0",
-          "value": "v0.7.0"
+          "text": "v0.7.2.1",
+          "value": "v0.7.2.1"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, version)",
@@ -4295,18 +4317,18 @@
       {
         "allValue": null,
         "current": {
-          "text": "bitbox-base",
-          "value": "bitbox-base"
+          "text": "cleopatra",
+          "value": "cleopatra"
         },
         "datasource": "Prometheus",
-        "definition": "label_values(base_system_info, hostname)",
+        "definition": "label_values(base_system_info, base_hostname)",
         "hide": 2,
         "includeAll": false,
         "label": "HOSTNAME",
         "multi": false,
         "name": "base_hostname",
         "options": [],
-        "query": "label_values(base_system_info, hostname)",
+        "query": "label_values(base_system_info, base_hostname)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -4320,8 +4342,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "2019-07-10",
-          "value": "2019-07-10"
+          "text": "2019-09-08",
+          "value": "2019-09-08"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_date)",
@@ -4345,8 +4367,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "13:47",
-          "value": "13:47"
+          "text": "13:02",
+          "value": "13:02"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_time)",
@@ -4370,8 +4392,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "90d67e5",
-          "value": "90d67e5"
+          "text": "de28372",
+          "value": "de28372"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_commit)",
@@ -4382,6 +4404,31 @@
         "name": "base_build_commit",
         "options": [],
         "query": "label_values(base_system_info, build_commit)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "0.0.3",
+          "value": "0.0.3"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(base_system_info, base_version)",
+        "hide": 2,
+        "includeAll": false,
+        "label": "VERSION",
+        "multi": false,
+        "name": "base_version",
+        "options": [],
+        "query": "label_values(base_system_info, base_version)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -4422,5 +4469,5 @@
   "timezone": "",
   "title": "BitBox Base",
   "uid": "BitBoxBase",
-  "version": 23
+  "version": 25
 }
