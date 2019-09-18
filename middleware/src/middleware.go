@@ -148,7 +148,7 @@ func (middleware *Middleware) Start() <-chan []byte {
 // ResyncBitcoin returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the config script")
-	out, err := middleware.runBBBCmdScript("bitcoind", "resync", "")
+	out, err := middleware.runBBBCmdScript([]string{"bitcoind", "resync"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -158,7 +158,7 @@ func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 // ReindexBitcoin returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the config script")
-	out, err := middleware.runBBBCmdScript("bitcoind", "reindex", "")
+	out, err := middleware.runBBBCmdScript([]string{"bitcoind", "reindex"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -196,14 +196,14 @@ func (middleware *Middleware) DummyAdminPassword() string {
 // MountFlashdrive returns an ErrorResponse struct in a response to a rpcserver request
 func (middleware *Middleware) MountFlashdrive() rpcmessages.ErrorResponse {
 	log.Println("Executing a USB flashdrive check via the cmd script")
-	outCheck, err := middleware.runBBBCmdScript("flashdrive", "check", "")
+	outCheck, err := middleware.runBBBCmdScript([]string{"flashdrive", "check"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(outCheck), Code: err.Error()}
 	}
 	flashDriveName := strings.TrimSuffix(string(outCheck), "\n")
 
 	log.Println("Executing a USB flashdrive mount via the cmd script")
-	outMount, err := middleware.runBBBCmdScript("flashdrive", "mount", flashDriveName)
+	outMount, err := middleware.runBBBCmdScript([]string{"flashdrive", "mount", flashDriveName})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(outMount), Code: err.Error()}
 	}
@@ -213,7 +213,7 @@ func (middleware *Middleware) MountFlashdrive() rpcmessages.ErrorResponse {
 // UnmountFlashdrive returns an ErrorResponse struct in a response to a rpcserver request
 func (middleware *Middleware) UnmountFlashdrive() rpcmessages.ErrorResponse {
 	log.Println("Executing a USB flashdrive unmount via the cmd script")
-	out, err := middleware.runBBBCmdScript("flashdrive", "unmount", "")
+	out, err := middleware.runBBBCmdScript([]string{"flashdrive", "unmount"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -223,7 +223,7 @@ func (middleware *Middleware) UnmountFlashdrive() rpcmessages.ErrorResponse {
 // BackupSysconfig returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
 	log.Println("Executing a backup of the system config via the cmd script")
-	out, err := middleware.runBBBCmdScript("backup", "sysconfig", "")
+	out, err := middleware.runBBBCmdScript([]string{"backup", "sysconfig"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -233,7 +233,7 @@ func (middleware *Middleware) BackupSysconfig() rpcmessages.ErrorResponse {
 // BackupHSMSecret returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 	log.Println("Executing a backup of the c-lightning hsm_secret via the cmd script")
-	out, err := middleware.runBBBCmdScript("backup", "hsm_secret", "")
+	out, err := middleware.runBBBCmdScript([]string{"backup", "hsm_secret"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -243,7 +243,7 @@ func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 // RestoreSysconfig returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
 	log.Println("Executing a restore of the system config via the cmd script")
-	out, err := middleware.runBBBCmdScript("restore", "sysconfig", "")
+	out, err := middleware.runBBBCmdScript([]string{"restore", "sysconfig"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -253,7 +253,7 @@ func (middleware *Middleware) RestoreSysconfig() rpcmessages.ErrorResponse {
 // RestoreHSMSecret returns a ErrorResponse struct in response to a rpcserver request
 func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
 	log.Println("Executing a restore of the c-lightning hsm_secret via the cmd script")
-	out, err := middleware.runBBBCmdScript("restore", "hsm_secret", "")
+	out, err := middleware.runBBBCmdScript([]string{"restore", "hsm_secret"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -314,7 +314,7 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 	hostname := args.Hostname
 
 	if r.MatchString(hostname) {
-		out, err := middleware.runBBBConfigScript("set", "hostname", hostname)
+		out, err := middleware.runBBBConfigScript([]string{"set", "hostname", hostname})
 		if err != nil {
 			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 		}
@@ -326,7 +326,7 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 // GetHostname returns a the systems hostname in a GetHostnameResponse
 func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 	log.Println("Getting the hostname via the config script")
-	out, err := middleware.runBBBConfigScript("get", "hostname", "")
+	out, err := middleware.runBBBConfigScript([]string{"get", "hostname"})
 	if err != nil {
 		return rpcmessages.GetHostnameResponse{
 			ErrorResponse: &rpcmessages.ErrorResponse{
@@ -350,8 +350,7 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s Tor' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "tor", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -362,8 +361,7 @@ func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) 
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s Tor for middleware' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "tor_bbbmiddleware", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_bbbmiddleware"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -374,8 +372,7 @@ func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.Toggl
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s Tor for electrs' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "tor_electrs", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_electrs"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -386,20 +383,17 @@ func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSe
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorSSH(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s Tor for ssh' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "tor_ssh", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_ssh"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// EnableClearnetIBD sets the initial block download over clearnet to either true or false
-// based on the passed ToggleSettingEnable/Disable argument and returns a ErrorResponse indicating if the call was successful.
+// EnableClearnetIBD enables/disables the initial block download over clearnet based on the passed ToggleSettingEnable/Disable argument
 func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s clearnet IBD' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "bitcoin_ibd_clearnet", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "bitcoin_ibd_clearnet"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -410,7 +404,7 @@ func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleS
 // It calls the bbb-cmd.sh script which initializes a shutdown
 func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	log.Println("shutting down the Base via the cmd script")
-	out, err := middleware.runBBBCmdScript("base", "shutdown", "")
+	out, err := middleware.runBBBCmdScript([]string{"base", "shutdown"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -421,7 +415,7 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 // It calls the bbb-cmd.sh script which initializes a reboot
 func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	log.Println("rebooting the Base via the cmd script")
-	out, err := middleware.runBBBCmdScript("base", "reboot", "")
+	out, err := middleware.runBBBCmdScript([]string{"base", "reboot"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -454,8 +448,7 @@ func (middleware *Middleware) GetBaseVersion() rpcmessages.GetBaseVersionRespons
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
 	log.Printf("Executing '%s root login' via the config script.\n", toggleAction)
-
-	out, err := middleware.runBBBConfigScript(string(toggleAction), "root_pwlogin", "")
+	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "root_pwlogin"})
 	if err != nil {
 		return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 	}
@@ -471,7 +464,7 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 	// len("₿") = 3
 	// len([]rune("₿")) = 1
 	if len([]rune(password)) >= 8 {
-		out, err := middleware.runBBBConfigScript("set", "root_pw", password)
+		out, err := middleware.runBBBConfigScript([]string{"set", "root_pw", password})
 		if err != nil {
 			return rpcmessages.ErrorResponse{Success: false, Message: string(out), Code: err.Error()}
 		}
@@ -482,10 +475,10 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
-func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 string) (out []byte, err error) {
+func (middleware *Middleware) runBBBCmdScript(args []string) (out []byte, err error) {
 	script := middleware.environment.GetBBBCmdScript()
-	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
-	out, err = exec.Command(script, method, arg1, arg2).Output()
+	cmdAsString := script + " " + strings.Join(args, " ")
+	out, err = exec.Command(script, args...).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())
@@ -496,10 +489,10 @@ func (middleware *Middleware) runBBBCmdScript(method string, arg1 string, arg2 s
 // runBBBConfigScript runs the bbb-config.sh script.
 // The script changes the system configuration in redis by setting or unsetting the appropriate keys.
 // If necessary the affected services are restarted.
-func (middleware *Middleware) runBBBConfigScript(method string, arg1 string, arg2 string) (out []byte, err error) {
+func (middleware *Middleware) runBBBConfigScript(args []string) (out []byte, err error) {
 	script := middleware.environment.GetBBBConfigScript()
-	cmdAsString := strings.Join([]string{script, method, arg1, arg2}, " ")
-	out, err = exec.Command(script, method, arg1, arg2).Output()
+	cmdAsString := script + " " + strings.Join(args, " ")
+	out, err = exec.Command(script, args...).Output()
 	if err != nil {
 		// no error handling here, only logging.
 		log.Printf("Error: The command '%s' exited with the output '%v' and error '%s'.\n", cmdAsString, string(out), err.Error())

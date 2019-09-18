@@ -350,7 +350,7 @@ func TestGetHostname(t *testing.T) {
 	response := testMiddleware.GetHostname()
 
 	require.Equal(t, true, response.ErrorResponse.Success)
-	require.Equal(t, "get hostname ", response.Hostname)
+	require.Equal(t, "get hostname", response.Hostname)
 }
 
 func TestSetHostname(t *testing.T) {
