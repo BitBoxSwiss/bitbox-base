@@ -66,7 +66,7 @@ func (c Client) GetInt(key string) (val int, err error) {
 	conn := c.getConnection()
 	val, err = redis.Int(conn.Do("GET", key))
 	if err != nil {
-		return -1, fmt.Errorf("could not key %s as integer: %s", key, err.Error())
+		return -1, fmt.Errorf("could not get key %s as integer: %s", key, err.Error())
 	}
 	return val, nil
 }
@@ -86,7 +86,7 @@ func (c Client) SetString(key string, value string) error {
 	conn := c.getConnection()
 	_, err := conn.Do("SET", key, value)
 	if err != nil {
-		return fmt.Errorf("could not et key %s: %s", key, err.Error())
+		return fmt.Errorf("could not set key %s: %s", key, err.Error())
 	}
 	return nil
 }

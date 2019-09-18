@@ -90,7 +90,7 @@ type GetHostnameResponse struct {
 // In any case the ErrorResponse should be checked first, so that, if an error is returned, we ignore everything else in the response.
 type ErrorResponse struct {
 	Success bool
-	Code    string
+	Code    ErrorCode
 	Message string
 }
 
