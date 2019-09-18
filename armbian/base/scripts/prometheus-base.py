@@ -40,7 +40,7 @@ def readFile(filepath):
     return value
 
 def getSystemInfo():
-    rediskeys = ['base:hostname','build:date','build:time','build:commit']
+    rediskeys = ['base:hostname','base:version','build:date','build:time','build:commit']
     info = {}
     for k in rediskeys:
         infoName = k.lower().replace(":", "_")
