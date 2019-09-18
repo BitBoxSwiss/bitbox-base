@@ -150,7 +150,6 @@ func (middleware *Middleware) Start() <-chan []byte {
 func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"bitcoind", "resync"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -167,7 +166,6 @@ func (middleware *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
 	log.Println("executing full bitcoin resync via the cmd script")
 	out, err := middleware.runBBBCmdScript([]string{"bitcoind", "reindex"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -212,7 +210,6 @@ func (middleware *Middleware) DummyAdminPassword() string {
 func (middleware *Middleware) MountFlashdrive() rpcmessages.ErrorResponse {
 	log.Println("Executing a USB flashdrive check via the cmd script")
 	outCheck, err := middleware.runBBBCmdScript([]string{"flashdrive", "check"})
-
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(outCheck, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorFlashdriveCheckMultiple,
@@ -436,7 +433,6 @@ func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) 
 	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
-
 		return rpcmessages.ErrorResponse{
 			Success: false,
 			Message: strings.Join(out, "\n"),
@@ -454,7 +450,6 @@ func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.Toggl
 	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_bbbmiddleware"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
-
 		return rpcmessages.ErrorResponse{
 			Success: false,
 			Message: strings.Join(out, "\n"),
@@ -472,7 +467,6 @@ func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSe
 	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_electrs"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
-
 		return rpcmessages.ErrorResponse{
 			Success: false,
 			Message: strings.Join(out, "\n"),
