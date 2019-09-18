@@ -32,5 +32,4 @@ seednode={{         bitcoind:seednode:2         #rmLine }}                  {{ t
 seednode={{         bitcoind:seednode:3         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
 
 # validation
-assumevalid={{        bitcoind:assumevalid         #default: 1 }}
 reindex-chainstate={{ bitcoind:reindex-chainstate  #rmLine }}               {{ bitcoind:reindex-chainstate #rmLineFalse }}

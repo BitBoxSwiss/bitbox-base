@@ -17,7 +17,6 @@ SET tor:bbbmiddleware:enabled 1
 SET bitcoind:version xxx
 SET bitcoind:ibd 1
 SET bitcoind:ibd-clearnet 0
-SET bitcoind:assumevalid 1
 SET bitcoind:network mainnet
 SET bitcoind:testnet 0
 SET bitcoind:mainnet 1
