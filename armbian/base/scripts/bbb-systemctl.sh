@@ -1,8 +1,20 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 set -eu
 
 # BitBox Base: batch control system units
 #
+
+# include functions redis_set() and redis_get()
+source /opt/shift/scripts/include/redis.sh.inc
+
+# error handling function
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
+
+# ------------------------------------------------------------------------------
 
 function usage() {
     echo "BitBox Base: batch control system units"
@@ -54,19 +66,19 @@ grafana:                  $(systemctl is-active grafana-server.service)
 
         systemctl daemon-reload
 
-        systemctl $ACTION prometheus
-        systemctl $ACTION prometheus-base.service
-        systemctl $ACTION prometheus-bitcoind.service
-        systemctl $ACTION prometheus-node-exporter.service
-        systemctl $ACTION grafana-server.service
-        systemctl $ACTION bbbmiddleware.service
-        systemctl $ACTION nginx.service
-        systemctl $ACTION electrs.service
-        systemctl $ACTION lightningd.service
-        systemctl $ACTION bitcoind.service
-        systemctl $ACTION bbbsupervisor.service
-        systemctl $ACTION bbbfancontrol.service
-        systemctl $ACTION redis.service
+        systemctl "$ACTION" prometheus
+        systemctl "$ACTION" prometheus-base.service
+        systemctl "$ACTION" prometheus-bitcoind.service
+        systemctl "$ACTION" prometheus-node-exporter.service
+        systemctl "$ACTION" grafana-server.service
+        systemctl "$ACTION" bbbmiddleware.service
+        systemctl "$ACTION" nginx.service
+        systemctl "$ACTION" electrs.service
+        systemctl "$ACTION" lightningd.service
+        systemctl "$ACTION" bitcoind.service
+        systemctl "$ACTION" bbbsupervisor.service
+        systemctl "$ACTION" bbbfancontrol.service
+        systemctl "$ACTION" redis.service
         ;;
 
     verify)
@@ -79,18 +91,29 @@ grafana:                  $(systemctl is-active grafana-server.service)
             systemctl is-active -q grafana-server.service           && \
             systemctl is-active -q bbbmiddleware.service            && \
             systemctl is-active -q nginx.service                    && \
-            systemctl is-active -q electrs.service                  && \
-            systemctl is-active -q lightningd.service               && \
             systemctl is-active -q bitcoind.service                 && \
             systemctl is-active -q bbbsupervisor.service            && \
             systemctl is-active -q bbbfancontrol.service            && \
             systemctl is-active -q redis.service
         then
+            if  [[ "$(redis_get 'bitcoind:ibd')" -ne 1 ]]; then
+                if  ! systemctl is-active -q electrs.service        || \
+                    ! systemctl is-active -q lightningd.service
+                then
+                    echo "ERR: bitcoind not in IBD mode, but lightningd and/or electrs not running"
+                    errorExit SYSTEMD_NOT_ALL_SERVICES_RUNNING
+                fi
+
+            else
+                echo "OK: bitcoind is in IBD mode"
+            fi
+
             echo "OK: all services are active"
             exit 0
+
         else
             echo "ERR: not all services are active"
-            exit 1
+            errorExit SYSTEMD_NOT_ALL_SERVICES_RUNNING
         fi
         ;;
 esac
