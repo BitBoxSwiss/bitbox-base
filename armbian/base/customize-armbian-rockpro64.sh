@@ -363,7 +363,8 @@ rm -f /etc/ssh/ssh_host_*
 
 ## set debug console to only use display, not serial console ttyS2 over UART
 echo 'console=display' >> /boot/armbianEnv.txt
-systemctl mask serial-getty@ttyS2.service
+systemctl mask serial-getty@ttyS2.service || true
+systemctl mask serial-getty@ttyFIQ0       || true
 
 ## generate selfsigned NGINX key when run script is run on device, plus symlink to /data
 mkdir -p /data/ssl/
