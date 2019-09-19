@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 #
 # This script is run by systemd using the ExecStartPre option
 # before starting bitcoind.service (Bitcoin Core).
@@ -8,8 +9,13 @@
 set -eu
 
 # include functions redis_set() and redis_get()
-# shellcheck disable=SC1091
 source /opt/shift/scripts/include/redis.sh.inc
+
+# include errorExit() function
+source /opt/shift/scripts/include/errorExit.sh.inc
+
+# include errorExit() function
+source /opt/shift/scripts/include/errorExit.sh.inc
 
 # ------------------------------------------------------------------------------
 
@@ -34,7 +40,7 @@ fi
 BITCOIN_DIR="/mnt/ssd/bitcoin/.bitcoin"
 if [ ! -d "${BITCOIN_DIR}" ] || [ ! -x "${BITCOIN_DIR}" ]; then
     echo "ERR: cannot start 'bitcoind', directory ${BITCOIN_DIR} not accessible"
-    exit 1
+    errorExit BITCOIND_DIRECTORY_NOT_ACCESSIBLE
 else
     echo "INFO: starting 'bitcoind', directory ${BITCOIN_DIR} accessible"
 fi

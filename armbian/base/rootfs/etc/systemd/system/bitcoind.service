@@ -14,7 +14,6 @@ ExecStartPre=+/opt/shift/scripts/systemd-bitcoind-startpre.sh
 ExecStart=/usr/bin/bitcoind \
     -conf=/etc/bitcoin/bitcoin.conf \
     -pid=/run/bitcoind/bitcoind.pid
-ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
 
 # Process management
 ####################

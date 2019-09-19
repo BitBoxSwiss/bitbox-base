@@ -8,11 +8,8 @@ set -eu
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc
 
-# error handling function
-errorExit() {
-    echo "$@" 1>&2
-    exit 1
-}
+# include errorExit() function
+source /opt/shift/scripts/include/errorExit.sh.inc
 
 # ------------------------------------------------------------------------------
 
