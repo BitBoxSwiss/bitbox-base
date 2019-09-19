@@ -64,15 +64,17 @@ case ${ACTION} in
 		echo "Cleaning up..."
 		rm "input/${SOURCE_NAME}.img"
 		rm "output/${TEMP_NAME}.ext4"
+
+		mkdir -p "../../bin/img-mender/${VERSION}"
 		mv "output/${TEMP_NAME}.sdimg" "output/${TARGET_NAME}.img"
-		mv "output/${TEMP_NAME}.mender" "output/${TARGET_NAME}.base"
-		mv output/${TARGET_NAME}* ../../bin/img-mender/
+		mv "output/${TEMP_NAME}.mender" "output/${TARGET_NAME}.base-unsigned"
+		mv output/"${TARGET_NAME}"* "../../bin/img-mender/${VERSION}/"
 
 		echo "Mender files ready for provisioning:"
-		stat -c "%y %s %n" ../../bin/img-mender/${TARGET_NAME}*
+		stat -c "%y %s %n" "../../bin/img-mender/${VERSION}/${TARGET_NAME}"*
 		echo 
 		echo "Write to eMMC with the following command (check target device /dev/sdX first!):"
-		echo "dd if=./bin/img-mender/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
+		echo "dd if=./bin/img-mender/${VERSION}/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
 		echo
         ;;
 esac

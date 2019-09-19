@@ -154,3 +154,11 @@ sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
 ## mount potentially updated /etc/fstab, activate swapfile
 mount -a
 swapon /mnt/ssd/swapfile || true
+
+# Firmware updates
+# ------------------------------------------------------------------------------
+# initialize mender configuration
+if ! grep -q '/shift/' /etc/mender/mender.conf ; then
+    exec_overlayroot all-layers 'rm -f /etc/mender/mender.* /etc/mender/server.crt || true'
+    exec_overlayroot all-layers 'cp -f /opt/shift/config/mender/mender.conf /etc/mender/'
+fi

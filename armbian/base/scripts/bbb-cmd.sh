@@ -359,6 +359,7 @@ case "${MODULE}" in
                         redis_set "base:updating" 10
                     
                     else
+                        # Todo(Stadicus): catch the specific error 'expecting signed artifact, but no signature file found'
                         ERR=${?}
                         echo "ERR: mender install failed with error code ${ERR}"
                         errorExit MENDER_UPDATE_INSTALL_FAILED
