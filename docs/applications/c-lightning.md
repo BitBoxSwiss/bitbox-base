@@ -22,7 +22,7 @@ The application configuration is specified in the local `/etc/lightningd/lightni
 ```
 bitcoin-cli=/usr/bin/bitcoin-cli
 bitcoin-rpcconnect=127.0.0.1
-bitcoin-rpcport=18332
+bitcoin-rpcport=8332
 network=testnet
 lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet
 bind-addr=127.0.0.1:9735

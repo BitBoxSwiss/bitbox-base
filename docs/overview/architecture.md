@@ -52,6 +52,7 @@ Additional noteworthy components on the BitBox Base:
 
 * [Base Supervisor](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor): custom daemon for operational monitoring and control, providing system health information and node configuration
 * [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network
+* [Redis](https://redis.io/): in-memory key/value datastore, acting as central configuration repository 
 * [Prometheus](https://prometheus.io/): monitoring of system and software components
 * [Grafana](https://grafana.com/): visualization of system and network performance metrics
 
