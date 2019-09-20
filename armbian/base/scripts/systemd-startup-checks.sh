@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 #
 # This script is called by the startup-checks.service on boot
 # to check basic system parameters and assure correct configuration.
@@ -12,32 +13,6 @@ set -eu
 source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
 # ------------------------------------------------------------------------------
-
-# UART configuration
-# ------------------------------------------------------------------------------
-# TODO(Stadicus): Adjust to new Mender configuration
-
-# disable serial output on UART0
-# if ! grep -Fiq "console=display" /boot/armbianEnv.txt; then
-#   if ! grep -Fiq "console=" /boot/armbianEnv.txt; then
-#     echo "console=display" >> /boot/armbianEnv.txt
-#   else
-#     sed -i '/console=/Ic\console=display' /boot/armbianEnv.txt
-#   fi
-#   mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr > /opt/shift/config/uartconfig.log
-#
-#   UART_REBOOT=0
-#   [ -f "${SYSCONFIG_PATH}/UART_REBOOT" ] && source "${SYSCONFIG_PATH}/UART_REBOOT"
-#   if [ ${UART_REBOOT} -eq 1 ]; then 
-#     echo "ERR: previous UART_REBOOT not successful, check system"
-#   else
-#     echo "UART_REBOOT=1" > /data/sysconfig/UART_REBOOT
-#     reboot
-#   fi
-# else
-#   echo "UART_REBOOT=0" > /data/sysconfig/UART_REBOOT
-# fi
-
 
 # SSD configuration
 # ------------------------------------------------------------------------------
@@ -85,7 +60,7 @@ sudo mount -a
 ## abort check if SSD mount is not successful
 if ! mountpoint /mnt/ssd -q; then 
     echo "Mounting of SSD failed"
-    exit 1
+    errorExit SSD_NOT_MOUNTED
 fi
 
 # Folders & permissions

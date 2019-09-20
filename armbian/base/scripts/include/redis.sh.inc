@@ -27,6 +27,7 @@ redis_require() {
     ok=$(redis-cli -h localhost -p 6379 -n 0 PING) || true
     if [[ "${ok}"  != "PONG" ]]; then
         echo "ERR: Redis not available, aborting"
+        echo "REDIS_REQUIRED_BUT_NOT_RUNNING" 1>&2
         exit 1
     else
         echo "INFO: Redis available"

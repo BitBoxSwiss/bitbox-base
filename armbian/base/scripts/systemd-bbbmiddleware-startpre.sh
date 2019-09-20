@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 #
 # This script is run by systemd using the ExecStartPre option
 # before starting bbbmiddleware.service.
@@ -6,7 +7,6 @@
 set -eu
 
 # include functions redis_set() and redis_get()
-# shellcheck disable=SC1091
 source /opt/shift/scripts/include/redis.sh.inc
 
 # ------------------------------------------------------------------------------

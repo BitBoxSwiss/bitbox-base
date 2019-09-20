@@ -31,11 +31,8 @@ source /opt/shift/scripts/include/redis.sh.inc
 # include function generateConfig() to generate config files from templates
 source /opt/shift/scripts/include/generateConfig.sh.inc
 
-# error handling function
-errorExit() {
-    echo "$@" 1>&2
-    exit 1
-}
+# include errorExit() function
+source /opt/shift/scripts/include/errorExit.sh.inc
 
 # ------------------------------------------------------------------------------
 

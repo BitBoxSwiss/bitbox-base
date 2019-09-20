@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 #
 # This script is run by systemd using the ExecStartPost option 
 # after starting lightningd.service (c-lightning).
@@ -6,11 +7,8 @@
 
 set -eu
 
-redis_get() {
-    # usage: str=$(redis_get "key")
-    ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}")
-    echo "${ok}"
-}
+# include functions redis_set() and redis_get()
+source /opt/shift/scripts/include/redis.sh.inc
 
 # ------------------------------------------------------------------------------
 
