@@ -8,6 +8,7 @@ SET base:wifi:enabled 0
 SET base:wifi:ssid none
 SET base:wifi:password none
 SET base:hostname bitbox-base
+SET base:updating 0
 
 SET tor:base:enabled 1
 SET tor:ssh:enabled 0

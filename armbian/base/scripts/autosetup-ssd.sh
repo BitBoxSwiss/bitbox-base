@@ -42,9 +42,9 @@ function list_targets() {
         if [[ ${#type} -gt 0 ]]; then
             blockdev_target="NO: has file system"
 
-        # check if at least 200GB
-        elif [[ ${size} -lt 200000000000 ]]; then
-            blockdev_target="NO: too small (min 200GB)"
+        # check if at least 400GB
+        elif [[ ${size} -lt 400000000000 ]]; then
+            blockdev_target="NO: too small (min 400GB)"
 
         else
             # check top-level device for partitions

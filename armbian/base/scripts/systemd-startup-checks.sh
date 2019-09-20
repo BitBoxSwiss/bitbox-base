@@ -45,10 +45,10 @@ source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 if ! grep -q '/mnt/ssd ' /etc/fstab ; then
 
     ## valid partition present?
-    if lsblk | grep -q 'nvme0n1p1'; then
+    if lsblk | grep -q 'nvme0n1p1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep nvme0n1p1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
         exec_overlayroot all-layers "echo '/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
-    elif lsblk | grep -q 'sda1'; then
+    elif lsblk | grep -q 'sda1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep sda1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
         exec_overlayroot all-layers "echo '/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
     else
@@ -65,10 +65,10 @@ if ! grep -q '/mnt/ssd ' /etc/fstab ; then
             fi
         fi
 
-        ## check for newly created partition
-        if lsblk | grep -q 'nvme0n1p1'; then
+        ## check for newly created partition (must be bigger than 400GB to prevent flashdrive mount)
+        if lsblk | grep -q 'nvme0n1p1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep nvme0n1p1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
             echo "/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
-        elif lsblk | grep -q 'sda1'; then
+        elif lsblk | grep -q 'sda1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep sda1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
             echo "/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2" >> /etc/fstab
         else
             echo "ERR: autosetup partition not found"
