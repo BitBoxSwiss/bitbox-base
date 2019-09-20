@@ -26,6 +26,7 @@ SET bitcoind:listen 1
 SET bitcoind:txindex 0
 SET bitcoind:prune 0
 SET bitcoind:disablewallet 1
+SET bitcoind:sysperms 1
 SET bitcoind:refresh-rpcauth 1
 SET bitcoind:rpcauth xxx
 SET bitcoind:rpcuser xxx
