@@ -142,20 +142,23 @@ case "${COMMAND}" in
                 if [[ ${ENABLE} -eq 1 ]]; then
                     exec_overlayroot all-layers "systemctl enable tor.service"
                     redis_set "tor:base:enabled" "${ENABLE}"
+                    generateConfig "iptables.rules.template"
                     generateConfig "bitcoin.conf.template"
                     generateConfig "lightningd.conf.template"
                     systemctl start tor.service
                 else
                     exec_overlayroot all-layers "systemctl disable tor.service"
                     redis_set "tor:base:enabled" "${ENABLE}"
+                    generateConfig "iptables.rules.template"
                     generateConfig "bitcoin.conf.template"
                     generateConfig "lightningd.conf.template"
                     systemctl stop tor.service
                 fi
                 echo "Restarting services..."
+                systemctl start iptables-restore
                 systemctl restart networking.service
                 systemctl restart bitcoind.service
-
+                systemctl restart lightningd.service || true        # allowed to fail if bitcoind is in IBD mode
                 redis_set "tor:base:enabled" "${ENABLE}"
                 ;;
 
@@ -288,7 +291,9 @@ case "${COMMAND}" in
 
                 # configure bitcoind to run over IPv4 while in IBD mode
                 redis_set "bitcoind:ibd-clearnet" "${SET}"
+                generateConfig "iptables.rules.template"
                 generateConfig "bitcoin.conf.template"
+                systemctl start iptables-restore
                 systemctl restart bitcoind
                 echo "OK: bitcoind:ibd-clearnet set to ${SET}"
                 ;;
