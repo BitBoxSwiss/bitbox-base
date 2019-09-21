@@ -9,7 +9,7 @@ import json
 import time
 import subprocess
 import sys
-from prometheus_client import start_http_server, Gauge, Counter
+from prometheus_client import start_http_server, Gauge, Counter, Info
 
 # CONFIG
 #   counting transaction inputs and outputs requires that bitcoind is configured with txindex=1, which may also necessitate reindex=1 in bitcoin.conf
@@ -23,6 +23,7 @@ bitcoind_conf = "-conf=/etc/bitcoin/bitcoin.conf"
 # Create Prometheus metrics to track bitcoind stats.
 BITCOIN_IBD = Gauge("bitcoin_ibd", "Bitcoin is in Initial Block Download mode")
 BITCOIN_NETWORK = Gauge("bitcoin_network", "Bitcoin network (1=main/2=test/3=reg")
+BITCOIN_TOR_ADDRESS = Info("bitcoin_tor_address", "Tor onion address")
 BITCOIN_BLOCKS = Gauge("bitcoin_blocks", "Block height")
 BITCOIN_HEADERS = Gauge("bitcoin_headers", "Block headers")
 BITCOIN_VERIFICATION_PROGRESS = Gauge(
@@ -145,6 +146,15 @@ def main():
             # map network names to int (0 = undefined)
             networks = {"main": 1, "test": 2, "regtest": 3}
             BITCOIN_NETWORK.set(networks.get(blockchaininfo["chain"], 0))
+
+            info = {}
+            try:
+                # get the first entry of localaddresses (might not work with multiple addresses)
+                info['bitcoind_tor_address'] = networkinfo["localaddresses"][0]["address"] 
+            except:
+                info['bitcoind_tor_address'] = 'n/a'
+
+            BITCOIN_TOR_ADDRESS.info(info)
 
             # map ibd numerical values
             ibd = {True: 1, False: 0}
