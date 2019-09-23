@@ -53,7 +53,7 @@ func (c Client) queryJSON(expression string) (string, error) {
 	return string(body), nil
 }
 
-// parsePrometheusResponseAsFloat parses a promethues JSON response and returns a float
+// parsePrometheusResponseAsFloat parses a prometheus JSON response and returns a float
 func (c Client) parsePrometheusResponseAsFloat(json string) (float64, error) {
 
 	// Check for a valid prometheus json response by checking:
