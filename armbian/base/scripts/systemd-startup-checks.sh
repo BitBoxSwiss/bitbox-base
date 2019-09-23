@@ -73,6 +73,8 @@ chown bitcoin:system /mnt/ssd/
 mkdir -p /mnt/ssd/bitcoin/.bitcoin/testnet3
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/
 chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/bitcoin/
+setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
+setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
 ## lightningd socket
 chmod 770 /mnt/ssd/bitcoin/.lightning/lightning-rpc || true
