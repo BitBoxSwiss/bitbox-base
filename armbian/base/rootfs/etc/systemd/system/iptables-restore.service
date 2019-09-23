@@ -7,7 +7,7 @@ Before=network.target
 # Service execution
 ###################
 
-ExecStart=/bin/sh -c "/sbin/iptables-restore < /etc/iptables/iptables.rules"
+ExecStart=/opt/shift/scripts/systemd-iptables-restore.sh
 
 # Process management
 ####################

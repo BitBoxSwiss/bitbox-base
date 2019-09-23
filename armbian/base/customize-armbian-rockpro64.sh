@@ -718,7 +718,7 @@ sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon
 importFile "/etc/avahi/services/bitboxbase.service"
 
 ## firewall: restore iptables rules on startup
-importFile "/etc/iptables/iptables.rules"
+generateConfig "iptables.rules.template" # -->  /etc/iptables/iptables.rules
 importFile "/etc/systemd/system/iptables-restore.service"
 
 

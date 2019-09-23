@@ -52,6 +52,7 @@ SET lightningd:log-level debug
 SET lightningd:plugin:1 /opt/shift/scripts/prometheus-lightningd.py
 
 SET electrs:version xxx
+SET electrs:clearnet 1
 SET electrs:db_dir /mnt/ssd/electrs/db
 SET electrs:daemon_dir /mnt/ssd/bitcoin/.bitcoin
 SET electrs:monitoring_addr 127.0.0.1:4224

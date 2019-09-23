@@ -1,3 +1,4 @@
+{{ #output: /etc/iptables/iptables.rules }}
 *filter
 # Default policy is DROP; we need to explicitly allow any packets we
 # do want.
@@ -31,18 +32,18 @@
 # Allow mDNS.
 -A INPUT -p udp --sport 5353 --dport 5353 -j ACCEPT
 
-# Allow inbound TCP traffic to bitcoin port.
--A INPUT -p tcp --dport 8333 -j ACCEPT
--A INPUT -p tcp --dport 18333 -j ACCEPT
+# Allow inbound TCP traffic to bitcoin port, if Tor is disabled
+-A INPUT -p tcp --dport 8333 -j ACCEPT                  {{ tor:base:enabled #rmLineTrue }}
+-A INPUT -p tcp --dport 18333 -j ACCEPT                 {{ tor:base:enabled #rmLineTrue }}
 
 # Allow inbound TCP traffic to Base Middleware port.
 -A INPUT -p tcp --dport 8845 -j ACCEPT
 
-# Allow inbound TCP traffic to Tor port.
--A INPUT -p tcp --dport 9001 -j ACCEPT
--A INPUT -p tcp --sport 9001 -j ACCEPT
+# Allow inbound TCP traffic to Tor port, if Tor is enabled
+-A INPUT -p tcp --dport 9001 -j ACCEPT                  {{ tor:base:enabled #rmLineFalse }}
+-A INPUT -p tcp --sport 9001 -j ACCEPT                  {{ tor:base:enabled #rmLineFalse }}
 
-# Allow inbound TCP traffic to electrs port.
+# Allow inbound TCP traffic to electrs port.            (TODO)Stadicus: add config to enable/disable Electrs clearnet
 -A INPUT -p tcp --dport 50002 -j ACCEPT
 
 # Allow inbound ICMP type 0, 3 and 8 ("Echo Reply", "Destination
@@ -102,11 +103,19 @@
 # Allow outbound TCP traffic from sshd port.
 -A OUTPUT -p tcp --sport 22 -j ACCEPT
 
-# Allow outbound lightningd traffic.
--A OUTPUT -p tcp --dport 9735 -j ACCEPT
+# Allow outbound TCP traffic to bitcoin port, if Tor disabled
+-A OUTPUT -p tcp --dport 8333 -j ACCEPT                 {{ tor:base:enabled #rmLineTrue }}
+-A OUTPUT -p tcp --dport 18333 -j ACCEPT                {{ tor:base:enabled #rmLineTrue }}
 
-# Allow outbound TCP traffic to Tor port.
--A OUTPUT -p tcp --dport 9001 -j ACCEPT
+# Allow outbound TCP traffic to bitcoin port, if IBD over Clearnet enabled
+-A OUTPUT -p tcp --dport 8333 -j ACCEPT                 {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineFalse }}
+-A OUTPUT -p tcp --dport 18333 -j ACCEPT                {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineFalse }}
+
+# Allow outbound lightningd traffic, if Tor disabled
+-A OUTPUT -p tcp --dport 9735 -j ACCEPT                 {{ tor:base:enabled #rmLineTrue }}
+
+# Allow outbound TCP traffic to Tor port, if Tor enabled
+-A OUTPUT -p tcp --dport 9001 -j ACCEPT                 {{ tor:base:enabled #rmLineFalse }}
 
 # Explicitly whitelist established / related connections. This is a
 # last-ditch safeguard to avoid locking yourself out if a too-restrictive

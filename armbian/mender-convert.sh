@@ -39,6 +39,11 @@ case ${ACTION} in
 			cd mender-convert
 		fi
 
+		# cleanup loop devices if trigger file present
+		if [ -f .cleanup-loop-devices ]; then
+			../contrib/cleanup-loop-devices.sh
+		fi
+
 		# conversion settings
 		DEVICE_TYPE="rockpro64"
 		RAW_DISK_IMAGE="input/${SOURCE_NAME}.img"
