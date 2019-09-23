@@ -395,6 +395,9 @@ systemctl enable logrotate.timer
 rm -rf /var/log/journal
 ln -sfn /mnt/ssd/system/journal /var/log/journal
 
+## configure mender artifact verification key
+importFile "/etc/mender/mender.conf"
+
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
@@ -462,7 +465,7 @@ curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}
 curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz"
 
 ## get Bitcoin Core signing key, verify sha256 checksum of applications and signature of SHA256SUMS.asc
-gpg --import /opt/shift/config/laanwj-releases.asc
+gpg --import /opt/shift/config/signatures/laanwj-releases.asc
 gpg --verify SHA256SUMS.asc || exit 1
 grep "bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - || exit 1
 tar --strip-components 1 -xzf bitcoin-${BITCOIN_VERSION}-aarch64-linux-gnu.tar.gz
