@@ -371,9 +371,11 @@ func eventHandler(events chan watcherEvent, errs chan error, pState *supervisorS
 			err = handleMiddlewareNoBitcoindConnectivity(event, pState)
 		case event.trigger == triggerPrometheusBitcoindIBD:
 			err = handleBitcoindIBD(event, pState)
+		default:
+			panic(fmt.Errorf("trigger %d is unhandled", event.trigger))
 		}
 		if err != nil {
-			panic(fmt.Errorf("could not trigger %s: %s", triggerNames[triggerPrometheusBitcoindIBD], err))
+			panic(fmt.Errorf("could not trigger %s: %s", triggerNames[event.trigger], err))
 		}
 	}
 }
