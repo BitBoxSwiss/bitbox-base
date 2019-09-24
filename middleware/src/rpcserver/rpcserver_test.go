@@ -124,14 +124,6 @@ func TestRPCServer(t *testing.T) {
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
 
-	var mountFlashdriveReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.MountFlashdrive", dummyArg, &mountFlashdriveReply)
-	require.Equal(t, true, mountFlashdriveReply.Success)
-
-	var unmountFlashdriveReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.UnmountFlashdrive", dummyArg, &unmountFlashdriveReply)
-	require.Equal(t, true, unmountFlashdriveReply.Success)
-
 	var backupSysconfigReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.BackupSysconfig", dummyArg, &backupSysconfigReply)
 	require.Equal(t, true, backupSysconfigReply.Success)
