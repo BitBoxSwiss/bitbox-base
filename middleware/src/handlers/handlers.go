@@ -22,8 +22,6 @@ type Middleware interface {
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin() rpcmessages.ErrorResponse
 	ReindexBitcoin() rpcmessages.ErrorResponse
-	MountFlashdrive() rpcmessages.ErrorResponse
-	UnmountFlashdrive() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
 	GetHostname() rpcmessages.GetHostnameResponse

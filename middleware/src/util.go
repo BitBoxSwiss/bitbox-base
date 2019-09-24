@@ -14,6 +14,73 @@ import (
 // functions like `mountFlashdrive` or `unmountFlashdrive` are
 // reused in multiple RPCs.
 
+// mountFlashdrive tries to mount a flashdrive. It first checks if one and
+// only one flashdrive is available. If yes, then this flashdrive is mounted
+// under /mnt/backup as defined in the bbb-cmd.sh script.
+// On error an ErrorResponse is returned containing the necessary data for
+// the frontend (not successful, (error) message and (error) code).
+func (middleware *Middleware) mountFlashdrive() rpcmessages.ErrorResponse {
+	log.Println("Executing a USB flashdrive check via the cmd script")
+	outCheck, err := middleware.runBBBCmdScript([]string{"flashdrive", "check"})
+
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(outCheck, err, []rpcmessages.ErrorCode{
+			rpcmessages.ErrorFlashdriveCheckMultiple,
+			rpcmessages.ErrorFlashdriveCheckNone,
+		})
+
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(outCheck, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	// `bbb-cmd.sh flashdrive check` echos only the flashdrive name, if no error occurs
+	flashDriveName := outCheck[0]
+
+	log.Println("Executing a USB flashdrive mount via the cmd script")
+	outMount, err := middleware.runBBBCmdScript([]string{"flashdrive", "mount", flashDriveName})
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(outMount, err, []rpcmessages.ErrorCode{
+			rpcmessages.ErrorFlashdriveMountNotFound,
+			rpcmessages.ErrorFlashdriveMountNotSupported,
+			rpcmessages.ErrorFlashdriveMountNotUnique,
+		})
+
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(outMount, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// unmountFlashdrive tries to unmount a flashdrive mounted at `/mnt/backup`
+// as defined in the bbb-cmd.sh script. If there is no flashdrive mounted,
+// an ErrorResponse with the ErrorCode ErrorFlashdriveUnmountNotMounted is
+// returned.
+func (middleware *Middleware) unmountFlashdrive() rpcmessages.ErrorResponse {
+	log.Println("Executing a USB flashdrive unmount via the cmd script")
+	out, err := middleware.runBBBCmdScript([]string{"flashdrive", "unmount"})
+
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
+			rpcmessages.ErrorFlashdriveUnmountNotMounted,
+		})
+
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(out, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(args []string) (outputLines []string, err error) {

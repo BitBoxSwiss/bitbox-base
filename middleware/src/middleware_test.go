@@ -83,22 +83,6 @@ func TestReindexBitcoin(t *testing.T) {
 	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
 }
 
-func TestMountFlashdrive(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
-	response := testMiddleware.MountFlashdrive()
-	require.Equal(t, true, response.Success)
-	require.Equal(t, "", response.Message)
-	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
-}
-
-func TestUnmountFlashdrive(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
-	response := testMiddleware.UnmountFlashdrive()
-	require.Equal(t, true, response.Success)
-	require.Equal(t, "", response.Message)
-	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
-}
-
 func TestBackupHSMSecret(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
