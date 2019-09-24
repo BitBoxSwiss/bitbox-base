@@ -25,25 +25,40 @@ possible commands:
             bitcoin_dbcache         int (MB)
             other arguments         string
 
-  get       <tor_ssh_onion|tor_electrum_onion>
-
-  apply     no argument, applies all configuration settings to the system
-            [not yet implemented]
-
 "
 }
 
-# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
-source /opt/shift/scripts/include/exec_overlayroot.sh.inc
+# MockMode checks all arguments but does not execute anything
+#
+# usage: call this script with the ENV variable MOCKMODE set to 1, e.g.
+#        $ MOCKMODE=1 ./bbb-config.sh
+#
+MOCKMODE=${MOCKMODE:-0}
+checkMockMode() {
+    if [[ $MOCKMODE -eq 1 ]]; then
+        echo "MOCK MODE enabled"
+        echo "OK: ${COMMAND} -- ${SETTING}"
+        exit 0
+    fi
+}
 
-# include functions redis_set() and redis_get()
-source /opt/shift/scripts/include/redis.sh.inc
+# error handling
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
 
-# include function generateConfig() to generate config files from templates
-source /opt/shift/scripts/include/generateConfig.sh.inc
+# don't load includes for MockMode
+if [[ $MOCKMODE -ne 1 ]]; then
+    # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
+    source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
-# include errorExit() function
-source /opt/shift/scripts/include/errorExit.sh.inc
+    # include functions redis_set() and redis_get()
+    source /opt/shift/scripts/include/redis.sh.inc
+
+    # include function generateConfig() to generate config files from templates
+    source /opt/shift/scripts/include/generateConfig.sh.inc
+fi
 
 # include updateTorOnions() function
 source /opt/shift/scripts/include/updateTorOnions.sh.inc
@@ -82,12 +97,16 @@ case "${COMMAND}" in
 
         case "${SETTING}" in
             BITCOIN_INCOMING)
+                checkMockMode
+
                 redis_set "bitcoind:listen" "${ENABLE}"
                 generateConfig "bitcoin.conf.template"
                 systemctl restart bitcoind.service
                 ;;
 
             BITCOIN_IBD)
+                checkMockMode
+
                 if [[ ${ENABLE} -eq 1 ]]; then
                     echo "Service 'lightningd' and 'electrs' are being stopped..."
                     systemctl stop lightningd.service
@@ -107,6 +126,8 @@ case "${COMMAND}" in
                 ;;
 
             BITCOIN_IBD_CLEARNET)
+                checkMockMode
+
                 # don't set option if Tor is disabled globally
                 if [[ ${ENABLE} -eq 1 ]] && [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
                     echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
@@ -123,6 +144,8 @@ case "${COMMAND}" in
                 ;;
 
             DASHBOARD_HDMI)
+                checkMockMode
+
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
@@ -138,6 +161,8 @@ case "${COMMAND}" in
                 ;;
 
             DASHBOARD_WEB)
+                checkMockMode
+
                 # create / delete symlink to enable NGINX block
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
@@ -154,6 +179,8 @@ case "${COMMAND}" in
                 ;;
 
             WIFI)
+                checkMockMode
+
                 # copy / delete wlan0 config to include directory
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
 
@@ -167,6 +194,8 @@ case "${COMMAND}" in
                 ;;
 
             AUTOSETUP_SSD)
+                checkMockMode
+
                 if [[ ${ENABLE} -eq 1 ]]; then
                     touch /opt/shift/config/.autosetup-ssd
                 else
@@ -176,6 +205,8 @@ case "${COMMAND}" in
                 ;;
 
             TOR)
+                checkMockMode
+
                 # enable/disable Tor systemwide
                 if [[ ${ENABLE} -eq 1 ]]; then
                     exec_overlayroot all-layers "systemctl enable tor.service"
@@ -203,10 +234,12 @@ case "${COMMAND}" in
 
             TOR_SSH|TOR_ELECTRS|TOR_BBBMIDDLEWARE)
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
+                    checkMockMode
                     redis_set "tor:ssh:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_ELECTRS" ]]; then
                     redis_set "tor:electrs:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_BBBMIDDLEWARE" ]]; then
+                    checkMockMode
                     redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
                 else
                     echo "ERR: invalid argument, setting ${SETTING} not allowed"
@@ -220,6 +253,8 @@ case "${COMMAND}" in
                 ;;
 
             OVERLAYROOT)
+                checkMockMode
+
                 # set explicitly without exec_overlayroot() to make sure it is set under all conditions
                 if [[ ${ENABLE} -eq 1 ]]; then
                     echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
@@ -232,6 +267,8 @@ case "${COMMAND}" in
                 ;;
 
             ROOT_PWLOGIN)
+                checkMockMode
+
                 # unlock/lock root user for password login
                 if [[ ${ENABLE} -eq 1 ]]; then
                     exec_overlayroot all-layers "passwd -u root"
@@ -257,6 +294,8 @@ case "${COMMAND}" in
             BITCOIN_NETWORK)
                 case "${3}" in
                     mainnet)
+                        checkMockMode
+
                         redis_set "bitcoind:network" "mainnet"
                         redis_set "bitcoind:testnet" "0"
                         redis_set "bitcoind:mainnet" "1"
@@ -264,6 +303,8 @@ case "${COMMAND}" in
                         ;;
 
                     testnet)
+                        checkMockMode
+
                         redis_set "bitcoind:network" "testnet"
                         redis_set "bitcoind:testnet" "1"
                         redis_set "bitcoind:mainnet" "0"
@@ -322,6 +363,7 @@ case "${COMMAND}" in
 
             BITCOIN_DBCACHE)
                 if [[ "${3}" -ge 50 ]] && [[ "${3}" -le 3000 ]]; then
+                    checkMockMode
 
                     DBCACHE_BEFORE=$(redis_get "bitcoind:dbcache")
                     redis_set "bitcoind:dbcache" "${3}"
@@ -346,6 +388,8 @@ case "${COMMAND}" in
                 # check that hostname is valid
                 regex='^[a-z][a-z0-9-]{0,22}[a-z0-9]$'
                 if [[ "${3}" =~ ${regex} ]]; then
+                    checkMockMode
+
                     exec_overlayroot all-layers "echo '${3}' > /etc/hostname"
                     exec_overlayroot all-layers "echo '127.0.0.1   localhost ${3}' > /etc/hosts"
                     hostname -F /etc/hostname
@@ -359,15 +403,21 @@ case "${COMMAND}" in
                 ;;
 
             ROOT_PW)
+                checkMockMode
+
                 exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"
                 exec_overlayroot all-layers "echo 'base:${3}' | chpasswd"
                 ;;
 
             WIFI_SSID)
+                checkMockMode
+
                 redis_set "base:wifi:ssid" "${3}"
                 ;;
 
             WIFI_PW)
+                checkMockMode
+
                 redis_set "base:wifi:password" "${3}"
                 ;;
 

@@ -22,17 +22,37 @@ possible commands:
 "
 }
 
-# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
-source /opt/shift/scripts/include/exec_overlayroot.sh.inc
+# MockMode checks all arguments but does not execute anything
+# 
+# usage: call this script with the ENV variable MOCKMODE set to 1, e.g.
+#        $ MOCKMODE=1 ./bbb-cmd.sh
+#
+MOCKMODE=${MOCKMODE:-0}
+checkMockMode() {
+    if [[ $MOCKMODE -eq 1 ]]; then 
+        echo "MOCK MODE enabled"
+        echo "OK: ${MODULE} -- ${COMMAND} -- ${ARG}"
+        exit 0
+    fi
+}
 
-# include functions redis_set() and redis_get()
-source /opt/shift/scripts/include/redis.sh.inc
+# error handling
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
 
-# include function generateConfig() to generate config files from templates
-source /opt/shift/scripts/include/generateConfig.sh.inc
+# don't load includes for MockMode
+if [[ $MOCKMODE -ne 1 ]]; then
+    # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
+    source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
-# include errorExit() function
-source /opt/shift/scripts/include/errorExit.sh.inc
+    # include functions redis_set() and redis_get()
+    source /opt/shift/scripts/include/redis.sh.inc
+
+    # include function generateConfig() to generate config files from templates
+    source /opt/shift/scripts/include/generateConfig.sh.inc
+fi
 
 # ------------------------------------------------------------------------------
 
@@ -61,6 +81,7 @@ case "${MODULE}" in
     SETUP)
         case "${COMMAND}" in
             DATADIR)
+                checkMockMode
 
                 if [ ! -f /data/.datadir_set_up ]; then
                     # if /data is separate partition, probably a Mender-enabled image)
@@ -105,6 +126,8 @@ case "${MODULE}" in
     BITCOIND)
         case "${COMMAND}" in
             RESYNC|REINDEX)
+                checkMockMode
+
                 # stop systemd services
                 systemctl stop electrs.service
                 systemctl stop lightningd.service
@@ -135,6 +158,8 @@ case "${MODULE}" in
                 ;;
 
             REFRESH_RPCAUTH)
+                checkMockMode
+
                 # called from systemd-bitcoind-startpre.sh
                 # make sure rpc credentials update succeeds, otherwise refresh again
                 redis_set "bitcoind:refresh-rpcauth" 1
@@ -164,11 +189,17 @@ case "${MODULE}" in
     BASE)
         case "${COMMAND}" in
             RESTART)
+                checkMockMode
+
                 ( sleep 5 ; reboot ) & 
                 ;;
+
             SHUTDOWN)
+                checkMockMode
+
                 ( sleep 5 ; shutdown now ) & 
                 ;;
+
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
@@ -181,6 +212,8 @@ case "${MODULE}" in
 
         case "${COMMAND}" in
             CHECK)
+                checkMockMode
+
                 flashdrive_count=0
                 while read -r scsidev; do
                     name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
@@ -209,6 +242,8 @@ case "${MODULE}" in
                 ;;
 
             MOUNT)
+                checkMockMode
+
                 # ensure mountpoint is available
                 mkdir -p /mnt/backup
 
@@ -249,6 +284,8 @@ case "${MODULE}" in
                 ;;
 
             UNMOUNT)
+                checkMockMode
+
                 if ! mountpoint /mnt/backup -q; then
                     echo "FLASHDRIVE UNMOUNT: no drive mounted at /mnt/backup"
                     errorExit FLASHDRIVE_UNMOUNT_NOT_MOUNTED
@@ -271,6 +308,8 @@ case "${MODULE}" in
         case "${COMMAND}" in
             # backup system configuration to mounted usb flashdrive
             SYSCONFIG)
+                checkMockMode
+    
                 if mountpoint /mnt/backup -q; then
                     cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup.rdb"
 
@@ -285,6 +324,8 @@ case "${MODULE}" in
 
             # backup c-lightning on-chain keys in 'hsm_secret' into Redis database
             HSM_SECRET)
+                checkMockMode
+
                 # encode binary file 'hsm_secret' as base64 and store it in Redis
                 redis-cli SET lightningd:hsm_secret "$(base64 < ${HSM_FILEPATH})"
                 echo "OK: backup of file 'hsm_secret' created"
@@ -303,6 +344,8 @@ case "${MODULE}" in
         case "${COMMAND}" in
             # restore system configuration from mounted usb flashdrive
             SYSCONFIG)
+                checkMockMode
+
                 if [ -f /mnt/backup/bbb-backup.rdb ]; then
                     systemctl stop redis.service
                     cp "/mnt/backup/bbb-backup.rdb" "${REDIS_FILEPATH}"
@@ -317,6 +360,8 @@ case "${MODULE}" in
 
             # restore c-lightning on-chain keys from Redis database
             HSM_SECRET)
+                checkMockMode
+
                 # create snapshot of 'hsm_secret'
                 if [ -f "${HSM_FILEPATH}" ]; then
                     cp -p "${HSM_FILEPATH}" "${HSM_FILEPATH}_$(date '+%Y%m%d-%H%M').backup"
@@ -339,7 +384,7 @@ case "${MODULE}" in
 
     MENDER-UPDATE)
         # check if mender application is available
-        if ! mender --version 2>/dev/null; then 
+        if ! mender --version 2>/dev/null && [[ $MOCKMODE -ne 1 ]]; then 
             echo "ERR: image is not Mender enabled."
             errorExit MENDER_UPDATE_IMAGE_NOT_MENDER_ENABLED
         fi
@@ -355,6 +400,8 @@ case "${MODULE}" in
                 # check for valid version number
                 regex='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
                 if [[ ${ARG} =~ ${regex} ]]; then
+                    checkMockMode
+
                     if mender -install "https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"; then
                         redis_set "base:updating" 10
                     
@@ -374,6 +421,7 @@ case "${MODULE}" in
 
             # commit Mender update
             COMMIT)
+                checkMockMode
 
                 if mender -commit; then
                     redis_set "base:updating" 40
