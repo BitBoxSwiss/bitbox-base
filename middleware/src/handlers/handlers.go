@@ -27,7 +27,6 @@ type Middleware interface {
 	ReindexBitcoin() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
@@ -39,7 +38,7 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	GetBaseVersion() rpcmessages.GetBaseVersionResponse
+	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse

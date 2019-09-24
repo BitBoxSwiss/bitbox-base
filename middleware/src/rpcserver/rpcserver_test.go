@@ -117,10 +117,6 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.SetHostname", setHostnameArg, &setHostnameReply)
 	require.Equal(t, true, setHostnameReply.Success)
 
-	var getHostnameReply rpcmessages.GetHostnameResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetHostname", dummyArg, &getHostnameReply)
-	require.Equal(t, false, getHostnameReply.ErrorResponse.Success)
-
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
 
@@ -206,8 +202,10 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", dummyArg, &rebootBaseReply)
 	require.Equal(t, true, rebootBaseReply.Success)
 
-	var getBaseVersionReply rpcmessages.GetBaseVersionResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetBaseVersion", dummyArg, &getBaseVersionReply)
-	require.Equal(t, true, getBaseVersionReply.ErrorResponse.Success)
-
+	/*
+		This can't be unit tested until there is a Prometheus mock.
+			var baseInfoReply rpcmessages.GetBaseInfoResponse
+			testingRPCServer.RunRPCCall(t, "RPCServer.GetBaseInfo", dummyArg, &baseInfoReply)
+			require.Equal(t, true, baseInfoReply.ErrorResponse.Success)
+	*/
 }

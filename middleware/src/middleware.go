@@ -22,7 +22,7 @@ type Middleware struct {
 	info                 rpcmessages.SampleInfoResponse
 	environment          system.Environment
 	events               chan []byte
-	prometheusClient     *prometheus.PromClient
+	prometheusClient     prometheus.Client
 	redisClient          redis.Redis
 	verificationProgress rpcmessages.VerificationProgressResponse
 	isMockmode           bool
@@ -58,7 +58,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 		dummyIsBaseSetup:   false,
 		dummyAdminPassword: "",
 	}
-	middleware.prometheusClient = prometheus.NewPromClient(middleware.environment.GetPrometheusURL())
+	middleware.prometheusClient = prometheus.NewClient(middleware.environment.GetPrometheusURL())
 
 	if !mock {
 		middleware.redisClient = redis.NewClient(middleware.environment.GetRedisPort())
@@ -190,7 +190,7 @@ func (middleware *Middleware) SystemEnv() rpcmessages.GetEnvResponse {
 	return response
 }
 
-// SampleInfo returns the chached SampleInfoResponse struct
+// SampleInfo returns the cached SampleInfoResponse struct
 func (middleware *Middleware) SampleInfo() rpcmessages.SampleInfoResponse {
 	return middleware.info
 }
@@ -401,19 +401,6 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 	return rpcmessages.ErrorResponse{Success: false, Message: "invalid hostname"}
 }
 
-// GetHostname returns a the systems hostname in a GetHostnameResponse
-func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
-	// TODO: Implement get hostname from redis
-	// TODO: define error codes for this
-	return rpcmessages.GetHostnameResponse{
-		ErrorResponse: &rpcmessages.ErrorResponse{
-			Success: false,
-			Message: "GetHostname is not implemnted",
-			Code:    rpcmessages.ErrorUnexpected,
-		},
-	}
-}
-
 // EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed ToggleSettingEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
@@ -502,7 +489,7 @@ func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleS
 }
 
 // ShutdownBase shuts the Base down.
-// The shutdown is exectuted in a goroutine with a delay of a few seconds.
+// The shutdown is executed in a goroutine with a delay of a few seconds.
 // Prior to starting the goroutine the path for the `shutdown` executable is checked.
 // If the executable is found, a ErrorResponse indicating success is returned.
 // Otherwise a ExecutableNotFound Code is returned.
@@ -536,7 +523,7 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 }
 
 // RebootBase reboots the Base.
-// The reboot is exectuted in a goroutine with a delay of a few seconds.
+// The reboot is executed in a goroutine with a delay of a few seconds.
 // Prior to starting the goroutine the path for the `reboot` executable is checked.
 // If the executable is found, a ErrorResponse indicating success is returned.
 // Otherwise a ExecutableNotFound Code is returned.
@@ -567,28 +554,6 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	}(rebootDelay)
 
 	return rpcmessages.ErrorResponse{Success: true}
-}
-
-// GetBaseVersion returns an GetBaseVersionResponse struct containing the base version in response to a rpcserver request
-func (middleware *Middleware) GetBaseVersion() rpcmessages.GetBaseVersionResponse {
-	log.Println("getting the Base version from redis")
-	const baseVersionKey string = "base:version"
-	version, err := middleware.redisClient.GetString(baseVersionKey)
-	if err != nil {
-		return rpcmessages.GetBaseVersionResponse{
-			ErrorResponse: &rpcmessages.ErrorResponse{
-				Success: false,
-				Message: fmt.Errorf("could not get %s from redis: %s", baseVersionKey, err.Error()).Error(),
-				Code:    rpcmessages.ErrorRedisError,
-			},
-		}
-	}
-	return rpcmessages.GetBaseVersionResponse{
-		ErrorResponse: &rpcmessages.ErrorResponse{
-			Success: true,
-		},
-		Version: version,
-	}
 }
 
 // EnableRootLogin enables/disables the login via the root user/password
@@ -638,4 +603,97 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 		Message: "The password has to be at least 8 chars. An unicode char is counted as one.",
 		Code:    rpcmessages.ErrorSetRootPasswordTooShort,
 	}
+}
+
+// GetBaseInfo returns information about the Base in a GetBaseInfoResponse
+func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
+
+	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	middlewareIP, err := middleware.prometheusClient.GetMetricString(prometheus.BaseSystemInfo, "base_ipaddress")
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	middlewarePort := middleware.environment.GetMiddlewarePort()
+
+	middlewareTorOnion, err := middleware.redisClient.GetString(redis.MiddlewareOnion)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	freeDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseFreeDiskspace)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	totalDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseTotalDiskspace)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	baseVersion, err := middleware.redisClient.GetString(redis.BaseVersion)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	bitcoindVersion, err := middleware.redisClient.GetString(redis.BitcoindVersion)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	lightningdVersion, err := middleware.redisClient.GetString(redis.LightningdVersion)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	electrsVersion, err := middleware.redisClient.GetString(redis.ElectrsVersion)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	return rpcmessages.GetBaseInfoResponse{
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+		Status:              "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		Hostname:            hostname,
+		MiddlewareLocalIP:   middlewareIP,
+		MiddlewareLocalPort: middlewarePort,
+		MiddlewareTorOnion:  middlewareTorOnion,
+		MiddlewareTorPort:   "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		IsTorEnabled:        isTorEnabled,
+		IsBitcoindListening: isBitcoindListening,
+		FreeDiskspace:       freeDiskspace,
+		TotalDiskspace:      totalDiskspace,
+		BaseVersion:         baseVersion,
+		BitcoindVersion:     bitcoindVersion,
+		LightningdVersion:   lightningdVersion,
+		ElectrsVersion:      electrsVersion,
+	}
+
 }

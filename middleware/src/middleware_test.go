@@ -21,7 +21,7 @@ func setupTestMiddleware() *middleware.Middleware {
 	/* The config and cmd script are mocked with /bin/echo which just returns
 	the passed arguments. The real scripts can't be used here, because
 	- the absolute location of those is different on each host this is run on
-	- the relative location is differen depending here the tests are run from
+	- the relative location is different depending here the tests are run from
 	*/
 	argumentMap["bbbConfigScript"] = "/bin/echo"
 	argumentMap["bbbCmdScript"] = "/bin/echo"
@@ -330,16 +330,6 @@ func TestUserChangePassword(t *testing.T) {
 	require.Equal(t, "password change unsuccessful (too short)", changepasswordEmpty.Message)
 }
 
-func TestGetHostname(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
-	response := testMiddleware.GetHostname()
-
-	require.Equal(t, false, response.ErrorResponse.Success)
-	require.Equal(t, "GetHostname is not implemnted", response.ErrorResponse.Message)
-	require.Equal(t, rpcmessages.ErrorUnexpected, response.ErrorResponse.Code)
-	require.Equal(t, "", response.Hostname)
-}
-
 func TestSetHostname(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
@@ -378,15 +368,6 @@ func TestSetHostname(t *testing.T) {
 	response7 := testMiddleware.SetHostname(invalidArgs4)
 	require.Equal(t, false, response7.Success)
 	require.Equal(t, "invalid hostname", response7.Message)
-}
-
-func TestGetBaseVersion(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
-
-	response := testMiddleware.GetBaseVersion()
-	require.Equal(t, true, response.ErrorResponse.Success)
-	require.Equal(t, "0.0.1", response.Version)
-	require.Equal(t, rpcmessages.ErrorCode(""), response.ErrorResponse.Code)
 }
 
 func TestShutdownBase(t *testing.T) {

@@ -54,7 +54,6 @@ type Middleware interface {
 	ReindexBitcoin() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	GetHostname() rpcmessages.GetHostnameResponse
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
@@ -67,7 +66,7 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	GetBaseVersion() rpcmessages.GetBaseVersionResponse
+	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -95,6 +94,13 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 
 	return server
 }
+
+// Serve starts a gob rpc server
+func (server *RPCServer) Serve() {
+	rpc.ServeConn(server.RPCConnection)
+}
+
+/* --- Middleware RPCs start here --- */
 
 // GetSystemEnv sends the middleware's GetEnvResponse over rpc
 func (server *RPCServer) GetSystemEnv(dummyArg bool, reply *rpcmessages.GetEnvResponse) error {
@@ -176,17 +182,9 @@ func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePassword
 }
 
 // SetHostname sends the middleware's ErrorResponse over rpc
-// The argument given specifys the hostname to be set
+// The argument given specifies the hostname to be set
 func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.SetHostname(*args)
-	log.Printf("sent reply %v: ", reply)
-	return nil
-}
-
-// GetHostname sends the middleware's GetHostnameResponse over rpc
-// The GetHostnameResponse includes the current system hostname
-func (server *RPCServer) GetHostname(dummyArg bool, reply *rpcmessages.GetHostnameResponse) error {
-	*reply = server.middleware.GetHostname()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -271,14 +269,12 @@ func (server *RPCServer) SetRootPassword(args rpcmessages.SetRootPasswordArgs, r
 	return nil
 }
 
-// GetBaseVersion returns a GetBaseVersionResponse containing the base version.
-func (server *RPCServer) GetBaseVersion(dummyArg bool, reply *rpcmessages.GetBaseVersionResponse) error {
-	*reply = server.middleware.GetBaseVersion()
+// GetBaseInfo sends the middleware's GetBaseInfoResponse over rpc.
+// This includes information about the Base and the Middleware.
+func (server *RPCServer) GetBaseInfo(dummyArg bool, reply *rpcmessages.GetBaseInfoResponse) error {
+	*reply = server.middleware.GetBaseInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
 
-// Serve starts a gob rpc server
-func (server *RPCServer) Serve() {
-	rpc.ServeConn(server.RPCConnection)
-}
+/* --- Middleware RPCs end here --- */

@@ -19,7 +19,11 @@ const (
 	// There is no differentiation of Redis errors because the front-end most likely handles them similar.
 	ErrorRedisError ErrorCode = "REDIS_ERROR"
 
-	// ErrorUnexpected is thrown when a a unknown/unhandled/unexpected error occurrs.
+	// ErrorPrometheusError is a general Prometheus related error.
+	// There is no differentiation of Prometheus errors because the front-end most likely handles them similar.
+	ErrorPrometheusError ErrorCode = "PROMETHEUS_ERROR"
+
+	// ErrorUnexpected is thrown when a a unknown/unhandled/unexpected error occurs.
 	// It's a catch-all error.
 	ErrorUnexpected ErrorCode = "UNEXPECTED_ERROR"
 )
@@ -33,7 +37,7 @@ const (
 	/* bbb-cmd.sh flashdrive check
 	-------------------------------*/
 
-	// ErrorFlashdriveCheckMultiple is thrown if multiple USB flashdrives are found. Needs exacly one.
+	// ErrorFlashdriveCheckMultiple is thrown if multiple USB flashdrives are found. Needs exactly one.
 	ErrorFlashdriveCheckMultiple ErrorCode = "FLASHDRIVE_CHECK_MULTI"
 	// ErrorFlashdriveCheckNone is thrown if no USB flashdrive is found.
 	ErrorFlashdriveCheckNone ErrorCode = "FLASHDRIVE_CHECK_NONE"
@@ -129,7 +133,7 @@ const (
 )
 
 const (
-	// ErrorDummyAuthenticationNotSuccessful is thrown if the dummy autentication is not successful.
+	// ErrorDummyAuthenticationNotSuccessful is thrown if the dummy authentication is not successful.
 	ErrorDummyAuthenticationNotSuccessful ErrorCode = "DUMMY_AUTHENTICATION_NOT_SUCCESSFUL"
 
 	// ErrorDummyPasswordTooShort is thrown if the provided password is too short.

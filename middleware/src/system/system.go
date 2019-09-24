@@ -3,6 +3,7 @@ package system
 
 // Environment provides some information on the system we are running on.
 type Environment struct {
+	middlewarePort     string
 	Network            string `json:"network"`
 	ElectrsRPCPort     string `json:"electrsRPCPort"`
 	bitcoinRPCUser     string
@@ -21,6 +22,7 @@ type Environment struct {
 func NewEnvironment(argumentMap map[string]string) Environment {
 	// TODO(TheCharlatan) Instead of just accepting a long list of arguments, use a map here and check if the arguments can be read from a system config.
 	environment := Environment{
+		middlewarePort:     argumentMap["middlewarePort"],
 		bitcoinRPCUser:     argumentMap["bitcoinRPCUser"],
 		bitcoinRPCPassword: argumentMap["bitcoinRPCPassword"],
 		bitcoinRPCPort:     argumentMap["bitcoinRPCPort"],
@@ -79,4 +81,9 @@ func (environment *Environment) GetRedisPort() string {
 // GetMiddlewareVersion is a getter for the middleware version
 func (environment *Environment) GetMiddlewareVersion() string {
 	return environment.middlewareVersion
+}
+
+// GetMiddlewarePort is a getter for the port the middleware is listening on
+func (environment *Environment) GetMiddlewarePort() string {
+	return environment.middlewarePort
 }

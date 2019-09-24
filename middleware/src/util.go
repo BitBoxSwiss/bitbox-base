@@ -9,8 +9,8 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 )
 
-// The util.go file includes utillity functions for the Middleware.
-// These are private and called by the middleware RPCs. Utillity
+// The util.go file includes utility functions for the Middleware.
+// These are private and called by the middleware RPCs. Utility
 // functions like `mountFlashdrive` or `unmountFlashdrive` are
 // reused in multiple RPCs.
 
@@ -121,7 +121,7 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 	// 	2.2. CMD Script was not run with correct parameters. ErrorCode ErrorCmdScriptInvalidArg is expected as the last outputLine.
 	// 	2.3. Config Script was not run with correct parameters. ErrorCode ErrorConfigScriptInvalidArg is expected as the last outputLine.
 	// 	2.4. One of the `possibleErrors` is expected as the last outputLine.
-	// All other errors are unknow and not handled. ErrorUnexpected is returned as a last resort.
+	// All other errors are unknown and not handled. ErrorUnexpected is returned as a last resort.
 
 	if os.IsNotExist(err) {
 		return rpcmessages.ExecutableNotFound
