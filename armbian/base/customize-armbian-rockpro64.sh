@@ -715,7 +715,7 @@ fi
 
 ## mDNS services
 sed -i '/PUBLISH-WORKSTATION/Ic\publish-workstation=yes' /etc/avahi/avahi-daemon.conf
-importFile "/etc/avahi/services/bitboxbase.service"
+generateConfig "bitboxbase.service.template" # --> /etc/avahi/services/bitboxbase.service
 
 ## firewall: restore iptables rules on startup
 generateConfig "iptables.rules.template" # -->  /etc/iptables/iptables.rules
