@@ -12,8 +12,12 @@ SET base:updating 0
 
 SET tor:base:enabled 1
 SET tor:ssh:enabled 0
+SET tor:ssh:onion xxx
 SET tor:electrs:enabled 1
+SET tor:electrs:onion xxx
 SET tor:bbbmiddleware:enabled 1
+SET tor:bbbmiddleware:onion xxx
+SET tor:lightningd:onion xxx
 
 SET bitcoind:version xxx
 SET bitcoind:ibd 1

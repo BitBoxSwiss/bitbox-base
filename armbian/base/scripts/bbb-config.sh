@@ -15,21 +15,16 @@ assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
   enable    <bitcoin_incoming|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor|tor_bbbmiddleware|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
+             tor|tor_bbbmiddleware|tor_ssh|tor_electrs|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
-  set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
+  set       <hostname|root_pw|wifi_ssid|wifi_pw>
             bitcoin_network         <mainnet|testnet>
             bitcoin_ibd             <true|false>
             bitcoin_ibd_clearnet    <true|false>
             bitcoin_dbcache         int (MB)
             other arguments         string
-
-  get       <tor_ssh_onion|tor_electrum_onion>
-
-  apply     no argument, applies all configuration settings to the system 
-            [not yet implemented]
 
 "
 }
@@ -46,7 +41,11 @@ source /opt/shift/scripts/include/generateConfig.sh.inc
 # include errorExit() function
 source /opt/shift/scripts/include/errorExit.sh.inc
 
+# include updateTorOnions() function
+source /opt/shift/scripts/include/updateTorOnions.sh.inc
+
 # ------------------------------------------------------------------------------
+
 
 # check script arguments
 if [[ ${#} -eq 0 ]] || [[ "${1}" == "-h" ]] || [[ "${1}" == "--help" ]]; then
@@ -83,7 +82,7 @@ case "${COMMAND}" in
                 generateConfig "bitcoin.conf.template"
                 systemctl restart bitcoind.service
                 ;;
-                
+
             DASHBOARD_HDMI)
                 # enable / disable auto-login for user "hdmi", start / kill xserver
                 # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
@@ -160,12 +159,13 @@ case "${COMMAND}" in
                 systemctl restart bitcoind.service
                 systemctl restart lightningd.service || true        # allowed to fail if bitcoind is in IBD mode
                 redis_set "tor:base:enabled" "${ENABLE}"
+                updateTorOnions
                 ;;
 
-            TOR_SSH|TOR_ELECTRUM|TOR_BBBMIDDLEWARE)
+            TOR_SSH|TOR_ELECTRS|TOR_BBBMIDDLEWARE)
                 if [[ ${SETTING} == "TOR_SSH" ]]; then
                     redis_set "tor:ssh:enabled" "${ENABLE}"
-                elif [[ ${SETTING} == "TOR_ELECTRUM" ]]; then
+                elif [[ ${SETTING} == "TOR_ELECTRS" ]]; then
                     redis_set "tor:electrs:enabled" "${ENABLE}"
                 elif [[ ${SETTING} == "TOR_BBBMIDDLEWARE" ]]; then
                     redis_set "tor:bbbmiddleware:enabled" "${ENABLE}"
@@ -176,6 +176,8 @@ case "${COMMAND}" in
 
                 generateConfig "torrc.template"
                 systemctl restart tor.service
+
+                updateTorOnions
                 ;;
 
             OVERLAYROOT)
@@ -355,23 +357,4 @@ case "${COMMAND}" in
         esac
         ;;
 
-    get)
-        case "${SETTING}" in
-            TOR_SSH_ONION)
-                echo "${SETTING}=$(cat /var/lib/tor/hidden_service_ssh/hostname)"
-                ;;
-
-            TOR_ELECTRUM_ONION)
-                echo "${SETTING}=$(cat /var/lib/tor/hidden_service_electrum/hostname)"
-                ;;
-
-            *)
-                echo "Invalid argument: setting ${SETTING} unknown."
-                errorExit CONFIG_SCRIPT_INVALID_ARG
-        esac
-        ;;
-
-    *)
-        echo "Invalid argument: command ${COMMAND} unknown."
-        errorExit CONFIG_SCRIPT_INVALID_ARG
 esac

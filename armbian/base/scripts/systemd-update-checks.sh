@@ -6,7 +6,7 @@
 # validation actions.
 #
 # The Redis config mgmt must available for this script.
-# 
+#
 set -eu
 
 # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
@@ -21,6 +21,9 @@ source /opt/shift/scripts/include/generateConfig.sh.inc
 # include errorExit() function
 source /opt/shift/scripts/include/errorExit.sh.inc
 
+# include updateTorOnions() function
+source /opt/shift/scripts/include/updateTorOnions.sh.inc
+
 # ------------------------------------------------------------------------------
 
 redis_require
@@ -28,6 +31,9 @@ redis_require
 # update hardcoded firmware version
 VERSION=$(head -n1 /opt/shift/config/version)
 redis_set "base:version" "${VERSION}"
+
+# update onion addresses in Redis
+updateTorOnions
 
 # check if booting after update
 # valid status codes of 'base:updating'
@@ -119,12 +125,12 @@ else
     fi
 
     if [[ $(redis_get "base:updating") -eq 40 ]]; then
-        echo "OK: updated to BitBox Base version $(redis_get 'base:version')" 
+        echo "OK: updated to BitBox Base version $(redis_get 'base:version')"
         redis_set "base:updating" 0
     fi
 
     if [[ $(redis_get "base:updating") -ne 0 ]]; then
-        echo "ERR: undefined value $(redis_get 'base:updating') for Redis key 'base:updating'" 
+        echo "ERR: undefined value $(redis_get 'base:updating') for Redis key 'base:updating'"
     fi
 
 fi
