@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 #
-# This script is run by systemd using the ExecStartPost option 
+# This script is run by systemd using the ExecStartPost option
 # after starting lightningd.service (c-lightning).
 #
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 #
-# This script is run by systemd using the ExecStartPre option 
+# This script is run by systemd using the ExecStartPre option
 # before starting electrs.service (Electrum Server in Rust).
 #
 

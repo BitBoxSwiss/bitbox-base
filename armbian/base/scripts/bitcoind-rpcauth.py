@@ -2,13 +2,13 @@
 # Copyright (c) 2015-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-# 
+#
 # Original script
 # https://github.com/bitcoin/bitcoin/tree/master/share/rpcauth
 # ------------------------------------------------------------------------------
 # Extendet script, by Shift Cryptosecurity AG, Switzerland
 # implementing direct Redis support to store rpcauth, rpcuser and rpcpassword
-# 
+#
 # https://github.com/digitalbitbox/bitbox-base
 # ------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ def main():
     print('rpcauth={0}:{1}${2}'.format(args.username, salt, password_hmac))
     print('Your password:\n{0}'.format(args.password))
 
-    # Extension by Shift Cryptosecurity AG, Switzerland 
+    # Extension by Shift Cryptosecurity AG, Switzerland
     # ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
     try:
