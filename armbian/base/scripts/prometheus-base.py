@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# This script is called by the prometheus-base.service 
+# This script is called by the prometheus-base.service
 # to provide system metrics to Prometheus.
 #
 
@@ -9,6 +9,7 @@ import json
 import time
 import subprocess
 import sys
+import socket
 import redis
 from prometheus_client import start_http_server, Gauge, Counter, Info
 
@@ -39,14 +40,28 @@ def readFile(filepath):
 
     return value
 
+def getIP():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('192.0.2.0', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
 def getSystemInfo():
     rediskeys = ['base:hostname','base:version','build:date','build:time','build:commit']
     info = {}
+    # add Redis values
     for k in rediskeys:
         infoName = k.lower().replace(":", "_")
         infoValue = r.get(k).decode("utf-8")
         info[infoName] = infoValue
 
+    info['base_ipaddress'] = getIP()
     return info
 
 def getSystemdStatus(unit):
