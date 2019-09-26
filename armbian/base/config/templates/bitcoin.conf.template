@@ -28,9 +28,6 @@ maxuploadtarget={{  bitcoind:maxuploadtarget    #default: 5000 }}
 
 # tor
 proxy={{            bitcoind:proxy              #default: 127.0.0.1:9050 }} {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
-seednode={{         bitcoind:seednode:1         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
-seednode={{         bitcoind:seednode:2         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
-seednode={{         bitcoind:seednode:3         #rmLine }}                  {{ tor:base:enabled #rmLineFalse }} {{ bitcoind:ibd-clearnet #rmLineTrue }}
 
 # validation
 reindex-chainstate={{ bitcoind:reindex-chainstate  #rmLine }}               {{ bitcoind:reindex-chainstate #rmLineFalse }}
