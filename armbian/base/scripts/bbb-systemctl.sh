@@ -5,6 +5,8 @@ set -eu
 # BitBox Base: batch control system units
 #
 
+# --- generic functions --------------------------------------------------------
+
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc
 

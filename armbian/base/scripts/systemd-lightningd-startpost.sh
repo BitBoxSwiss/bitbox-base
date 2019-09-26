@@ -7,6 +7,8 @@
 
 set -eu
 
+# --- generic functions --------------------------------------------------------
+
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc
 

@@ -9,6 +9,8 @@
 #
 set -eu
 
+# --- generic functions --------------------------------------------------------
+
 # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
 source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 

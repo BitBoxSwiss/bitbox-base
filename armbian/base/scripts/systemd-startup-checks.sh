@@ -9,6 +9,8 @@
 
 set -eu
 
+# --- generic functions --------------------------------------------------------
+
 # include function: exec_overlayroot()
 source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
