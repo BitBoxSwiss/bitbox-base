@@ -150,9 +150,9 @@ def main():
             info = {}
             try:
                 # get the first entry of localaddresses (might not work with multiple addresses)
-                info['bitcoind_tor_address'] = networkinfo["localaddresses"][0]["address"]
+                info['bitcoin_tor_address'] = networkinfo["localaddresses"][0]["address"]
             except:
-                info['bitcoind_tor_address'] = 'n/a'
+                info['bitcoin_tor_address'] = 'n/a'
 
             BITCOIN_TOR_ADDRESS.info(info)
 
