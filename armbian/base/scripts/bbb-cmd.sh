@@ -23,13 +23,13 @@ possible commands:
 }
 
 # MockMode checks all arguments but does not execute anything
-# 
+#
 # usage: call this script with the ENV variable MOCKMODE set to 1, e.g.
 #        $ MOCKMODE=1 ./bbb-cmd.sh
 #
 MOCKMODE=${MOCKMODE:-0}
 checkMockMode() {
-    if [[ $MOCKMODE -eq 1 ]]; then 
+    if [[ $MOCKMODE -eq 1 ]]; then
         echo "MOCK MODE enabled"
         echo "OK: ${MODULE} -- ${COMMAND} -- ${ARG}"
         exit 0
@@ -44,6 +44,12 @@ errorExit() {
 
 # don't load includes for MockMode
 if [[ $MOCKMODE -ne 1 ]]; then
+
+    if [[ ! -d /opt/shift/scripts/include/ ]]; then
+        echo "ERR: includes directory /opt/shift/scripts/include/ not found, must run on BitBox Base system. Run in MockMode for testing."
+        errorExit SCRIPT_INCLUDES_NOT_FOUND
+    fi
+
     # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
     source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
@@ -65,7 +71,7 @@ elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
     exit 0
 fi
 
-if [[ ${UID} -ne 0 ]]; then
+if [[ $MOCKMODE -ne 1 ]] && [[ ${UID} -ne 0 ]]; then
     echo "${0}: needs to be run as superuser."
     errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
@@ -89,11 +95,11 @@ case "${MODULE}" in
                     if mountpoint /data -q; then
                         cp -r /data_source/. /data
                         echo "OK: (DATADIR) /data_source/ copied to /data/"
-                    
+
                     # otherwise create symlink
                     else
                         if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
-                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot, 
+                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot,
                             # will only be ready after reboot
                             mkdir -p /mnt/ssd/data
                             overlayroot-chroot /bin/bash -c "ln -sfn /mnt/ssd/data /"
@@ -101,12 +107,12 @@ case "${MODULE}" in
                             # also create link in tmpfs until next reboot
                             ln -sfn /mnt/ssd/data /
                             echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
-                            
+
                             if [ ! -f /data/.datadir_set_up ]; then
                                 cp -r /data_source/* /data
                                 echo "OK: (DATADIR) /data_source/ copied to /data/"
                             fi
-                            
+
                         else
                             ln -sfn /data_source /data
                             echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
@@ -150,7 +156,7 @@ case "${MODULE}" in
                 # restart bitcoind and remove option
                 systemctl start bitcoind.service
                 sleep 10
-                
+
                 redis_set "bitcoind:reindex-chainstate" 0
                 generateConfig "bitcoin.conf.template"
 
@@ -191,13 +197,13 @@ case "${MODULE}" in
             RESTART)
                 checkMockMode
 
-                ( sleep 5 ; reboot ) & 
+                ( sleep 5 ; reboot ) &
                 ;;
 
             SHUTDOWN)
                 checkMockMode
 
-                ( sleep 5 ; shutdown now ) & 
+                ( sleep 5 ; shutdown now ) &
                 ;;
 
             *)
@@ -238,7 +244,7 @@ case "${MODULE}" in
                 else
                     echo "FLASHDRIVE CHECK: too many targets found (${flashdrive_count} in total)"
                     errorExit FLASHDRIVE_CHECK_MULTI
-                fi               
+                fi
                 ;;
 
             MOUNT)
@@ -299,8 +305,8 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;        
-    
+        ;;
+
     BACKUP)
         REDIS_FILEPATH="/data/redis/bitboxbase.rdb"
         HSM_FILEPATH="/mnt/ssd/bitcoin/.lightning/hsm_secret"
@@ -309,7 +315,7 @@ case "${MODULE}" in
             # backup system configuration to mounted usb flashdrive
             SYSCONFIG)
                 checkMockMode
-    
+
                 if mountpoint /mnt/backup -q; then
                     cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup.rdb"
 
@@ -335,7 +341,7 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;    
+        ;;
 
     RESTORE)
         REDIS_FILEPATH="/data/redis/bitboxbase.rdb"
@@ -380,11 +386,11 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;    
+        ;;
 
     MENDER-UPDATE)
         # check if mender application is available
-        if ! mender --version 2>/dev/null && [[ $MOCKMODE -ne 1 ]]; then 
+        if ! mender --version 2>/dev/null && [[ $MOCKMODE -ne 1 ]]; then
             echo "ERR: image is not Mender enabled."
             errorExit MENDER_UPDATE_IMAGE_NOT_MENDER_ENABLED
         fi
@@ -404,7 +410,7 @@ case "${MODULE}" in
 
                     if mender -install "https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"; then
                         redis_set "base:updating" 10
-                    
+
                     else
                         # Todo(Stadicus): catch the specific error 'expecting signed artifact, but no signature file found'
                         ERR=${?}
@@ -425,12 +431,12 @@ case "${MODULE}" in
 
                 if mender -commit; then
                     redis_set "base:updating" 40
-                
+
                 else
                     ERR=${?}
                     echo "ERR: mender commit failed with error code ${ERR}"
                     errorExit MENDER_UPDATE_COMMIT_FAILED
-                fi        
+                fi
                 ;;
 
             *)

@@ -50,6 +50,12 @@ errorExit() {
 
 # don't load includes for MockMode
 if [[ $MOCKMODE -ne 1 ]]; then
+
+    if [[ ! -d /opt/shift/scripts/include/ ]]; then
+        echo "ERR: includes directory /opt/shift/scripts/include/ not found, must run on BitBox Base system. Run in MockMode for testing."
+        errorExit SCRIPT_INCLUDES_NOT_FOUND
+    fi
+
     # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
     source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
@@ -78,7 +84,7 @@ elif [[ ${#} -eq 1 ]]; then
     exit 0
 fi
 
-if [[ ${UID} -ne 0 ]]; then
+if [[ $MOCKMODE -ne 1 ]] && [[ ${UID} -ne 0 ]]; then
     echo "${0}: needs to be run as superuser." >&2
     errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
