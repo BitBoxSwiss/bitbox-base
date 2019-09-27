@@ -14,17 +14,21 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_incoming|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor|tor_bbbmiddleware|tor_ssh|tor_electrs|overlayroot|root_pwlogin>
+  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+             dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
+             tor_electrum|overlayroot|root_pwlogin>
 
   disable   any 'enable' argument
 
   set       <hostname|root_pw|wifi_ssid|wifi_pw>
             bitcoin_network         <mainnet|testnet>
-            bitcoin_ibd             <true|false>
-            bitcoin_ibd_clearnet    <true|false>
             bitcoin_dbcache         int (MB)
             other arguments         string
+
+  get       <tor_ssh_onion|tor_electrum_onion>
+
+  apply     no argument, applies all configuration settings to the system
+            [not yet implemented]
 
 "
 }
@@ -81,6 +85,41 @@ case "${COMMAND}" in
                 redis_set "bitcoind:listen" "${ENABLE}"
                 generateConfig "bitcoin.conf.template"
                 systemctl restart bitcoind.service
+                ;;
+
+            BITCOIN_IBD)
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    echo "Service 'lightningd' and 'electrs' are being stopped..."
+                    systemctl stop lightningd.service
+                    systemctl stop electrs.service
+                    echo "Setting bitcoind configuration for 'active initial sync'."
+                    bbb-config.sh set bitcoin_dbcache 2000
+                    redis_set "bitcoind:ibd" "${ENABLE}"
+
+                else
+                    echo "Setting bitcoind configuration for 'fully synced'."
+                    bbb-config.sh set bitcoin_dbcache 300
+                    redis_set "bitcoind:ibd" "${ENABLE}"
+                    echo "Service 'lightningd' and 'electrs' are being started..."
+                    systemctl start lightningd.service
+                    systemctl start electrs.service
+                fi
+                ;;
+
+            BITCOIN_IBD_CLEARNET)
+                # don't set option if Tor is disabled globally
+                if [[ ${ENABLE} -eq 1 ]] && [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
+                    echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
+                    errorExit ENABLE_CLEARNETIBD_TOR_ALREADY_DISABLED
+                fi
+
+                # configure bitcoind to run over IPv4 while in IBD mode
+                redis_set "bitcoind:ibd-clearnet" "${ENABLE}"
+                generateConfig "iptables.rules.template"
+                generateConfig "bitcoin.conf.template"
+                systemctl start iptables-restore
+                systemctl restart bitcoind
+                echo "OK: bitcoind:ibd-clearnet set to ${ENABLE}"
                 ;;
 
             DASHBOARD_HDMI)
@@ -245,24 +284,15 @@ case "${COMMAND}" in
                 echo "System configuration ${SETTING} will be enabled on next boot."
                 ;;
 
+            # DEPRECATED -- TODO(Stadicus) remove
             BITCOIN_IBD)
                 case "${3}" in
                     true)
-                        echo "Service 'lightningd' and 'electrs' are being stopped..."
-                        systemctl stop lightningd.service
-                        systemctl stop electrs.service
-                        echo "Setting bitcoind configuration for 'active initial sync'."
-                        bbb-config.sh set bitcoin_dbcache 2000
-                        redis_set "bitcoind:ibd" "1"
+                        bbb-config.sh enable bitcoin_ibd
                         ;;
 
                     false)
-                        echo "Setting bitcoind configuration for 'fully synced'."
-                        bbb-config.sh set bitcoin_dbcache 300
-                        redis_set "bitcoind:ibd" "0"
-                        echo "Service 'lightningd' and 'electrs' are being started..."
-                        systemctl start lightningd.service
-                        systemctl start electrs.service
+                        bbb-config.sh disable bitcoin_ibd
                         ;;
 
                     *)
@@ -270,34 +300,24 @@ case "${COMMAND}" in
                         errorExit SET_BITCOINIBD_INVALID_VALUE
                         ;;
                 esac
+                echo "DEPRECATED: please use bbb-config.sh <enable|disable> bitcoin_ibd"
                 ;;
 
+            # DEPRECATED -- TODO(Stadicus) remove
             BITCOIN_IBD_CLEARNET)
                 case "${3}" in
                     true)
-                        # don't set option if Tor is disabled globally
-                        if [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
-                            echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
-                            errorExit ENABLE_CLEARNETIBD_TOR_ALREADY_DISABLED
-                        fi
-                        SET=1
+                        bbb-config.sh enable bitcoin_ibd_clearnet
                         ;;
 
                     false)
-                        SET=0
+                        bbb-config.sh disable bitcoin_ibd_clearnet
                         ;;
                     *)
                         echo "ERR: argument needs to be either 'true' or 'false'"
                         errorExit SET_BITCOINIBD_CLEARNET_INVALID_VALUE
                 esac
-
-                # configure bitcoind to run over IPv4 while in IBD mode
-                redis_set "bitcoind:ibd-clearnet" "${SET}"
-                generateConfig "iptables.rules.template"
-                generateConfig "bitcoin.conf.template"
-                systemctl start iptables-restore
-                systemctl restart bitcoind
-                echo "OK: bitcoind:ibd-clearnet set to ${SET}"
+                echo "DEPRECATED: please use bbb-config.sh <enable|disable> bitcoin_ibd_clearnet"
                 ;;
 
             BITCOIN_DBCACHE)
