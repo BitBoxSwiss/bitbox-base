@@ -22,17 +22,43 @@ possible commands:
 "
 }
 
-# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
-source /opt/shift/scripts/include/exec_overlayroot.sh.inc
+# MockMode checks all arguments but does not execute anything
+#
+# usage: call this script with the ENV variable MOCKMODE set to 1, e.g.
+#        $ MOCKMODE=1 ./bbb-cmd.sh
+#
+MOCKMODE=${MOCKMODE:-0}
+checkMockMode() {
+    if [[ $MOCKMODE -eq 1 ]]; then
+        echo "MOCK MODE enabled"
+        echo "OK: ${MODULE} -- ${COMMAND} -- ${ARG}"
+        exit 0
+    fi
+}
 
-# include functions redis_set() and redis_get()
-source /opt/shift/scripts/include/redis.sh.inc
+# error handling
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
 
-# include function generateConfig() to generate config files from templates
-source /opt/shift/scripts/include/generateConfig.sh.inc
+# don't load includes for MockMode
+if [[ $MOCKMODE -ne 1 ]]; then
 
-# include errorExit() function
-source /opt/shift/scripts/include/errorExit.sh.inc
+    if [[ ! -d /opt/shift/scripts/include/ ]]; then
+        echo "ERR: includes directory /opt/shift/scripts/include/ not found, must run on BitBox Base system. Run in MockMode for testing."
+        errorExit SCRIPT_INCLUDES_NOT_FOUND
+    fi
+
+    # include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
+    source /opt/shift/scripts/include/exec_overlayroot.sh.inc
+
+    # include functions redis_set() and redis_get()
+    source /opt/shift/scripts/include/redis.sh.inc
+
+    # include function generateConfig() to generate config files from templates
+    source /opt/shift/scripts/include/generateConfig.sh.inc
+fi
 
 # ------------------------------------------------------------------------------
 
@@ -45,7 +71,7 @@ elif [[ "${1}" == "-v" ]] || [[ "${1}" == "--version" ]]; then
     exit 0
 fi
 
-if [[ ${UID} -ne 0 ]]; then
+if [[ $MOCKMODE -ne 1 ]] && [[ ${UID} -ne 0 ]]; then
     echo "${0}: needs to be run as superuser."
     errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
@@ -61,6 +87,7 @@ case "${MODULE}" in
     SETUP)
         case "${COMMAND}" in
             DATADIR)
+                checkMockMode
 
                 if [ ! -f /data/.datadir_set_up ]; then
                     # if /data is separate partition, probably a Mender-enabled image)
@@ -68,11 +95,11 @@ case "${MODULE}" in
                     if mountpoint /data -q; then
                         cp -r /data_source/. /data
                         echo "OK: (DATADIR) /data_source/ copied to /data/"
-                    
+
                     # otherwise create symlink
                     else
                         if [[ $OVERLAYROOT_ENABLED -eq 1 ]]; then
-                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot, 
+                            # if overlayroot enabled, create symlink to ssd within overlayroot-chroot,
                             # will only be ready after reboot
                             mkdir -p /mnt/ssd/data
                             overlayroot-chroot /bin/bash -c "ln -sfn /mnt/ssd/data /"
@@ -80,12 +107,12 @@ case "${MODULE}" in
                             # also create link in tmpfs until next reboot
                             ln -sfn /mnt/ssd/data /
                             echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
-                            
+
                             if [ ! -f /data/.datadir_set_up ]; then
                                 cp -r /data_source/* /data
                                 echo "OK: (DATADIR) /data_source/ copied to /data/"
                             fi
-                            
+
                         else
                             ln -sfn /data_source /data
                             echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
@@ -105,6 +132,8 @@ case "${MODULE}" in
     BITCOIND)
         case "${COMMAND}" in
             RESYNC|REINDEX)
+                checkMockMode
+
                 # stop systemd services
                 systemctl stop electrs.service
                 systemctl stop lightningd.service
@@ -127,7 +156,7 @@ case "${MODULE}" in
                 # restart bitcoind and remove option
                 systemctl start bitcoind.service
                 sleep 10
-                
+
                 redis_set "bitcoind:reindex-chainstate" 0
                 generateConfig "bitcoin.conf.template"
 
@@ -135,6 +164,8 @@ case "${MODULE}" in
                 ;;
 
             REFRESH_RPCAUTH)
+                checkMockMode
+
                 # called from systemd-bitcoind-startpre.sh
                 # make sure rpc credentials update succeeds, otherwise refresh again
                 redis_set "bitcoind:refresh-rpcauth" 1
@@ -164,11 +195,17 @@ case "${MODULE}" in
     BASE)
         case "${COMMAND}" in
             RESTART)
-                ( sleep 5 ; reboot ) & 
+                checkMockMode
+
+                ( sleep 5 ; reboot ) &
                 ;;
+
             SHUTDOWN)
-                ( sleep 5 ; shutdown now ) & 
+                checkMockMode
+
+                ( sleep 5 ; shutdown now ) &
                 ;;
+
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
@@ -181,6 +218,8 @@ case "${MODULE}" in
 
         case "${COMMAND}" in
             CHECK)
+                checkMockMode
+
                 flashdrive_count=0
                 while read -r scsidev; do
                     name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
@@ -205,10 +244,12 @@ case "${MODULE}" in
                 else
                     echo "FLASHDRIVE CHECK: too many targets found (${flashdrive_count} in total)"
                     errorExit FLASHDRIVE_CHECK_MULTI
-                fi               
+                fi
                 ;;
 
             MOUNT)
+                checkMockMode
+
                 # ensure mountpoint is available
                 mkdir -p /mnt/backup
 
@@ -249,6 +290,8 @@ case "${MODULE}" in
                 ;;
 
             UNMOUNT)
+                checkMockMode
+
                 if ! mountpoint /mnt/backup -q; then
                     echo "FLASHDRIVE UNMOUNT: no drive mounted at /mnt/backup"
                     errorExit FLASHDRIVE_UNMOUNT_NOT_MOUNTED
@@ -262,8 +305,8 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;        
-    
+        ;;
+
     BACKUP)
         REDIS_FILEPATH="/data/redis/bitboxbase.rdb"
         HSM_FILEPATH="/mnt/ssd/bitcoin/.lightning/hsm_secret"
@@ -271,6 +314,8 @@ case "${MODULE}" in
         case "${COMMAND}" in
             # backup system configuration to mounted usb flashdrive
             SYSCONFIG)
+                checkMockMode
+
                 if mountpoint /mnt/backup -q; then
                     cp "${REDIS_FILEPATH}" "/mnt/backup/bbb-backup.rdb"
 
@@ -285,6 +330,8 @@ case "${MODULE}" in
 
             # backup c-lightning on-chain keys in 'hsm_secret' into Redis database
             HSM_SECRET)
+                checkMockMode
+
                 # encode binary file 'hsm_secret' as base64 and store it in Redis
                 redis-cli SET lightningd:hsm_secret "$(base64 < ${HSM_FILEPATH})"
                 echo "OK: backup of file 'hsm_secret' created"
@@ -294,7 +341,7 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;    
+        ;;
 
     RESTORE)
         REDIS_FILEPATH="/data/redis/bitboxbase.rdb"
@@ -303,6 +350,8 @@ case "${MODULE}" in
         case "${COMMAND}" in
             # restore system configuration from mounted usb flashdrive
             SYSCONFIG)
+                checkMockMode
+
                 if [ -f /mnt/backup/bbb-backup.rdb ]; then
                     systemctl stop redis.service
                     cp "/mnt/backup/bbb-backup.rdb" "${REDIS_FILEPATH}"
@@ -317,6 +366,8 @@ case "${MODULE}" in
 
             # restore c-lightning on-chain keys from Redis database
             HSM_SECRET)
+                checkMockMode
+
                 # create snapshot of 'hsm_secret'
                 if [ -f "${HSM_FILEPATH}" ]; then
                     cp -p "${HSM_FILEPATH}" "${HSM_FILEPATH}_$(date '+%Y%m%d-%H%M').backup"
@@ -335,11 +386,11 @@ case "${MODULE}" in
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
-        ;;    
+        ;;
 
     MENDER-UPDATE)
         # check if mender application is available
-        if ! mender --version 2>/dev/null; then 
+        if ! mender --version 2>/dev/null && [[ $MOCKMODE -ne 1 ]]; then
             echo "ERR: image is not Mender enabled."
             errorExit MENDER_UPDATE_IMAGE_NOT_MENDER_ENABLED
         fi
@@ -355,9 +406,11 @@ case "${MODULE}" in
                 # check for valid version number
                 regex='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
                 if [[ ${ARG} =~ ${regex} ]]; then
+                    checkMockMode
+
                     if mender -install "https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"; then
                         redis_set "base:updating" 10
-                    
+
                     else
                         # Todo(Stadicus): catch the specific error 'expecting signed artifact, but no signature file found'
                         ERR=${?}
@@ -374,15 +427,16 @@ case "${MODULE}" in
 
             # commit Mender update
             COMMIT)
+                checkMockMode
 
                 if mender -commit; then
                     redis_set "base:updating" 40
-                
+
                 else
                     ERR=${?}
                     echo "ERR: mender commit failed with error code ${ERR}"
                     errorExit MENDER_UPDATE_COMMIT_FAILED
-                fi        
+                fi
                 ;;
 
             *)
