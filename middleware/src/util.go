@@ -125,7 +125,7 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 
 	if os.IsNotExist(err) {
 		return rpcmessages.ErrorScriptNotFound
-	} else if err.Error() == "error status 1" {
+	} else if err.Error() == "exit status 1" {
 
 		if len(outputLines) == 0 {
 			log.Println("Error: no log lines provided before exit with error status 1.")
