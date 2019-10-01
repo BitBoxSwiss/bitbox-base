@@ -511,10 +511,10 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 }
 
 // RebootBase returns an ErrorResponse struct in response to a rpcserver request
-// It calls the bbb-cmd.sh script which initializes a reboot
+// It calls the bbb-cmd.sh script which initializes a restart
 func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
-	log.Println("rebooting the Base via the cmd script")
-	out, err := middleware.runBBBCmdScript([]string{"base", "reboot"})
+	log.Println("restarting the Base via the cmd script")
+	out, err := middleware.runBBBCmdScript([]string{"base", "restart"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
