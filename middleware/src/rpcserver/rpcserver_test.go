@@ -141,51 +141,51 @@ func TestRPCServer(t *testing.T) {
 	require.Equal(t, true, restoreSysconfigReply.Success)
 
 	var enableTorReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", rpcmessages.ToggleSettingEnable, &enableTorReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", true, &enableTorReply)
 	require.Equal(t, true, enableTorReply.Success)
 
 	var disableTorReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", rpcmessages.ToggleSettingDisable, &disableTorReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", false, &disableTorReply)
 	require.Equal(t, true, disableTorReply.Success)
 
 	var enableTorMiddlewareReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", rpcmessages.ToggleSettingEnable, &enableTorMiddlewareReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", true, &enableTorMiddlewareReply)
 	require.Equal(t, true, enableTorMiddlewareReply.Success)
 
 	var disableTorMiddlewareReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", rpcmessages.ToggleSettingDisable, &disableTorMiddlewareReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", false, &disableTorMiddlewareReply)
 	require.Equal(t, true, disableTorMiddlewareReply.Success)
 
 	var enableTorElectrsReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", rpcmessages.ToggleSettingEnable, &enableTorElectrsReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", true, &enableTorElectrsReply)
 	require.Equal(t, true, enableTorElectrsReply.Success)
 
 	var disableTorElectrsReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", rpcmessages.ToggleSettingDisable, &disableTorElectrsReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", false, &disableTorElectrsReply)
 	require.Equal(t, true, disableTorElectrsReply.Success)
 
 	var enableTorSSHReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", rpcmessages.ToggleSettingEnable, &enableTorSSHReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", true, &enableTorSSHReply)
 	require.Equal(t, true, enableTorSSHReply.Success)
 
 	var disableTorSSHReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", rpcmessages.ToggleSettingDisable, &disableTorSSHReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", false, &disableTorSSHReply)
 	require.Equal(t, true, disableTorSSHReply.Success)
 
 	var enableClearnetIBDReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", rpcmessages.ToggleSettingEnable, &enableClearnetIBDReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", true, &enableClearnetIBDReply)
 	require.Equal(t, true, enableClearnetIBDReply.Success)
 
 	var disableClearnetIBDReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", rpcmessages.ToggleSettingDisable, &disableClearnetIBDReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", false, &disableClearnetIBDReply)
 	require.Equal(t, true, disableClearnetIBDReply.Success)
 
 	var enableRootLoginReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", rpcmessages.ToggleSettingEnable, &enableRootLoginReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", true, &enableRootLoginReply)
 	require.Equal(t, true, enableRootLoginReply.Success)
 
 	var disableRootLoginReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", rpcmessages.ToggleSettingDisable, &disableRootLoginReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", false, &disableRootLoginReply)
 	require.Equal(t, true, disableRootLoginReply.Success)
 
 	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}

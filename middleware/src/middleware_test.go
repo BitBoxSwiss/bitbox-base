@@ -122,12 +122,12 @@ func TestRestoreSysconfig(t *testing.T) {
 func TestEnableTor(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableTor(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableTor(true)
 	require.Equal(t, true, responseEnable.Success)
 	require.Equal(t, "", responseEnable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableTor(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableTor(false)
 	require.Equal(t, true, responseDisable.Success)
 	require.Equal(t, "", responseDisable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
@@ -136,12 +136,12 @@ func TestEnableTor(t *testing.T) {
 func TestEnableTorMiddleware(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableTorMiddleware(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableTorMiddleware(true)
 	require.Equal(t, responseEnable.Success, true)
 	require.Equal(t, responseEnable.Message, "")
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableTorMiddleware(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableTorMiddleware(false)
 	require.Equal(t, true, responseDisable.Success)
 	require.Equal(t, "", responseDisable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
@@ -150,12 +150,12 @@ func TestEnableTorMiddleware(t *testing.T) {
 func TestEnableTorElectrs(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableTorElectrs(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableTorElectrs(true)
 	require.Equal(t, true, responseEnable.Success)
 	require.Equal(t, "", responseEnable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableTorElectrs(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableTorElectrs(false)
 	require.Equal(t, true, responseDisable.Success)
 	require.Equal(t, "", responseDisable.Message, "")
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
@@ -164,12 +164,12 @@ func TestEnableTorElectrs(t *testing.T) {
 func TestEnableClearnetIBD(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableClearnetIBD(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableClearnetIBD(true)
 	require.Equal(t, true, responseEnable.Success)
 	require.Equal(t, "", responseEnable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableClearnetIBD(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableClearnetIBD(false)
 	require.Equal(t, true, responseDisable.Success)
 	require.Equal(t, "", responseDisable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
@@ -178,12 +178,12 @@ func TestEnableClearnetIBD(t *testing.T) {
 func TestEnableTorSSH(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableTorSSH(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableTorSSH(true)
 	require.Equal(t, true, responseEnable.Success)
 	require.Equal(t, "", responseEnable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableTorSSH(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableTorSSH(false)
 	require.Equal(t, responseDisable.Success, true)
 	require.Equal(t, "", responseDisable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
@@ -192,12 +192,12 @@ func TestEnableTorSSH(t *testing.T) {
 func TestEnableRootLogin(t *testing.T) {
 	testMiddleware := setupTestMiddleware()
 
-	responseEnable := testMiddleware.EnableRootLogin(rpcmessages.ToggleSettingEnable)
+	responseEnable := testMiddleware.EnableRootLogin(true)
 	require.Equal(t, true, responseEnable.Success)
 	require.Equal(t, "", responseEnable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
 
-	responseDisable := testMiddleware.EnableRootLogin(rpcmessages.ToggleSettingDisable)
+	responseDisable := testMiddleware.EnableRootLogin(false)
 	require.Equal(t, true, responseDisable.Success, true)
 	require.Equal(t, "", responseDisable.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)

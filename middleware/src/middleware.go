@@ -60,7 +60,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 	return middleware
 }
 
-// demoBitcoinRPC is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
+// GetSampleInfo is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
 func (middleware *Middleware) GetSampleInfo() bool {
 	connCfg := rpcclient.ConnConfig{
 		HTTPPostMode: true,
@@ -409,8 +409,8 @@ func (middleware *Middleware) GetHostname() rpcmessages.GetHostnameResponse {
 // EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed ToggleSettingEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s Tor' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor"})
+	log.Printf("Executing 'Enable Tor: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -426,8 +426,8 @@ func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSetting) 
 // EnableTorMiddleware enables/disables the tor hidden service for the middleware based on the passed ToggleSettingEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s Tor for middleware' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_bbbmiddleware"})
+	log.Printf("Executing 'Enable Tor for middleware: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_bbbmiddleware"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -443,8 +443,8 @@ func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.Toggl
 // EnableTorElectrs enables/disables the tor hidden service for electrs based on the passed ToggleSettingEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s Tor for electrs' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_electrs"})
+	log.Printf("Executing 'Enable Tor for electrs: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_electrs"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -460,8 +460,8 @@ func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSe
 // EnableTorSSH enables/disables the tor hidden service for ssh based on the passed ToggleSettingEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorSSH(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s Tor for ssh' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "tor_ssh"})
+	log.Printf("Executing 'Enable Tor for ssh: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_ssh"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -476,8 +476,8 @@ func (middleware *Middleware) EnableTorSSH(toggleAction rpcmessages.ToggleSettin
 
 // EnableClearnetIBD enables/disables the initial block download over clearnet based on the passed ToggleSettingEnable/Disable argument
 func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s clearnet IBD' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "bitcoin_ibd_clearnet"})
+	log.Printf("Executing 'Enable clearnet IBD: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "bitcoin_ibd_clearnet"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorSetNeedsTwoArguments,
@@ -552,8 +552,8 @@ func (middleware *Middleware) GetBaseVersion() rpcmessages.GetBaseVersionRespons
 // EnableRootLogin enables/disables the login via the root user/password
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSetting) rpcmessages.ErrorResponse {
-	log.Printf("Executing '%s root login' via the config script.\n", toggleAction)
-	out, err := middleware.runBBBConfigScript([]string{string(toggleAction), "root_pwlogin"})
+	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "root_pwlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
