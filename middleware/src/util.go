@@ -156,3 +156,11 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 	log.Printf("Error: unhandled error '%s' with output '%s'", err.Error(), outputLines)
 	return rpcmessages.ErrorUnexpected
 }
+
+// determineEnableValue returns a string (either "enable" or "disable") used as parameter for the bbb-config.sh script for a given ToggleSetting
+func determineEnableValue(enable rpcmessages.ToggleSetting) string {
+	if enable {
+		return "enable"
+	}
+	return "disable"
+}
