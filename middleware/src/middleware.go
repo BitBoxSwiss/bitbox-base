@@ -3,7 +3,9 @@ package middleware
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -596,4 +598,39 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 		Message: "The password has to be at least 8 chars. An unicode char is counted as one.",
 		Code:    rpcmessages.ErrorSetRootPasswordTooShort,
 	}
+}
+
+// BaseVersionForVersionEndpoint supplys the Base version for the middleware REST endpoint `/version`.
+// The version is primarily obtained via a Redis GET.
+// If Redis can not be reached, the version is read from disk.
+// If both redis and the disk can not supply a version, then "0.0.0" is returned.
+// **This is not a RPC endpoint function.**
+func (middleware *Middleware) BaseVersionForVersionEndpoint() string {
+	//const versionFilePath string = "/opt/shift/config/version"
+	const versionFilePath string = "/tmp/version"
+	const fallbackVersion string = "0.0.0"
+
+	version, err := middleware.redisClient.GetString("base:version") // TODO: have this as a const somewhere
+	if err != nil {
+		log.Printf("BaseVersionForVersionEndpoint: Could not read the Base version from redis: %s\n", err.Error())
+		log.Println("BaseVersionForVersionEndpoint: Reading version from disk as fallback")
+
+		// read from disk as a fallback
+		file, err := os.Open(versionFilePath)
+		if err != nil {
+			log.Printf("BaseVersionForVersionEndpoint: Could not open the Base version file '%s': %s\n", versionFilePath, err.Error())
+			log.Printf("BaseVersionForVersionEndpoint: Returning fallback version '%s'\n", fallbackVersion)
+			return fallbackVersion
+		}
+
+		defer file.Close()
+		versionByte, err := ioutil.ReadAll(file)
+		if err != nil {
+			log.Printf("BaseVersionForVersionEndpoint: Could not read the Base version from '%s': %s\n", versionFilePath, err.Error())
+			log.Printf("BaseVersionForVersionEndpoint: Returning fallback version '%s'\n", fallbackVersion)
+			return fallbackVersion
+		}
+		return strings.ReplaceAll(string(versionByte), "\n", "")
+	}
+	return version
 }

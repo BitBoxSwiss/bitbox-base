@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -16,8 +17,9 @@ import (
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
-	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
-	Start() <-chan []byte
+	Start() <-chan []byte // Start triggers the main middleware event loop that emits events to be caught by the handlers.
+
+	/* --- RPCs --- */
 	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin() rpcmessages.ErrorResponse
@@ -41,6 +43,9 @@ type Middleware interface {
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
+	/* --- RPCs end --- */
+
+	BaseVersionForVersionEndpoint() string
 }
 
 // Handlers provides a web api
@@ -70,6 +75,7 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 		clientsMap:  make(map[int]chan<- []byte),
 	}
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
+	handlers.Router.HandleFunc("/version", handlers.versionHandler).Methods("GET")
 	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
 
 	handlers.middlewareEvents = handlers.middleware.Start()
@@ -98,6 +104,30 @@ func (handlers *Handlers) removeClient(clientID int) {
 // rootHandler provides an endpoint to indicate that the middleware is online and able to handle requests.
 func (handlers *Handlers) rootHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("OK!!\n"))
+	if err != nil {
+		log.Println(err.Error() + " Failed to write response bytes in root handler")
+	}
+}
+
+// versionHandler provides an endpoint supplying the Base version as JSON
+// This endpoint is curitial and needed in every Base release.
+// It does not have to be implemented in the Middleware, but
+func (handlers *Handlers) versionHandler(w http.ResponseWriter, r *http.Request) {
+	type version struct {
+		Version string `json:"version"`
+	}
+
+	versionString := handlers.middleware.BaseVersionForVersionEndpoint()
+	v := version{Version: versionString}
+	jsonResponse, err := json.Marshal(&v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	_, err = w.Write(jsonResponse)
 	if err != nil {
 		log.Println(err.Error() + " Failed to write response bytes in root handler")
 	}
