@@ -115,7 +115,7 @@ func runCommand(command string, args []string) (combinedLines []string, err erro
 
 func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []rpcmessages.ErrorCode) rpcmessages.ErrorCode {
 	// There are two possible types of errors handled here:
-	// 1.   The script could not be found.
+	// 1.   The script could not be found. -> return ExecutableNotFound
 	// 2.   Script exited with `exit status 1`:
 	// 	2.1. Script was not run as superuser. ErrorCode ErrorScriptNotSuperuser is expected as the last outputLine.
 	// 	2.2. CMD Script was not run with correct parameters. ErrorCode ErrorCmdScriptInvalidArg is expected as the last outputLine.
@@ -124,7 +124,7 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 	// All other errors are unknow and not handled. ErrorUnexpected is returned as a last resort.
 
 	if os.IsNotExist(err) {
-		return rpcmessages.ErrorScriptNotFound
+		return rpcmessages.ExecutableNotFound
 	} else if err.Error() == "exit status 1" {
 
 		if len(outputLines) == 0 {
