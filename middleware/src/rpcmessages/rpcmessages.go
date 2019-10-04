@@ -88,6 +88,18 @@ type ErrorResponse struct {
 	Message string
 }
 
+// Error formats the ErrorResponse in the following two formats:
+// If no error occoured:
+//  ErrorResponse: Success: true
+//
+// If an error occoured:
+// 	ErrorResponse:
+// 		Success: false
+// 		Code: <ERROR_CODE>
+//		Message: <message>
 func (err *ErrorResponse) Error() string {
-	return fmt.Sprintf("bbBaseError: Code: %s | Message: %s", err.Code, err.Message)
+	if err.Success {
+		return fmt.Sprintf("ErrorResponse: Success: %t \n", err.Success)
+	}
+	return fmt.Sprintf("ErrorResponse:\n\tSuccess: %t \n\tCode: %s \n\tMessage: %s\n", err.Success, err.Code, err.Message)
 }
