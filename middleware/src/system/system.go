@@ -13,6 +13,7 @@ type Environment struct {
 	bbbCmdScript       string
 	prometheusURL      string
 	redisPort          string
+	middlewareVersion  string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -30,6 +31,7 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		bbbCmdScript:       argumentMap["bbbCmdScript"],
 		prometheusURL:      argumentMap["prometheusURL"],
 		redisPort:          argumentMap["redisPort"],
+		middlewareVersion:  argumentMap["middlewareVersion"],
 	}
 	return environment
 }
@@ -72,4 +74,9 @@ func (environment *Environment) GetPrometheusURL() string {
 // GetRedisPort is a getter for the port the redis server is listening on
 func (environment *Environment) GetRedisPort() string {
 	return environment.redisPort
+}
+
+// GetMiddlewareVersion is a getter for the middleware version
+func (environment *Environment) GetMiddlewareVersion() string {
+	return environment.middlewareVersion
 }

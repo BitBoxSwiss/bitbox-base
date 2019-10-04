@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -18,6 +19,8 @@ import (
 type Middleware interface {
 	// Start triggers the main middleware event loop that emits events to be caught by the handlers.
 	Start() <-chan []byte
+
+	/* --- RPCs --- */
 	SystemEnv() rpcmessages.GetEnvResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin() rpcmessages.ErrorResponse
@@ -41,6 +44,9 @@ type Middleware interface {
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
+	/* --- RPCs end --- */
+
+	GetMiddlewareVersion() string
 }
 
 // Handlers provides a web api
@@ -69,9 +75,10 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 		nClients:    0,
 		clientsMap:  make(map[int]chan<- []byte),
 	}
-	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
-	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
 
+	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
+	handlers.Router.HandleFunc("/version", handlers.versionHandler).Methods("GET")
+	handlers.Router.HandleFunc("/ws", handlers.wsHandler)
 	handlers.middlewareEvents = handlers.middleware.Start()
 
 	go handlers.listenEvents()
@@ -100,6 +107,27 @@ func (handlers *Handlers) rootHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("OK!!\n"))
 	if err != nil {
 		log.Println(err.Error() + " Failed to write response bytes in root handler")
+	}
+}
+
+func (handlers *Handlers) versionHandler(w http.ResponseWriter, r *http.Request) {
+	type version struct {
+		Version string `json:"version"`
+	}
+
+	versionString := handlers.middleware.GetMiddlewareVersion()
+	v := version{Version: versionString}
+	jsonResponse, err := json.Marshal(&v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		log.Println(err.Error() + " Failed to write response bytes in version handler")
 	}
 }
 

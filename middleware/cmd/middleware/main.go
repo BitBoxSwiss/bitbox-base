@@ -11,6 +11,10 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 )
 
+// version defines the middleware version
+// The version is upgraded via semantic versioning
+const version string = "0.0.1"
+
 func main() {
 	bitcoinRPCUser := flag.String("rpcuser", "rpcuser", "Bitcoin rpc user name")
 	bitcoinRPCPassword := flag.String("rpcpassword", "rpcpassword", "Bitcoin rpc password")
@@ -36,6 +40,7 @@ func main() {
 	argumentMap["bbbCmdScript"] = *bbbCmdScript
 	argumentMap["prometheusURL"] = *prometheusURL
 	argumentMap["redisPort"] = *redisPort
+	argumentMap["middlewareVersion"] = version
 
 	logBeforeExit := func() {
 		// Recover from all panics and log error before panicking again.
