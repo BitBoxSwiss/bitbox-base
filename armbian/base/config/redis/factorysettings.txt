@@ -12,6 +12,9 @@ SET base:wifi:password none
 SET base:hostname bitbox-base
 SET base:update:allow-unsigned 0
 SET base:updating 0
+SET base:setup 0
+
+SET middleware:passwordSetup 0
 
 SET tor:base:enabled 1
 SET tor:ssh:enabled 0

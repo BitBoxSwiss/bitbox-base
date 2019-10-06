@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 )
 
@@ -159,7 +161,7 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 	return rpcmessages.ErrorUnexpected
 }
 
-// determineEnableValue returns a string (either "enable" or "disable") used as parameter for the bbb-config.sh script for a given ToggleSetting
+// determineEnableValue returns a string (either "enable" or "disable") used as parameter for the bbb-config.sh script for a given ToggleSettingArgs
 func determineEnableValue(enable rpcmessages.ToggleSettingArgs) string {
 	if enable.ToggleSetting {
 		return "enable"
@@ -281,4 +283,39 @@ func parseBaseUpdateStdout(outputLine string) (containsUpdateProgressInfo bool, 
 func (middleware *Middleware) setBaseUpdateStateAndNotify(state rpcmessages.BaseUpdateState) {
 	middleware.baseUpdateProgress.State = state
 	middleware.events <- []byte(rpcmessages.OpBaseUpdateProgressChanged)
+}
+
+// checkMiddlewareSetup checks if the middleware password has been set yet and if the user is done with the base
+// setup by getting these values from redis and placing them into the middleware struct. Returns an error if the redis lookup fails.
+func (middleware *Middleware) checkMiddlewareSetup() error {
+	passwordSet, err := middleware.redisClient.GetBool(redis.MiddlewarePasswordSet)
+	if err != nil {
+		return err
+	}
+	baseSetupDone, err := middleware.redisClient.GetBool(redis.BaseSetupDone)
+	if err != nil {
+		return err
+	}
+	middleware.isMiddlewarePasswordSet = passwordSet
+	middleware.isBaseSetupDone = baseSetupDone
+	return nil
+}
+
+// get userAuthStructure gets the user authentication data from redis and parses it into a map with the username as a key and the UserAuthStruct
+// as a value.
+func (middleware *Middleware) getAuthStructure() (map[string]UserAuthStruct, error) {
+	usersMap := make(map[string]UserAuthStruct)
+	// isMiddlewarePasswordSet checks if the base is run the first time.
+	authStructureString, err := middleware.redisClient.GetString(redis.MiddlewareAuth)
+	if err != nil {
+		log.Println("error getting the auth structure string from the redis client")
+		return usersMap, err
+	}
+
+	err = json.Unmarshal([]byte(authStructureString), &usersMap)
+	if err != nil {
+		log.Println("Did not receive json from redis's authentication structure")
+		return usersMap, err
+	}
+	return usersMap, nil
 }

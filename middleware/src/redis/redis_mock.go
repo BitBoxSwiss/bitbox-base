@@ -54,6 +54,9 @@ func setupTestData() map[string]string {
 	mockRedisMap[string(BaseHostname)] = "bitbox-base-redis-mock"
 	mockRedisMap[string(TorEnabled)] = "1"
 	mockRedisMap[string(BitcoindListen)] = "1"
+	mockRedisMap[string(MiddlewarePasswordSet)] = "0"
+	mockRedisMap[string(BaseSetupDone)] = "0"
+	mockRedisMap[string(MiddlewareAuth)] = `{"admin":{"password":"ICanHasPasword?","role":"admin"}}`
 
 	// Specific test values for testing util.go getBooleanFromRedis()
 	// TestGetBooleanFromRedis() in util_test.go

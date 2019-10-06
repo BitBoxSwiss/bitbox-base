@@ -13,7 +13,7 @@ func getToggleSettingArgs(enabled bool) rpcmessages.ToggleSettingArgs {
 }
 
 // setupTestMiddleware middleware returns a middleware setup with testing arguments
-func setupTestMiddleware() *middleware.Middleware {
+func setupTestMiddleware(t *testing.T) *middleware.Middleware {
 	argumentMap := make(map[string]string)
 	argumentMap["bitcoinRPCUser"] = "user"
 	argumentMap["bitcoinRPCPassword"] = "password"
@@ -30,12 +30,13 @@ func setupTestMiddleware() *middleware.Middleware {
 	argumentMap["bbbConfigScript"] = "/bin/echo"
 	argumentMap["bbbCmdScript"] = "/bin/echo"
 
-	testMiddleware := middleware.NewMiddleware(argumentMap, true)
+	testMiddleware, err := middleware.NewMiddleware(argumentMap, true)
+	require.NoError(t, err)
 	return testMiddleware
 }
 
 func TestSystemEnvResponse(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	systemEnvResponse := testMiddleware.SystemEnv()
 
@@ -44,7 +45,7 @@ func TestSystemEnvResponse(t *testing.T) {
 }
 
 func TestSampleInfo(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	sampleInfo := testMiddleware.SampleInfo()
 	emptySampleInfo := rpcmessages.SampleInfoResponse{
@@ -57,7 +58,7 @@ func TestSampleInfo(t *testing.T) {
 }
 
 func TestVerificationProgress(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	verificationProgress := testMiddleware.VerificationProgress()
 	emptyVerificationProgress := rpcmessages.VerificationProgressResponse{
@@ -70,7 +71,7 @@ func TestVerificationProgress(t *testing.T) {
 }
 
 func TestResyncBitcoin(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.ResyncBitcoin()
 	require.Equal(t, true, response.Success)
@@ -79,7 +80,7 @@ func TestResyncBitcoin(t *testing.T) {
 }
 
 func TestReindexBitcoin(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.ReindexBitcoin()
 	require.Equal(t, true, response.Success)
@@ -88,7 +89,7 @@ func TestReindexBitcoin(t *testing.T) {
 }
 
 func TestBackupHSMSecret(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.BackupHSMSecret()
 	require.Equal(t, true, response.Success)
@@ -97,7 +98,7 @@ func TestBackupHSMSecret(t *testing.T) {
 }
 
 func TestBackupSysconfig(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.BackupSysconfig()
 	require.Equal(t, true, response.Success)
@@ -106,7 +107,7 @@ func TestBackupSysconfig(t *testing.T) {
 }
 
 func TestRestoreHSMSecret(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.RestoreHSMSecret()
 	require.Equal(t, true, response.Success)
@@ -115,7 +116,7 @@ func TestRestoreHSMSecret(t *testing.T) {
 }
 
 func TestRestoreSysconfig(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.RestoreSysconfig()
 	require.Equal(t, true, response.Success)
@@ -124,7 +125,7 @@ func TestRestoreSysconfig(t *testing.T) {
 }
 
 func TestEnableTor(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableTor(getToggleSettingArgs(true))
 	require.Equal(t, true, responseEnable.Success)
@@ -138,7 +139,7 @@ func TestEnableTor(t *testing.T) {
 }
 
 func TestEnableTorMiddleware(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableTorMiddleware(getToggleSettingArgs(true))
 	require.Equal(t, responseEnable.Success, true)
@@ -152,7 +153,7 @@ func TestEnableTorMiddleware(t *testing.T) {
 }
 
 func TestEnableTorElectrs(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableTorElectrs(getToggleSettingArgs(true))
 	require.Equal(t, true, responseEnable.Success)
@@ -166,7 +167,7 @@ func TestEnableTorElectrs(t *testing.T) {
 }
 
 func TestEnableClearnetIBD(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableClearnetIBD(getToggleSettingArgs(true))
 	require.Equal(t, true, responseEnable.Success)
@@ -180,7 +181,7 @@ func TestEnableClearnetIBD(t *testing.T) {
 }
 
 func TestEnableTorSSH(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableTorSSH(getToggleSettingArgs(true))
 	require.Equal(t, true, responseEnable.Success)
@@ -194,7 +195,7 @@ func TestEnableTorSSH(t *testing.T) {
 }
 
 func TestEnableRootLogin(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	responseEnable := testMiddleware.EnableRootLogin(getToggleSettingArgs(true))
 	require.Equal(t, true, responseEnable.Success)
@@ -208,7 +209,7 @@ func TestEnableRootLogin(t *testing.T) {
 }
 
 func TestSetRootPassword(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	// test valid root password set
 	responseValid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "iusethispasswordeverywhere"})
@@ -236,106 +237,102 @@ func TestSetRootPassword(t *testing.T) {
 }
 
 func TestUserAuthenticate(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
-	/* test login should fail for every user/password, when dummyIsBaseSetup == false */
+	/* test login should fail for every user/password except default admin, when isMiddlewarePasswordSet == false */
 	notInitalizedArgs := rpcmessages.UserAuthenticateArgs{Username: "dev", Password: "dev"}
-	authenticateNotInitalized := testMiddleware.UserAuthenticate(notInitalizedArgs)
+	authenticateNotInitialized := testMiddleware.UserAuthenticate(notInitalizedArgs)
 
-	require.Equal(t, false, authenticateNotInitalized.Success)
-	require.Equal(t, "authentication unsuccessful", authenticateNotInitalized.Message)
-	require.Equal(t, false, testMiddleware.DummyIsBaseSetup())
+	require.Equal(t, false, authenticateNotInitialized.ErrorResponse.Success)
+	require.Equal(t, "authentication unsuccessful, username not found", authenticateNotInitialized.ErrorResponse.Message)
+	require.Equal(t, "", authenticateNotInitialized.Token)
+	setupStatus := testMiddleware.SetupStatus()
+	require.Equal(t, false, setupStatus.MiddlewarePasswordSet)
 
-	/* test initial admin login with dummyAdminPassword. Should fail because dummyIsBaseSetup == false  */
-	adminDummyPWArgs := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: testMiddleware.DummyAdminPassword()}
-	authenticateAdminDummyPW := testMiddleware.UserAuthenticate(adminDummyPWArgs)
-
-	require.Equal(t, false, authenticateAdminDummyPW.Success)
-	require.Equal(t, "authentication unsuccessful", authenticateAdminDummyPW.Message)
-	require.Equal(t, false, testMiddleware.DummyIsBaseSetup())
-
-	/* test initial admin login, should succeed because dummyIsBaseSetup == false  */
-	adminArgs := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
+	/* test initial admin login, should succeed because isMiddlewarePasswordSet == false and the admin password is set to the initial constant */
+	adminArgs := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: testMiddleware.InitialAdminPassword()}
 	authenticateAdmin := testMiddleware.UserAuthenticate(adminArgs)
 
-	require.Equal(t, true, authenticateAdmin.Success)
-	require.Equal(t, false, testMiddleware.DummyIsBaseSetup())
+	require.Equal(t, true, authenticateAdmin.ErrorResponse.Success)
+	setupStatus = testMiddleware.SetupStatus()
+	require.Equal(t, false, setupStatus.MiddlewarePasswordSet)
+	// validate the returned token
+	require.NoError(t, testMiddleware.ValidateToken(authenticateAdmin.Token))
 
-	// change admin password to "abc123def", which sets dummyIsBaseSetup = true
-	response := testMiddleware.UserChangePassword(rpcmessages.UserChangePasswordArgs{Username: "admin", NewPassword: "abc123def"})
+	// change admin password to "abc123def", which sets isMiddlewarePasswordSet = true
+	response := testMiddleware.UserChangePassword(rpcmessages.UserChangePasswordArgs{Username: "admin", Password: testMiddleware.InitialAdminPassword(), NewPassword: "abc123def"})
 	require.Equal(t, true, response.Success)
 
-	/* test login dev/dev should succeed now, because dummyIsBaseSetup == true */
-	devArgs := rpcmessages.UserAuthenticateArgs{Username: "dev", Password: "dev"}
-	authenticateDev := testMiddleware.UserAuthenticate(devArgs)
+	/* test login admin/abc123def should succeed now, because isMiddlewarePasswordSet == true */
+	adminChangedArgs := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "abc123def"}
+	authenticateAdminChanged := testMiddleware.UserAuthenticate(adminChangedArgs)
 
-	require.Equal(t, true, authenticateDev.Success)
-	require.Equal(t, true, testMiddleware.DummyIsBaseSetup())
+	require.Equal(t, true, authenticateAdminChanged.ErrorResponse.Success)
+	require.NoError(t, testMiddleware.ValidateToken(authenticateAdmin.Token))
+	setupStatus = testMiddleware.SetupStatus()
+	require.Equal(t, true, setupStatus.MiddlewarePasswordSet)
 
-	/* test initial admin login, should fail now because dummyIsBaseSetup == true  */
+	/* test initial admin login, should fail now because isMiddlewarePasswordSet == true  */
 	authenticateAdmin2 := testMiddleware.UserAuthenticate(adminArgs)
 
-	require.Equal(t, false, authenticateAdmin2.Success, false)
-	require.Equal(t, "authentication unsuccessful", authenticateAdmin2.Message)
-	require.Equal(t, true, testMiddleware.DummyIsBaseSetup(), true)
-
-	/* test initial admin login with dummyAdminPassword. Should succeed now, because dummyIsBaseSetup == true  */
-	adminDummyPW2Args := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: testMiddleware.DummyAdminPassword()}
-	authenticateAdminDummyPW2 := testMiddleware.UserAuthenticate(adminDummyPW2Args)
-
-	require.Equal(t, true, authenticateAdminDummyPW2.Success)
-	require.Equal(t, true, testMiddleware.DummyIsBaseSetup())
+	require.Equal(t, false, authenticateAdmin2.ErrorResponse.Success, false)
+	require.Equal(t, "authentication unsuccessful, incorrect password", authenticateAdmin2.ErrorResponse.Message)
+	require.Equal(t, "", authenticateAdmin2.Token)
+	setupStatus = testMiddleware.SetupStatus()
+	require.Equal(t, true, setupStatus.MiddlewarePasswordSet, true)
 
 	/* test invalid login (with a invalid username) */
 	invalidNameArgs := rpcmessages.UserAuthenticateArgs{Username: "InvalidUserName", Password: ""}
 	authenticateInvalidName := testMiddleware.UserAuthenticate(invalidNameArgs)
 
-	require.Equal(t, false, authenticateInvalidName.Success)
-	require.Equal(t, "authentication unsuccessful", authenticateInvalidName.Message)
+	require.Equal(t, false, authenticateInvalidName.ErrorResponse.Success)
+	require.Equal(t, "authentication unsuccessful, username not found", authenticateInvalidName.ErrorResponse.Message)
 
 	/* test invalid login (empty username and password) */
 	emptyArgs := rpcmessages.UserAuthenticateArgs{Username: "", Password: ""}
 	authenticateEmpty := testMiddleware.UserAuthenticate(emptyArgs)
 
-	require.Equal(t, false, authenticateEmpty.Success)
-	require.Equal(t, "authentication unsuccessful", authenticateEmpty.Message)
+	require.Equal(t, false, authenticateEmpty.ErrorResponse.Success)
+	require.Equal(t, "authentication unsuccessful, username not found", authenticateEmpty.ErrorResponse.Message)
 }
 
 func TestUserChangePassword(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
-	/* test valid password change */
-	validArgs := rpcmessages.UserChangePasswordArgs{Username: "notAdmin", NewPassword: "12345678"}
+	/* test password change with invalid initial password*/
+	validArgs := rpcmessages.UserChangePasswordArgs{Username: "notAdmin", Password: "notTheInitialPassword", NewPassword: "12345678"}
 	changepasswordValid := testMiddleware.UserChangePassword(validArgs)
 
-	require.Equal(t, true, changepasswordValid.Success)
-	require.Equal(t, false, testMiddleware.DummyIsBaseSetup())
+	require.Equal(t, false, changepasswordValid.Success)
+	setupStatus := testMiddleware.SetupStatus()
+	require.Equal(t, false, setupStatus.MiddlewarePasswordSet)
 
-	/* test admin password change, this should set dummyIsBaseSetup == true */
+	/* test admin password change, this should set isMiddlewarePasswordSet == true */
 	newPassword := "123qwert567"
-	adminChangeArgs := rpcmessages.UserChangePasswordArgs{Username: "admin", NewPassword: newPassword}
+	adminChangeArgs := rpcmessages.UserChangePasswordArgs{Username: "admin", Password: testMiddleware.InitialAdminPassword(), NewPassword: newPassword}
 	changepasswordAdminChange := testMiddleware.UserChangePassword(adminChangeArgs)
 
 	require.Equal(t, true, changepasswordAdminChange.Success)
-	require.Equal(t, true, testMiddleware.DummyIsBaseSetup())
+	setupStatus = testMiddleware.SetupStatus()
+	require.Equal(t, true, setupStatus.MiddlewarePasswordSet)
 
 	/* test invalid password change (too short, needs to be 7 chars) */
 	invalidArgs := rpcmessages.UserChangePasswordArgs{NewPassword: "1234567"}
 	changepasswordInvalid := testMiddleware.UserChangePassword(invalidArgs)
 
 	require.Equal(t, false, changepasswordInvalid.Success)
-	require.Equal(t, "password change unsuccessful (too short)", changepasswordInvalid.Message)
+	require.Equal(t, "password change unsuccessful, the password needs to be at least 8 characters in length", changepasswordInvalid.Message)
 
 	/* test empty password change */
 	emptyArgs := rpcmessages.UserChangePasswordArgs{}
 	changepasswordEmpty := testMiddleware.UserChangePassword(emptyArgs)
 
 	require.Equal(t, false, changepasswordEmpty.Success)
-	require.Equal(t, "password change unsuccessful (too short)", changepasswordEmpty.Message)
+	require.Equal(t, "password change unsuccessful, the password needs to be at least 8 characters in length", changepasswordEmpty.Message)
 }
 
 func TestSetHostname(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	/* test normal hostname */
 	validArgs1 := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-satoshi"}
@@ -375,7 +372,7 @@ func TestSetHostname(t *testing.T) {
 }
 
 func TestShutdownBase(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.ShutdownBase()
 	require.Equal(t, true, response.Success)
@@ -384,7 +381,7 @@ func TestShutdownBase(t *testing.T) {
 }
 
 func TestRebootBase(t *testing.T) {
-	testMiddleware := setupTestMiddleware()
+	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.RebootBase()
 	require.Equal(t, true, response.Success)

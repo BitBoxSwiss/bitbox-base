@@ -7,12 +7,15 @@ type BaseRedisKey string
 
 // BitBox Base redis keys for configuration options.
 const (
-	BaseHostname      BaseRedisKey = "base:hostname"
-	TorEnabled        BaseRedisKey = "tor:base:enabled"
-	MiddlewareOnion   BaseRedisKey = "tor:bbbmiddleware:onion"
-	BitcoindListen    BaseRedisKey = "bitcoind:listen"
-	BaseVersion       BaseRedisKey = "base:version"
-	BitcoindVersion   BaseRedisKey = "bitcoind:version"
-	LightningdVersion BaseRedisKey = "lightningd:version"
-	ElectrsVersion    BaseRedisKey = "electrs:version"
+	BaseHostname          BaseRedisKey = "base:hostname"
+	TorEnabled            BaseRedisKey = "tor:base:enabled"
+	MiddlewareOnion       BaseRedisKey = "tor:bbbmiddleware:onion"
+	BitcoindListen        BaseRedisKey = "bitcoind:listen"
+	BaseVersion           BaseRedisKey = "base:version"
+	BitcoindVersion       BaseRedisKey = "bitcoind:version"
+	LightningdVersion     BaseRedisKey = "lightningd:version"
+	ElectrsVersion        BaseRedisKey = "electrs:version"
+	MiddlewarePasswordSet BaseRedisKey = "middleware:passwordSetup"
+	MiddlewareAuth        BaseRedisKey = "middleware:auth"
+	BaseSetupDone         BaseRedisKey = "base:setup"
 )

@@ -3,6 +3,10 @@ package rpcmessages
 // ErrorCode is a unique and short string code represeting an Error
 type ErrorCode string
 
+// JSONWebTokenInvalid is thrown when the authentication with the provided token has failed. This can happen for both an expired token and
+// if the token is invalid.
+const JSONWebTokenInvalid ErrorCode = "JSONWEBTOKEN_INVALID"
+
 const (
 
 	// ExecutableNotFound is thrown when a executable is not found.
@@ -136,12 +140,34 @@ const (
 )
 
 const (
-	// ErrorDummyAuthenticationNotSuccessful is thrown if the dummy authentication is not successful.
-	ErrorDummyAuthenticationNotSuccessful ErrorCode = "DUMMY_AUTHENTICATION_NOT_SUCCESSFUL"
+	// ErrorInitialAuthenticationNotSuccessful is thrown if the initial authentication with default username and password is not successful.
+	ErrorInitialAuthenticationNotSuccessful ErrorCode = "INITIAL_AUTHENTICATION_NOT_SUCCESSFUL"
 
-	// ErrorDummyPasswordTooShort is thrown if the provided password is too short.
-	ErrorDummyPasswordTooShort ErrorCode = "DUMMY_CHANGEPASSWORD_TOO_SHORT"
+	// ErrorAuthenticationPasswordIncorrect is thrown if the authentication is not successful.
+	ErrorAuthenticationPasswordIncorrect ErrorCode = "AUTHENTICATION_PASSWORD_INCORRECT"
 
+	// ErrorAuthenticationFailed is thrown if the authentication is not successful, because of a generic error
+	ErrorAuthenticationFailed ErrorCode = "AUTHENTICATION_FAILED"
+
+	// ErrorAuthenticationUsernameNotFound is thrown if the given username does not exist.
+	ErrorAuthenticationUsernameNotFound ErrorCode = "AUTHENTICATION_USERNAME_NOEXIST"
+)
+
+const (
+	// ErrorPasswordTooShort is thrown if the provided password is too short.
+	ErrorPasswordTooShort ErrorCode = "CHANGEPASSWORD_TOO_SHORT"
+
+	// ErrorPasswordChangeFailed is thrown if the there is an internal system error with e.g. redis or json parsing
+	ErrorPasswordChangeFailed ErrorCode = "CHANGEPASSWORD_FAILED"
+
+	// ErrorPasswordChangeUsernameNotExist is thrown if the given username does not exist
+	ErrorPasswordChangeUsernameNotExist ErrorCode = "CHANGEPASSWORD_USERNAME_NOEXIST"
+
+	// ErrorPasswordChangePasswordIncorrect is thrown is the given password does not match the bcrypted password from redis
+	ErrorPasswordChangePasswordIncorrect ErrorCode = "CHANGEPASSWORD_PASSWORD_INCORRECT"
+)
+
+const (
 	// ErrorSetRootPasswordTooShort is thrown if the provided root password is too short.
 	ErrorSetRootPasswordTooShort ErrorCode = "SET_ROOTPASSWORD_PASSWORD_TOO_SHORT"
 )

@@ -53,7 +53,10 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
-	middleware := middleware.NewMiddleware(argumentMap, false)
+	middleware, err := middleware.NewMiddleware(argumentMap, false)
+	if err != nil {
+		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true.", err.Error())
+	}
 	log.Println("--------------- Started middleware --------------")
 
 	handlers := handlers.NewHandlers(middleware, *dataDir)
