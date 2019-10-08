@@ -30,14 +30,14 @@ type Middleware interface {
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
-	EnableTor(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorMiddleware(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorElectrs(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorSSH(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableClearnetIBD(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
+	EnableTor(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorMiddleware(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorElectrs(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorSSH(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableClearnetIBD(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
-	EnableRootLogin(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
+	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse

@@ -158,8 +158,8 @@ func handleBBBScriptErrorCode(outputLines []string, err error, possibleErrors []
 }
 
 // determineEnableValue returns a string (either "enable" or "disable") used as parameter for the bbb-config.sh script for a given ToggleSetting
-func determineEnableValue(enable rpcmessages.ToggleSetting) string {
-	if enable {
+func determineEnableValue(enable rpcmessages.ToggleSettingArgs) string {
+	if enable.ToggleSetting {
 		return "enable"
 	}
 	return "disable"
