@@ -5,8 +5,9 @@ type ErrorCode string
 
 const (
 
-	// ErrorScriptNotFound is thrown if either the bbb-cmd.sh or bbb-config.sh scripts are not found
-	ErrorScriptNotFound ErrorCode = "SCRIPT_NOT_FOUND"
+	// ExecutableNotFound is thrown when a executable is not found.
+	// This can for example be a script (e.g. bbb-cmd.sh or bbb-config.sh) or a executable like `reboot`
+	ExecutableNotFound ErrorCode = "EXECUTABLE_NOT_FOUND"
 
 	// ErrorScriptNotSuperuser is thrown if a run scripts need to be run as superuser.
 	ErrorScriptNotSuperuser ErrorCode = "SCRIPT_NOT_RUN_AS_SUPERUSER"

@@ -4,6 +4,7 @@ package middleware
 import (
 	"fmt"
 	"log"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ type Middleware struct {
 	prometheusClient     *prometheus.PromClient
 	redisClient          redis.Redis
 	verificationProgress rpcmessages.VerificationProgressResponse
+	isMockmode           bool
 	// Saves state for the dummy setup process
 	// TODO: should be removed as soon as Authentication is implemented
 	dummyIsBaseSetup   bool
@@ -52,6 +54,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 			Headers:              0,
 			VerificationProgress: 0.0,
 		},
+		isMockmode:         mock,
 		dummyIsBaseSetup:   false,
 		dummyAdminPassword: "",
 	}
@@ -498,36 +501,70 @@ func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleS
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// ShutdownBase returns an ErrorResponse struct in response to a rpcserver request
-// It calls the bbb-cmd.sh script which initializes a shutdown
+// ShutdownBase shuts the Base down.
+// The shutdown is exectuted in a goroutine with a delay of a few seconds.
+// Prior to starting the goroutine the path for the `shutdown` executable is checked.
+// If the executable is found, a ErrorResponse indicating success is returned.
+// Otherwise a ExecutableNotFound Code is returned.
 func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
-	log.Println("shutting down the Base via the cmd script")
-	out, err := middleware.runBBBCmdScript([]string{"base", "shutdown"})
+	const shutdownDelay time.Duration = 5 * time.Second
+	log.Printf("Shutting down the Base in %s\n", shutdownDelay)
+
+	if middleware.isMockmode {
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+
+	_, err := exec.LookPath("shutdown")
 	if err != nil {
-		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
 			Success: false,
-			Message: strings.Join(out, "\n"),
-			Code:    errorCode,
+			Message: fmt.Sprintf("could not shut the Base down: %s", err.Error()),
+			Code:    rpcmessages.ExecutableNotFound,
 		}
 	}
+
+	go func(delay time.Duration) {
+		time.Sleep(delay)
+		cmd := exec.Command("shutdown", "now")
+		err = cmd.Start()
+		if err != nil {
+			log.Printf("Could not shutdown the Base: %s", err.Error())
+		}
+	}(shutdownDelay)
 
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// RebootBase returns an ErrorResponse struct in response to a rpcserver request
-// It calls the bbb-cmd.sh script which initializes a restart
+// RebootBase reboots the Base.
+// The reboot is exectuted in a goroutine with a delay of a few seconds.
+// Prior to starting the goroutine the path for the `reboot` executable is checked.
+// If the executable is found, a ErrorResponse indicating success is returned.
+// Otherwise a ExecutableNotFound Code is returned.
 func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
-	log.Println("restarting the Base via the cmd script")
-	out, err := middleware.runBBBCmdScript([]string{"base", "restart"})
+	const rebootDelay time.Duration = 5 * time.Second
+	log.Printf("Rebooting the Base in %s\n", rebootDelay)
+
+	if middleware.isMockmode {
+		return rpcmessages.ErrorResponse{Success: true}
+	}
+
+	_, err := exec.LookPath("reboot")
 	if err != nil {
-		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
 			Success: false,
-			Message: strings.Join(out, "\n"),
-			Code:    errorCode,
+			Message: fmt.Sprintf("could not reboot the Base: %s", err.Error()),
+			Code:    rpcmessages.ExecutableNotFound,
 		}
 	}
+
+	go func(delay time.Duration) {
+		time.Sleep(delay)
+		cmd := exec.Command("reboot")
+		err = cmd.Start()
+		if err != nil {
+			log.Printf("Could not reboot the Base: %s", err.Error())
+		}
+	}(rebootDelay)
 
 	return rpcmessages.ErrorResponse{Success: true}
 }
