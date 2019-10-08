@@ -30,6 +30,11 @@ type Middleware struct {
 	dummyAdminPassword string
 }
 
+// GetMiddlewareVersion returns the Middleware Version for the `GET /version` endpoint.
+func (middleware *Middleware) GetMiddlewareVersion() string {
+	return middleware.environment.GetMiddlewareVersion()
+}
+
 // NewMiddleware returns a new instance of the middleware.
 // For testing a mock boolean can be passed, which mocks e.g. redis.
 func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {

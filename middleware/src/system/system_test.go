@@ -19,6 +19,7 @@ func TestSystem(t *testing.T) {
 	argumentMap["bbbCmdScript"] = "/home/bitcoin/cmd-script.sh"
 	argumentMap["prometheusURL"] = "http://localhost:9090"
 	argumentMap["redisPort"] = "6379"
+	argumentMap["middlewareVersion"] = "0.0.1"
 
 	environmentInstance := system.NewEnvironment(argumentMap)
 	require.Equal(t, environmentInstance.GetBitcoinRPCPort(), "8332")
@@ -31,6 +32,7 @@ func TestSystem(t *testing.T) {
 	require.Equal(t, environmentInstance.ElectrsRPCPort, "18442")
 	require.Equal(t, environmentInstance.GetPrometheusURL(), "http://localhost:9090")
 	require.Equal(t, "6379", environmentInstance.GetRedisPort())
+	require.Equal(t, "0.0.1", environmentInstance.GetMiddlewareVersion())
 
 	//test unhappy path
 	argumentMap = make(map[string]string)
