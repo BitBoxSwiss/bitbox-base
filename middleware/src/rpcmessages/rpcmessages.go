@@ -67,16 +67,23 @@ type VerificationProgressResponse struct {
 	VerificationProgress float64 `json:"verificationProgress"`
 }
 
-// GetBaseVersionResponse is the struct that get sent by the rpc server during a GetBaseVersion rpc call
-type GetBaseVersionResponse struct {
-	ErrorResponse *ErrorResponse
-	Version       string
-}
-
-// GetHostnameResponse is the struct that get sent by the rpc server during a GetHostname rpc call
-type GetHostnameResponse struct {
-	ErrorResponse *ErrorResponse
-	Hostname      string
+// GetBaseInfoResponse is the struct that get sent by the rpc server during a GetBaseInfo rpc call
+type GetBaseInfoResponse struct {
+	ErrorResponse       *ErrorResponse
+	Status              string
+	Hostname            string
+	MiddlewareLocalIP   string
+	MiddlewareLocalPort string
+	MiddlewareTorOnion  string
+	MiddlewareTorPort   string
+	IsTorEnabled        bool
+	IsBitcoindListening bool
+	FreeDiskspace       int64 // in Byte
+	TotalDiskspace      int64 // in Byte
+	BaseVersion         string
+	BitcoindVersion     string
+	LightningdVersion   string
+	ElectrsVersion      string
 }
 
 // ErrorResponse is a generic RPC response indicating if a RPC call was successful or not.

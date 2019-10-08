@@ -16,6 +16,7 @@ import (
 const version string = "0.0.1"
 
 func main() {
+	middlewarePort := flag.String("middlewareport", "8845", "Port the middleware should listen on (default 8845)")
 	bitcoinRPCUser := flag.String("rpcuser", "rpcuser", "Bitcoin rpc user name")
 	bitcoinRPCPassword := flag.String("rpcpassword", "rpcpassword", "Bitcoin rpc password")
 	bitcoinRPCPort := flag.String("rpcport", "18332", "Bitcoin rpc port, localhost is assumed as an address")
@@ -30,6 +31,7 @@ func main() {
 	flag.Parse()
 
 	argumentMap := make(map[string]string)
+	argumentMap["middlewarePort"] = *middlewarePort
 	argumentMap["bitcoinRPCUser"] = *bitcoinRPCUser
 	argumentMap["bitcoinRPCPassword"] = *bitcoinRPCPassword
 	argumentMap["bitcoinRPCPort"] = *bitcoinRPCPort
@@ -55,9 +57,9 @@ func main() {
 	log.Println("--------------- Started middleware --------------")
 
 	handlers := handlers.NewHandlers(middleware, *dataDir)
-	log.Println("Binding middleware api to port 8845")
+	log.Printf("Binding middleware api to port %s\n", *middlewarePort)
 
-	if err := http.ListenAndServe(":8845", handlers.Router); err != nil {
+	if err := http.ListenAndServe(":"+*middlewarePort, handlers.Router); err != nil {
 		log.Println(err.Error() + " Failed to listen for HTTP")
 	}
 }

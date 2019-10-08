@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/gomodule/redigo/redis"
 )
 
 // Redis is an interface representing a redis Client
 type Redis interface {
-	SetString(string, string) error
-	GetInt(string) (int, error)
-	GetString(string) (string, error)
+	ConvertErrorToErrorResponse(error) rpcmessages.ErrorResponse
+	GetBool(key BaseRedisKey) (bool, error)
+	GetInt(BaseRedisKey) (int, error)
+	GetString(BaseRedisKey) (string, error)
+	SetString(BaseRedisKey, string) error
 }
 
 // Client is a redis client
@@ -62,7 +65,7 @@ func (c Client) getConnection() redis.Conn {
 }
 
 // GetInt gets an integer value for a given key.
-func (c Client) GetInt(key string) (val int, err error) {
+func (c Client) GetInt(key BaseRedisKey) (val int, err error) {
 	conn := c.getConnection()
 	val, err = redis.Int(conn.Do("GET", key))
 	if err != nil {
@@ -71,8 +74,20 @@ func (c Client) GetInt(key string) (val int, err error) {
 	return val, nil
 }
 
+// GetBool gets a boolean value for a given key.
+// Internally checks if the value for the given key is set to 1.
+// If so, then true is returned, else false.
+func (c Client) GetBool(key BaseRedisKey) (val bool, err error) {
+	conn := c.getConnection()
+	valAsInt, err := redis.Int(conn.Do("GET", key))
+	if err != nil {
+		return false, fmt.Errorf("could not get key %s as boolean: %s", key, err.Error())
+	}
+	return valAsInt == 1, nil
+}
+
 // GetString gets a string for a given key.
-func (c Client) GetString(key string) (val string, err error) {
+func (c Client) GetString(key BaseRedisKey) (val string, err error) {
 	conn := c.getConnection()
 	val, err = redis.String(conn.Do("GET", key))
 	if err != nil {
@@ -82,11 +97,20 @@ func (c Client) GetString(key string) (val string, err error) {
 }
 
 // SetString sets a string for a given key.
-func (c Client) SetString(key string, value string) error {
+func (c Client) SetString(key BaseRedisKey, value string) error {
 	conn := c.getConnection()
 	_, err := conn.Do("SET", key, value)
 	if err != nil {
 		return fmt.Errorf("could not set key %s: %s", key, err.Error())
 	}
 	return nil
+}
+
+// ConvertErrorToErrorResponse converts an error returned by Redis to an ErrorResponse
+func (c Client) ConvertErrorToErrorResponse(err error) rpcmessages.ErrorResponse {
+	return rpcmessages.ErrorResponse{
+		Success: false,
+		Message: err.Error(),
+		Code:    rpcmessages.ErrorRedisError,
+	}
 }
