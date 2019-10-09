@@ -4,8 +4,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 
+	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 )
 
@@ -162,4 +164,76 @@ func determineEnableValue(enable rpcmessages.ToggleSettingArgs) string {
 		return "enable"
 	}
 	return "disable"
+}
+
+func (middleware *Middleware) didServiceInfoChange() (changed bool) {
+	upToDateServiceInfo := middleware.getServiceInfo()
+
+	// Since the pointer addresses for the ErrorResponses are not equal the == operator can't be used.
+	// reflect.DeepEqual() checks if the values at the pointer addresses are equal.
+	if !reflect.DeepEqual(upToDateServiceInfo, middleware.serviceInfo) {
+		middleware.serviceInfo = upToDateServiceInfo
+		log.Println("new serviceInfo", middleware.serviceInfo)
+		return true
+	}
+	return false
+}
+
+// getServiceInfo returns a up-to-date GetServiceInfoResponse with information about `bitcoind`, `lightningd` and `electrs`.
+func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoResponse {
+	bitcoindBlocks, err := middleware.prometheusClient.GetInt(prometheus.BitcoinBlockCount)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	bitcoindHeaders, err := middleware.prometheusClient.GetInt(prometheus.BitcoinHeaderCount)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	bitcoindVerificationProgress, err := middleware.prometheusClient.GetFloat(prometheus.BitcoinVerificationProgress)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	bitcoindPeers, err := middleware.prometheusClient.GetInt(prometheus.BitcoinPeers)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	bitcoindIBDAsInt, err := middleware.prometheusClient.GetInt(prometheus.BitcoinIBD)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+	bitcoindIBD := bitcoindIBDAsInt == 1
+
+	lightningdBlocks, err := middleware.prometheusClient.GetInt(prometheus.LightningBlocks)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	electrsBlocks, err := middleware.prometheusClient.GetInt(prometheus.ElectrsBlocks)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	return rpcmessages.GetServiceInfoResponse{
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+		BitcoindBlocks:               bitcoindBlocks,
+		BitcoindHeaders:              bitcoindHeaders,
+		BitcoindVerificationProgress: bitcoindVerificationProgress,
+		BitcoindPeers:                bitcoindPeers,
+		BitcoindIBD:                  bitcoindIBD,
+		LightningdBlocks:             lightningdBlocks,
+		ElectrsBlocks:                electrsBlocks,
+	}
 }
