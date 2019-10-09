@@ -88,6 +88,9 @@ const (
 	// ErrorMenderUpdateInvalidVersion is thrown if an invalid firmware version passed to the script.
 	ErrorMenderUpdateInvalidVersion ErrorCode = "MENDER_UPDATE_INVALID_VERSION"
 
+	// ErrorMenderUpdateAlreadyInProgress is thrown by the middleware, if an update is already in progress.
+	ErrorMenderUpdateAlreadyInProgress ErrorCode = "MENDER_UPDATE_ALREADY_IN_PROGRESS"
+
 	/* bbb-cmd.sh mender-update commit
 	-----------------------------------*/
 

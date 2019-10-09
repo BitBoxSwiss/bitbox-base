@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os/exec"
@@ -26,6 +27,7 @@ type Middleware struct {
 	redisClient          redis.Redis
 	verificationProgress rpcmessages.VerificationProgressResponse
 	serviceInfo          rpcmessages.GetServiceInfoResponse
+	baseUpdateProgress   rpcmessages.GetBaseUpdateProgressResponse
 	isMockmode           bool
 	// Saves state for the dummy setup process
 	// TODO: should be removed as soon as Authentication is implemented
@@ -55,7 +57,12 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 			Headers:              0,
 			VerificationProgress: 0.0,
 		},
-		serviceInfo:        rpcmessages.GetServiceInfoResponse{},
+		serviceInfo: rpcmessages.GetServiceInfoResponse{},
+		baseUpdateProgress: rpcmessages.GetBaseUpdateProgressResponse{
+			State:                 rpcmessages.UpdateNotInProgress,
+			ProgressPercentage:    0,
+			ProgressDownloadedKiB: 0,
+		},
 		isMockmode:         mock,
 		dummyIsBaseSetup:   false,
 		dummyAdminPassword: "",
@@ -556,6 +563,171 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 		}
 	}(rebootDelay)
 
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// GetBaseUpdateProgress returns the Base update progress.
+// This RPC should only be called by the app after receiving an OpBaseUpdateProgressChanged notification.
+func (middleware *Middleware) GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse {
+	return middleware.baseUpdateProgress
+}
+
+// UpdateBase executes a over-the-air Base update. The version is to be passed as an argument.
+// This is archived by running the `bbb-cmd.sh mender-update install <version>` command.
+// The current update download progress is read from stdout, parsed and saved as the current state (BaseUpdateState).
+// Every time the `BaseUpdateState` of the middleware changes a websocket notification is emitted to the App backend.
+// Once the download is complete and the update is applied without errors a Base reboot is scheduled to be executed in 5 seconds.
+// The call returns ErrorResponse.Success when a reboot has been scheduled.
+func (middleware *Middleware) UpdateBase(args rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse {
+	log.Println("Starting the Base Update process.")
+	// don't allow another update while the states are either downloading, applying or rebooting
+	if middleware.baseUpdateProgress.State == rpcmessages.UpdateDownloading ||
+		middleware.baseUpdateProgress.State == rpcmessages.UpdateApplying ||
+		middleware.baseUpdateProgress.State == rpcmessages.UpdateRebooting {
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "Could not start the update process. A Base update is already in progress or the Base has to be rebooted.",
+			Code:    rpcmessages.ErrorMenderUpdateAlreadyInProgress,
+		}
+	}
+
+	cmd := exec.Command(middleware.environment.GetBBBCmdScript(), "mender-update", "install", args.Version)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Printf("Could not get the StdoutPipe to read command progress from: %s", err.Error())
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "Could not start the update process. Please see the Middleware log for more detail.",
+			Code:    rpcmessages.ErrorMenderUpdateInstallFailed,
+		}
+	}
+	defer func() {
+		err := stdout.Close()
+		if err != nil {
+			log.Printf("Could not close the stdout pipe %s", err)
+		}
+	}()
+	stdoutScanner := bufio.NewScanner(stdout)
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Printf("Could not get the StderrPipe to read command progress from: %s", err.Error())
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "Could not start the update process. Please see the Middleware log for more detail.",
+			Code:    rpcmessages.ErrorMenderUpdateInstallFailed,
+		}
+	}
+	defer func() {
+		err := stderr.Close()
+		if err != nil {
+			log.Printf("Could not close the stderr pipe %s", err)
+		}
+	}()
+	stderrScanner := bufio.NewScanner(stderr)
+
+	err = cmd.Start()
+	if err != nil {
+		log.Printf("Could not run the Base update command: %s", err.Error())
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "Could not start the update process. Please see the Middleware log for more detail.",
+			Code:    rpcmessages.ErrorMenderUpdateInstallFailed,
+		}
+	}
+
+	errOutLines := make([]string, 0)
+	// This goroutine uses the bufio.Scanner to .Scan() `stderr` lines.
+	// This is done in a goroutine, since .Scan() blocks when there is no input available.
+	// Every line read is appended to errOutLines, a string slice with stderr lines.
+	// The goroutine exits once EOF for `stderr` is reached.
+	// Once `stdout` reaches EOF the `stderr` pipe is closed (see below).
+	go func() {
+		for {
+			hasReadSomething := stderrScanner.Scan()
+			if hasReadSomething {
+				// Lines written to stderr are captured in errOutLines and processed if os.Wait returns an error
+				lineErr := stderrScanner.Text()
+				errOutLines = append(errOutLines, strings.TrimSuffix(lineErr, "\n"))
+			} else {
+				if stderrScanner.Err() != nil {
+					log.Printf("GetBaseUpdateProgress: Could not read from stderr scanner: %s", stderrScanner.Err())
+					err := stderr.Close()
+					if err != nil {
+						log.Printf("Could not close the stderr pipe %s", err)
+					}
+					return
+				}
+				// When scanner.Scan() returns `false` and scanner.Err() is `nil` then EOF of `stderr` is reached. The goroutine exits.
+				return
+			}
+		}
+	}()
+
+	for {
+		hasReadSomething := stdoutScanner.Scan()
+		if hasReadSomething {
+			lineOut := stdoutScanner.Text()
+			log.Println(lineOut)
+			containsProgressUpdateInfo, percentage, downloadedKiB := parseBaseUpdateStdout(lineOut)
+			if containsProgressUpdateInfo {
+				middleware.baseUpdateProgress.ProgressPercentage = percentage
+				middleware.baseUpdateProgress.ProgressDownloadedKiB = downloadedKiB
+				if percentage < 98 {
+					middleware.setBaseUpdateStateAndNotify(rpcmessages.UpdateDownloading)
+				} else {
+					// switch State from `UpdateDownloading` to `UpdateApplying`
+					// This is done at 98% or above since the mender-install script does
+					// only log 100% after applying the update.
+					middleware.setBaseUpdateStateAndNotify(rpcmessages.UpdateApplying)
+				}
+			}
+		} else {
+			if stdoutScanner.Err() != nil {
+				log.Printf("GetBaseUpdateProgress: Could not read from stdout scanner: %s", stdoutScanner.Err())
+				middleware.setBaseUpdateStateAndNotify(rpcmessages.UpdateFailed)
+				err := stderr.Close()
+				if err != nil {
+					log.Printf("Could not close the stderr pipe %s", err)
+				}
+				return rpcmessages.ErrorResponse{
+					Success: false,
+					Message: "An error occurred while performing the Base update. Please see the Middleware log for more detail.",
+					Code:    rpcmessages.ErrorMenderUpdateInstallFailed,
+				}
+			}
+			// When scanner.Scan() returns `false` and scanner.Err() is `nil` then EOF of `stdout` is reached.
+			err := stderr.Close()
+			if err != nil {
+				log.Printf("Could not close the stderr pipe %s", err)
+			}
+			break
+		}
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(errOutLines, err, []rpcmessages.ErrorCode{
+			rpcmessages.ErrorMenderUpdateImageNotMenderEnabled,
+			rpcmessages.ErrorMenderUpdateInstallFailed,
+			rpcmessages.ErrorMenderUpdateInvalidVersion,
+			rpcmessages.ErrorMenderUpdateNoVersion,
+		})
+
+		middleware.setBaseUpdateStateAndNotify(rpcmessages.UpdateFailed)
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(errOutLines, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	middleware.setBaseUpdateStateAndNotify(rpcmessages.UpdateRebooting)
+	resp := middleware.RebootBase()
+	if !resp.Success {
+		return resp
+	}
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
