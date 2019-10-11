@@ -58,14 +58,14 @@ type Middleware interface {
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
 	SampleInfo() rpcmessages.SampleInfoResponse
-	EnableTor(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorMiddleware(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorElectrs(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableTorSSH(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
-	EnableClearnetIBD(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
+	EnableTor(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorMiddleware(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorElectrs(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorSSH(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableClearnetIBD(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
-	EnableRootLogin(rpcmessages.ToggleSetting) rpcmessages.ErrorResponse
+	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
@@ -192,8 +192,8 @@ func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *r
 // EnableTor enables/disables the tor.service and configures bitcoind and lightningd.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableTor(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableTor(toggleAction)
+func (server *RPCServer) EnableTor(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTor(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -201,8 +201,8 @@ func (server *RPCServer) EnableTor(toggleAction rpcmessages.ToggleSetting, reply
 // EnableTorMiddleware enables/disables the tor hidden service for the middleware.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableTorMiddleware(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableTorMiddleware(toggleAction)
+func (server *RPCServer) EnableTorMiddleware(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTorMiddleware(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -210,8 +210,8 @@ func (server *RPCServer) EnableTorMiddleware(toggleAction rpcmessages.ToggleSett
 // EnableTorElectrs enables/disables the tor hidden service for Electrs.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableTorElectrs(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableTorElectrs(toggleAction)
+func (server *RPCServer) EnableTorElectrs(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTorElectrs(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -219,8 +219,8 @@ func (server *RPCServer) EnableTorElectrs(toggleAction rpcmessages.ToggleSetting
 // EnableTorSSH enables/disables the tor hidden service for SSH.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableTorSSH(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableTorSSH(toggleAction)
+func (server *RPCServer) EnableTorSSH(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableTorSSH(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -228,8 +228,8 @@ func (server *RPCServer) EnableTorSSH(toggleAction rpcmessages.ToggleSetting, re
 // EnableClearnetIBD enables/disables the tor hidden service for SSH.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableClearnetIBD(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableClearnetIBD(toggleAction)
+func (server *RPCServer) EnableClearnetIBD(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableClearnetIBD(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
@@ -253,8 +253,8 @@ func (server *RPCServer) RebootBase(dummyArg bool, reply *rpcmessages.ErrorRespo
 // EnableRootLogin enables/disables login via the root user/password.
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnableRootLogin(toggleAction rpcmessages.ToggleSetting, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnableRootLogin(toggleAction)
+func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableRootLogin(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
