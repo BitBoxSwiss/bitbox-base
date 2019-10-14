@@ -12,7 +12,6 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
   setup         <datadir>
-  base          <restart|shutdown>
   bitcoind      <reindex|resync|refresh_rpcauth>
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
@@ -184,26 +183,6 @@ case "${MODULE}" in
                 echo "INFO: created new bitcoind rpc credentials, updated config files"
                 echo "Command ${MODULE} ${COMMAND} successfully executed."
                 redis_set "bitcoind:refresh-rpcauth" 0
-                ;;
-
-            *)
-                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                errorExit CMD_SCRIPT_INVALID_ARG
-        esac
-        ;;
-
-    BASE)
-        case "${COMMAND}" in
-            RESTART)
-                checkMockMode
-
-                ( sleep 5 ; reboot ) &
-                ;;
-
-            SHUTDOWN)
-                checkMockMode
-
-                ( sleep 5 ; shutdown now ) &
                 ;;
 
             *)
