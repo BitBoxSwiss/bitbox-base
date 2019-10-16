@@ -117,9 +117,10 @@ func (middleware *Middleware) GetSampleInfo() bool {
 		return true
 	}
 	return false
-
 }
 
+// GetVerificationProgress makes calls to prometheus to get the current block, header and verification progress number and stores it in
+// the middleware's verificationProgress struct. If the new data was available, the function returns true, if the data remained static, false.
 func (middleware *Middleware) GetVerificationProgress() bool {
 	updateVerificationProgress := rpcmessages.VerificationProgressResponse{
 		Blocks:               middleware.prometheusClient.Blocks(),
@@ -218,7 +219,6 @@ func (middleware *Middleware) DummyAdminPassword() string {
 // 3. Backup the system configuration
 // 4. Unmount the flashdrive
 func (middleware *Middleware) BackupSysconfig() (response rpcmessages.ErrorResponse) {
-
 	response = middleware.mountFlashdrive()
 	if !response.Success {
 		return response
@@ -327,7 +327,6 @@ func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
 // in the future this should return an AuthentificationResponse with e.g. an JWT.
 // This currently uses the `dummyIsBaseSetup` boolean, which should be removed when the proper authentication is implemented.
 func (middleware *Middleware) UserAuthenticate(args rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse {
-
 	// TODO: replace the dummyIsBaseSetup with a proper variable loaded from e.g. redis
 	// dummyIsBaseSetup should only be used for the dummy UserAuthenticate RPC and gets reset on middleware restart
 	if !middleware.dummyIsBaseSetup {
@@ -359,7 +358,6 @@ func (middleware *Middleware) UserAuthenticate(args rpcmessages.UserAuthenticate
 // FIXME: This is a dummy implementation of the UserChangePassword RPC call
 // This dummy method approves all passwords which are longer or equal to 8 chars
 func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse {
-
 	if len(args.NewPassword) >= 8 {
 		if args.Username == "admin" {
 			middleware.dummyAdminPassword = args.NewPassword
@@ -607,7 +605,6 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 
 // GetBaseInfo returns information about the Base in a GetBaseInfoResponse
 func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
-
 	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
 	if err != nil {
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
@@ -695,5 +692,4 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		LightningdVersion:   lightningdVersion,
 		ElectrsVersion:      electrsVersion,
 	}
-
 }

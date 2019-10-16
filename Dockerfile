@@ -2,7 +2,7 @@
 # The docker image produced by this config provides the build environment
 # for BitBox Base.
 #
-FROM golang:1.12.5-stretch as bitbox-base
+FROM golang:1.13.1-stretch as bitbox-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
     gcc \
@@ -31,7 +31,7 @@ COPY tools/. tools/.
 RUN make -C "tools"
 
 # Final
-FROM golang:1.12.5-stretch as final
+FROM golang:1.13.1-stretch as final
 
 COPY --from=middleware-builder /go/src/github.com/digitalbitbox/bitbox-base/bin/go/. /opt/build/.
 COPY --from=middleware-tools /go/src/github.com/digitalbitbox/bitbox-base/bin/go/. /opt/build/.

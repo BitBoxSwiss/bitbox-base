@@ -4,5 +4,5 @@
 #
 set -euo pipefail
 
-./contrib/go-get.sh v1.16.0 github.com/golangci/golangci-lint/cmd/golangci-lint
+./contrib/go-get.sh v1.19.1 github.com/golangci/golangci-lint/cmd/golangci-lint
 go get -u github.com/golang/dep/cmd/dep
