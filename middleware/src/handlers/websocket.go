@@ -13,7 +13,6 @@ import (
 //
 // The goroutines close client upon exit or dues to a send/receive error.
 func (handlers *Handlers) runWebsocket(client *websocket.Conn, readChan chan<- []byte, writeChan <-chan []byte, clientID int) {
-
 	const maxMessageSize = 512
 	// this channel is used to break the write loop, when the read loop breaks
 	closeChan := make(chan struct{})

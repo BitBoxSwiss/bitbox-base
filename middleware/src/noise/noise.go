@@ -1,4 +1,4 @@
-// noisemanager gives some useful functions to interact with the noise encryption and decryption, provides verification of the noise channel hash and writes the noise keys to a file
+// Package noisemanager gives some useful functions to interact with the noise encryption and decryption, provides verification of the noise channel hash and writes the noise keys to a file
 package noisemanager
 
 import (
@@ -25,6 +25,7 @@ const (
 	opICanHasPairinVerificashun = byte('v')
 )
 
+// NoiseConfig holds the configuration options required to successfully pair through a noise handshake and subsequently encrypt traffic.
 type NoiseConfig struct {
 	clientStaticPubkey          []byte
 	channelHash                 string
@@ -34,6 +35,7 @@ type NoiseConfig struct {
 	dataDir                     string
 }
 
+//NewNoiseConfig takes a directory path string as an argument and returns a NoiseConfig struct.
 func NewNoiseConfig(dataDir string) *NoiseConfig {
 	noise := &NoiseConfig{
 		dataDir:     dataDir,
@@ -42,7 +44,7 @@ func NewNoiseConfig(dataDir string) *NoiseConfig {
 	return noise
 }
 
-// initializeNoise sets up a new noise connection. First a fresh keypair is generated if none is locally found.
+// InitializeNoise sets up a new noise connection. First a fresh keypair is generated if none is locally found.
 // Afterwards a XX handshake is performed. This is a three part handshake required to authenticate both parties.
 // The resulting pairing code is then displayed to the user to check if it matches what is displayed on the other party's device.
 func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
@@ -125,13 +127,11 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 		if err != nil {
 			return errors.New("websocket failed to write second noise handshake message")
 		}
-
 	} else {
 		err = ws.WriteMessage(websocket.BinaryMessage, []byte(responseSuccess))
 		if err != nil {
 			return errors.New("websocket failed to write second noise handshake message")
 		}
-
 	}
 	channelHashBase32 := base32.StdEncoding.EncodeToString(handshake.ChannelBinding())
 	noiseConfig.channelHash = fmt.Sprintf(
@@ -159,6 +159,7 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 	return nil
 }
 
+//CheckVerification displays the channel hash and returns the success or fail response byte array.
 func (noiseConfig *NoiseConfig) CheckVerification() []byte {
 	// TODO(TheCharlatan) At this point, the channel Hash should be displayed on the screen, with a blocking call.
 	// For now, just add a dummy timer, since we do not have a screen yet, and make every verification a success.
@@ -171,6 +172,8 @@ func (noiseConfig *NoiseConfig) CheckVerification() []byte {
 	return []byte(responseSuccess)
 }
 
+// Encrypt takes a (plaintext) byte array message as arguments and returns a noise encrypted byte array per the configuration in NoiseConfig
+// If the encryption fails the function returns an empty byte array and an error.
 func (noiseConfig *NoiseConfig) Encrypt(message []byte) []byte {
 	if !noiseConfig.initialized {
 		return []byte("Error: noise session not initialized")
@@ -181,6 +184,8 @@ func (noiseConfig *NoiseConfig) Encrypt(message []byte) []byte {
 	return noiseConfig.sendCipher.Encrypt(nil, nil, message)
 }
 
+// Decrypt takes a (encrypted) byte array message as arguments and returns a noise decrypted byte array per the configuration in NoiseConfig.
+// If the decryption fails the function returns an empty byte array and an error.
 func (noiseConfig *NoiseConfig) Decrypt(message []byte) ([]byte, error) {
 	if !noiseConfig.initialized {
 		return []byte(""), errors.New("noise not initialized")

@@ -73,7 +73,12 @@ func (client *Client) query(query BasePrometheusQuery) (response, error) {
 	if err != nil {
 		return "", fmt.Errorf("a HTTP error occurred: %s", err.Error())
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("prometheus response body failed to close. This is not critical")
+		}
+	}()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("could not read response body: %s", err.Error())

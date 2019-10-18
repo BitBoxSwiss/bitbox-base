@@ -77,11 +77,15 @@ func TestWebsocketHandler(t *testing.T) {
 	if err == nil {
 		t.Errorf("No unexpected close when close was expected, since writing to an unpaired base")
 	}
-	ws.Close()
+	err = ws.Close()
+	require.NoError(t, err)
 
 	ws, _, err = websocket.DefaultDialer.Dial(u, nil)
 	require.NoError(t, err)
-	defer ws.Close()
+	defer func() {
+		err = ws.Close()
+		require.NoError(t, err)
+	}()
 
 	//initialize noise
 	_, _ = initializeNoise(ws, t)

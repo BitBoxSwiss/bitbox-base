@@ -51,7 +51,12 @@ func newPool(port string) *redis.Pool {
 }
 
 func ping(c redis.Conn) (err error) {
-	defer c.Close()
+	defer func() {
+		err := c.Close()
+		if err != nil {
+			log.Println("error when closing redis connection after ping. This is not critical and we can continue running")
+		}
+	}()
 	_, err = c.Do("PING")
 	if err != nil {
 		return
