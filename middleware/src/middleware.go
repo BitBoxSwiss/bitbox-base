@@ -17,7 +17,7 @@ import (
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 )
 
-// Middleware connects to services on the base with provided parrameters and emits events for the handler.
+// Middleware connects to services on the base with provided parameters and emits events for the handler.
 type Middleware struct {
 	info                 rpcmessages.SampleInfoResponse
 	environment          system.Environment
@@ -25,6 +25,7 @@ type Middleware struct {
 	prometheusClient     prometheus.Client
 	redisClient          redis.Redis
 	verificationProgress rpcmessages.VerificationProgressResponse
+	serviceInfo          rpcmessages.GetServiceInfoResponse
 	isMockmode           bool
 	// Saves state for the dummy setup process
 	// TODO: should be removed as soon as Authentication is implemented
@@ -54,6 +55,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 			Headers:              0,
 			VerificationProgress: 0.0,
 		},
+		serviceInfo:        rpcmessages.GetServiceInfoResponse{},
 		isMockmode:         mock,
 		dummyIsBaseSetup:   false,
 		dummyAdminPassword: "",
@@ -137,6 +139,9 @@ func (middleware *Middleware) GetVerificationProgress() bool {
 // rpcLoop gets new data from the various rpc connections of the middleware and emits events if new data is available
 func (middleware *Middleware) rpcLoop() {
 	for {
+		if middleware.didServiceInfoChange() {
+			middleware.events <- []byte(rpcmessages.OpServiceInfoChanged)
+		}
 		if middleware.GetSampleInfo() {
 			middleware.events <- []byte(rpcmessages.OpUCanHasSampleInfo)
 		}
@@ -692,4 +697,10 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		LightningdVersion:   lightningdVersion,
 		ElectrsVersion:      electrsVersion,
 	}
+}
+
+// GetServiceInfo returns the most recent information about services running on the Base such as for example bitcoind, electrs or lightningd.
+func (middleware *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
+	log.Println("Returning the lastest Service info", middleware.serviceInfo)
+	return middleware.serviceInfo
 }

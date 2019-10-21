@@ -12,6 +12,8 @@ const (
 	OpUCanHasSampleInfo = "d"
 	// OpUCanHasVerificationProgress notifies when new VerificationProgress data is available.
 	OpUCanHasVerificationProgress = "v"
+	// OpServiceInfoChanged notifies when the GetServiceInfo data changed.
+	OpServiceInfoChanged = "s"
 )
 
 /*
@@ -69,7 +71,7 @@ type VerificationProgressResponse struct {
 	VerificationProgress float64 `json:"verificationProgress"`
 }
 
-// GetBaseInfoResponse is the struct that get sent by the rpc server during a GetBaseInfo rpc call
+// GetBaseInfoResponse is the struct that gets sent by the RPC server during a GetBaseInfo RPC call
 type GetBaseInfoResponse struct {
 	ErrorResponse       *ErrorResponse
 	Status              string `json:"status"`
@@ -88,6 +90,18 @@ type GetBaseInfoResponse struct {
 	ElectrsVersion      string `json:"electrsVersion"`
 }
 
+// GetServiceInfoResponse is the struct that gets sent by the RPC server during a GetServiceInfo RPC call
+type GetServiceInfoResponse struct {
+	ErrorResponse                *ErrorResponse `json:"errorResponse"`
+	BitcoindBlocks               int64          `json:"bitcoindBlocks"`
+	BitcoindHeaders              int64          `json:"bitcoindHeaders"`
+	BitcoindVerificationProgress float64        `json:"bitcoindVerificationProgress"`
+	BitcoindPeers                int64          `json:"bitcoindPeers"`
+	BitcoindIBD                  bool           `json:"bitcoindIBD"`
+	LightningdBlocks             int64          `json:"lightningdBlocks"`
+	ElectrsBlocks                int64          `json:"electrsBlocks"`
+}
+
 // ErrorResponse is a generic RPC response indicating if a RPC call was successful or not.
 // It can be embedded into other RPC responses that return values.
 // In any case the ErrorResponse should be checked first, so that, if an error is returned, we ignore everything else in the response.
@@ -98,10 +112,10 @@ type ErrorResponse struct {
 }
 
 // Error formats the ErrorResponse in the following two formats:
-// If no error occoured:
+// If no error occurred:
 //  ErrorResponse: Success: true
 //
-// If an error occoured:
+// If an error occurred:
 // 	ErrorResponse:
 // 		Success: false
 // 		Code: <ERROR_CODE>

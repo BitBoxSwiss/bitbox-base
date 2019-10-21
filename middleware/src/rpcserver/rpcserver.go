@@ -67,6 +67,7 @@ type Middleware interface {
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
+	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
@@ -273,6 +274,14 @@ func (server *RPCServer) SetRootPassword(args rpcmessages.SetRootPasswordArgs, r
 // This includes information about the Base and the Middleware.
 func (server *RPCServer) GetBaseInfo(dummyArg bool, reply *rpcmessages.GetBaseInfoResponse) error {
 	*reply = server.middleware.GetBaseInfo()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// GetServiceInfo sends the middleware's GetServiceInfoResponse over rpc.
+// This includes information about the Base and the Middleware.
+func (server *RPCServer) GetServiceInfo(dummyArg bool, reply *rpcmessages.GetServiceInfoResponse) error {
+	*reply = server.middleware.GetServiceInfo()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
