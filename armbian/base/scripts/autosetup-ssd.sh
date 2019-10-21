@@ -6,6 +6,8 @@ set -eu
 # BitBox Base: auto-setup of SSD
 #
 
+# --- generic functions --------------------------------------------------------
+
 # include errorExit() function
 source /opt/shift/scripts/include/errorExit.sh.inc
 

@@ -4,7 +4,7 @@
 
 # check if overlayroot is enabled
 OVERLAYROOT_ENABLED=0
-if grep -q "tmpfs" /etc/overlayroot.local.conf; then
+if [[ -f /etc/overlayroot.local.conf ]] && grep -q "tmpfs" /etc/overlayroot.local.conf 2>/dev/null; then
     OVERLAYROOT_ENABLED=1
 fi
 

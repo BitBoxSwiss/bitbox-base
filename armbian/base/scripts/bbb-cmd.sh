@@ -12,7 +12,6 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
   setup         <datadir>
-  base          <restart|shutdown>
   bitcoind      <reindex|resync|refresh_rpcauth>
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
@@ -184,26 +183,6 @@ case "${MODULE}" in
                 echo "INFO: created new bitcoind rpc credentials, updated config files"
                 echo "Command ${MODULE} ${COMMAND} successfully executed."
                 redis_set "bitcoind:refresh-rpcauth" 0
-                ;;
-
-            *)
-                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
-                errorExit CMD_SCRIPT_INVALID_ARG
-        esac
-        ;;
-
-    BASE)
-        case "${COMMAND}" in
-            RESTART)
-                checkMockMode
-
-                ( sleep 5 ; reboot ) &
-                ;;
-
-            SHUTDOWN)
-                checkMockMode
-
-                ( sleep 5 ; shutdown now ) &
                 ;;
 
             *)
@@ -396,31 +375,42 @@ case "${MODULE}" in
         fi
 
         case "${COMMAND}" in
-            # initiate Mender update from URL
+            # initiate Mender update
             INSTALL)
+
                 if [[ ${#} -lt 3 ]]; then
-                    echo "ERR: no version number (e.g. 0.0.2) supplied"
+                    echo "ERR: no argument or version number (e.g. 'flashdrive' or '0.0.2') supplied"
                     errorExit MENDER_UPDATE_NO_VERSION
                 fi
 
-                # check for valid version number
+                # parse input: 'flashdrive' or valid version number
                 regex='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
-                if [[ ${ARG} =~ ${regex} ]]; then
-                    checkMockMode
 
-                    if mender -install "https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"; then
-                        redis_set "base:updating" 10
+                if [[ ${ARG} == "flashdrive" ]]; then
+                    UPDATE_URI='/mnt/backup/update.base'
 
-                    else
-                        # Todo(Stadicus): catch the specific error 'expecting signed artifact, but no signature file found'
-                        ERR=${?}
-                        echo "ERR: mender install failed with error code ${ERR}"
-                        errorExit MENDER_UPDATE_INSTALL_FAILED
+                    if [[ ! -f "${UPDATE_URI}" ]]; then
+                        echo "ERR: update file '${UPDATE_URI}' not found"
+                        errorExit MENDER_UPDATE_INVALID_VERSION
                     fi
+
+                elif [[ ${ARG} =~ ${regex} ]]; then
+                    UPDATE_URI="https://github.com/digitalbitbox/bitbox-base/releases/download/${ARG}/BitBoxBase-v${ARG}-RockPro64.base"
 
                 else
                     echo "ERR: '${ARG}' is not a valid version number"
                     errorExit MENDER_UPDATE_INVALID_VERSION
+                fi
+
+                # install Mender update
+                if mender -install "${UPDATE_URI}"; then
+                    redis_set "base:updating" 10
+
+                else
+                    # Todo(Stadicus): catch the specific error 'expecting signed artifact, but no signature file found'
+                    ERR=${?}
+                    echo "ERR: mender install failed with error code ${ERR}"
+                    errorExit MENDER_UPDATE_INSTALL_FAILED
                 fi
                 echo "OK: mender update successfully installed, please restart"
                 ;;

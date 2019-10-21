@@ -1,11 +1,13 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 #
-# This script is run by systemd using the ExecStartPre option 
+# This script is run by systemd using the ExecStartPre option
 # before starting lightningd.service (c-lightning).
 #
 
 set -eu
+
+# --- generic functions --------------------------------------------------------
 
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc

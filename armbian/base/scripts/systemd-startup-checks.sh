@@ -9,6 +9,8 @@
 
 set -eu
 
+# --- generic functions --------------------------------------------------------
+
 # include function: exec_overlayroot()
 source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
@@ -28,13 +30,13 @@ if ! grep -q '/mnt/ssd ' /etc/fstab ; then
 
     else
         ## if no valid partition present, is image configured for autosetup of SSD?
-        
+
         if ! mountpoint /mnt/ssd -q && [ -f /opt/shift/config/.autosetup-ssd ]; then
             # run ssd autosetup, and disable it afterwards on success
             if /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
             then
                 echo "INFO: autosetup-ssd.sh successfully executed"
-                /opt/shift/scripts/bbb-config.sh disable autosetup_ssd 
+                /opt/shift/scripts/bbb-config.sh disable autosetup_ssd
             else
                 echo "ERR: autosetup-ssd.sh failed"
             fi
@@ -58,7 +60,7 @@ fi
 sudo mount -a
 
 ## abort check if SSD mount is not successful
-if ! mountpoint /mnt/ssd -q; then 
+if ! mountpoint /mnt/ssd -q; then
     echo "Mounting of SSD failed"
     errorExit SSD_NOT_MOUNTED
 fi
@@ -66,7 +68,7 @@ fi
 # Folders & permissions
 # ------------------------------------------------------------------------------
 ## create missing directories & always set correct owner
-## access control lists (setfacl) are used to control permissions of newly created files 
+## access control lists (setfacl) are used to control permissions of newly created files
 chown bitcoin:system /mnt/ssd/
 
 ## bitcoind data storage
@@ -160,7 +162,7 @@ swapon /mnt/ssd/swapfile || true
 # Firmware updates
 # ------------------------------------------------------------------------------
 # initialize mender configuration
-if ! grep -q '/shift/' /etc/mender/mender.conf ; then
+if [[ -f /etc/mender/mender.conf ]] && ! grep -q '/shift/' /etc/mender/mender.conf ; then
     exec_overlayroot all-layers 'rm -f /etc/mender/mender.* /etc/mender/server.crt || true'
     exec_overlayroot all-layers 'cp -f /opt/shift/config/mender/mender.conf /etc/mender/'
 fi
