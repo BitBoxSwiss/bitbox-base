@@ -14,6 +14,8 @@ const (
 	OpUCanHasVerificationProgress = "v"
 	// OpServiceInfoChanged notifies when the GetServiceInfo data changed.
 	OpServiceInfoChanged = "s"
+	// OpBaseUpdateProgressChanged notifies when the BaseUpdateProgress changes while performing a Base Update.
+	OpBaseUpdateProgressChanged = "u"
 )
 
 /*
@@ -47,6 +49,11 @@ type ToggleSettingArgs struct {
 	ToggleSetting bool
 }
 
+// UpdateBaseArgs is a struct that holds the Base version that should be updated to
+type UpdateBaseArgs struct {
+	Version string
+}
+
 /*
 Put Response structs below this line. They should have the format of 'RPC Method Name' + 'Response'.
 */
@@ -69,6 +76,28 @@ type VerificationProgressResponse struct {
 	Blocks               int64   `json:"blocks"`
 	Headers              int64   `json:"headers"`
 	VerificationProgress float64 `json:"verificationProgress"`
+}
+
+// BaseUpdateState is the used to hold the current state for a Base update.
+type BaseUpdateState int
+
+// The possible values of BaseUpdateState.
+// Representing the states that can be reached in a BaseUpdate RPC call.
+const (
+	UpdateNotInProgress BaseUpdateState = iota + 1
+	UpdateDownloading
+	UpdateFailed
+	UpdateApplying
+	UpdateRebooting
+)
+
+// GetBaseUpdateProgressResponse is the response to a GetBaseUpdateProgress RPC call.
+// The app is notified over a changed middleware state calls the GetBaseUpdateProgress
+// RPC which returns GetBaseUpdateProgressResponse.
+type GetBaseUpdateProgressResponse struct {
+	State                 BaseUpdateState
+	ProgressPercentage    int
+	ProgressDownloadedKiB int
 }
 
 // GetBaseInfoResponse is the struct that gets sent by the RPC server during a GetBaseInfo RPC call

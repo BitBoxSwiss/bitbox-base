@@ -66,6 +66,8 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
+	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
@@ -282,6 +284,20 @@ func (server *RPCServer) GetBaseInfo(dummyArg bool, reply *rpcmessages.GetBaseIn
 // This includes information about the Base and the Middleware.
 func (server *RPCServer) GetServiceInfo(dummyArg bool, reply *rpcmessages.GetServiceInfoResponse) error {
 	*reply = server.middleware.GetServiceInfo()
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// UpdateBase updates the Base firmeware and sends a ErrorResponse over RPC
+func (server *RPCServer) UpdateBase(args rpcmessages.UpdateBaseArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.UpdateBase(args)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// GetBaseUpdateProgress sends a GetBaseUpdateProgressResponse over RPC
+func (server *RPCServer) GetBaseUpdateProgress(dummyArg bool, reply *rpcmessages.GetBaseUpdateProgressResponse) error {
+	*reply = server.middleware.GetBaseUpdateProgress()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
