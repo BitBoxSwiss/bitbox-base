@@ -1,0 +1,26 @@
+{{ #output: /etc/ssh/sshd_config }}
+# OpenBSD: sshd_config,v 1.101 2017/03/14
+
+# This is the sshd server system-wide configuration file.
+# It is customized for the BitBoxBase project, the original file with additional
+# information about configuration parameters and default values is located at
+# /etc/ssh/sshd_config.original
+
+# Server host key
+HostKey                         {{ base:sshd:hostkey #default: /data/ssh/ssh_host_ecdsa_key }}
+
+# Authentication
+PubkeyAuthentication            yes
+AuthorizedKeysFile              .ssh/authorized_keys
+
+PermitRootLogin                 no
+PasswordAuthentication          {{ base:sshd:passwordlogin #default: no }}
+ChallengeResponseAuthentication {{ base:sshd:passwordlogin #default: no }}
+PermitEmptyPasswords            no
+UsePAM                          {{ base:sshd:passwordlogin #default: no }}
+
+# Various
+AcceptEnv                       LANG LC_*
+
+# Subsystems
+Subsystem       sftp            /usr/lib/openssh/sftp-server
