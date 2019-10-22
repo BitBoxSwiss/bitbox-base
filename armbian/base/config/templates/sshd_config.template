@@ -13,7 +13,7 @@ HostKey                         {{ base:sshd:hostkey #default: /data/ssh/ssh_hos
 PubkeyAuthentication            yes
 AuthorizedKeysFile              .ssh/authorized_keys
 
-PermitRootLogin                 no
+PermitRootLogin                 {{ base:sshd:rootlogin #default: no }}
 PasswordAuthentication          {{ base:sshd:passwordlogin #default: no }}
 ChallengeResponseAuthentication {{ base:sshd:passwordlogin #default: no }}
 PermitEmptyPasswords            no

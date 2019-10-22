@@ -272,6 +272,20 @@ case "${COMMAND}" in
                 redis_set "base:overlayroot:enabled" "${ENABLE}"
                 ;;
 
+            ROOTLOGIN)
+                # internal use only, eg. to allow scp/ftp during development
+                # option is not meant to be available in user interface
+                checkMockMode
+
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    redis_set "base:sshd:rootlogin" "yes"
+                else
+                    redis_set "base:sshd:rootlogin" "no"
+                fi
+                generateConfig "sshd_config.template"
+                systemctl restart sshd.service
+                ;;
+
             PWLOGIN)
                 checkMockMode
 
