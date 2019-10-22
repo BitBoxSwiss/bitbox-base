@@ -67,6 +67,7 @@ else
         generateConfig "bbbmiddleware.conf.template"
         generateConfig "bashrc-custom.template"
         generateConfig "grafana.ini.template"
+        generateConfig "mender.conf.template"
         generateConfig "torrc.template"
 
         if [[ $(redis_get "base:wifi:enabled") -eq 1 ]]; then
