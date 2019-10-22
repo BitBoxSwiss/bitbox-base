@@ -41,8 +41,17 @@ func (middleware *Middleware) mountFlashdrive() rpcmessages.ErrorResponse {
 		}
 	}
 
-	// `bbb-cmd.sh flashdrive check` echos only the flashdrive name, if no error occurs
-	flashDriveName := outCheck[0]
+	if len(outCheck) > 1 { // `bbb-cmd.sh flashdrive check` returns only the flashdrive name, if no errors occur
+		log.Printf("Warning: The `bbb-cmd.sh flashdrive check` command returned more than one line. Using '%s' as flashdrive name.\n.", outCheck[len(outCheck)-1])
+	} else if len(outCheck) == 0 {
+		return rpcmessages.ErrorResponse{ // throw an unexpected error if the script does not return anything
+			Success: false,
+			Message: "An unexpected Error occurred: The output of `bbb-cmd.sh flashdrive check` did not contain a flashdrive name.",
+			Code:    rpcmessages.ErrorUnexpected,
+		}
+	}
+
+	flashDriveName := outCheck[len(outCheck)-1]
 
 	log.Println("Executing a USB flashdrive mount via the cmd script")
 	outMount, err := middleware.runBBBCmdScript([]string{"flashdrive", "mount", flashDriveName})
