@@ -16,7 +16,7 @@ assumes Redis database running to be used with 'redis-cli'
 possible commands:
   enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
-             tor_electrum|overlayroot|root_pwlogin>
+             tor_electrum|overlayroot|root_pwlogin|unsigned_updates>
 
   disable   any 'enable' argument
 
@@ -282,6 +282,13 @@ case "${COMMAND}" in
                     exec_overlayroot all-layers "passwd -l root"
                 fi
                 redis_set "base:rootpasslogin:enabled" "${ENABLE}"
+                ;;
+
+            UNSIGNED_UPDATES)
+                checkMockMode
+
+                redis_set "base:update:allow-unsigned" "${ENABLE}"
+                generateConfig "mender.conf.template"
                 ;;
 
             *)
