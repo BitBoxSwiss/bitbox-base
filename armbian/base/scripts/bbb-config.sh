@@ -454,4 +454,8 @@ case "${COMMAND}" in
         esac
         ;;
 
+        *)
+            echo "Invalid argument: command ${COMMAND} unknown."
+            errorExit CONFIG_SCRIPT_INVALID_ARG
+
 esac
