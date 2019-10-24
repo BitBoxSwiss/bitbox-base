@@ -2,12 +2,15 @@ package middleware
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
@@ -327,4 +330,29 @@ func (middleware *Middleware) getAuthStructure() (map[string]UserAuthStruct, err
 		return usersMap, err
 	}
 	return usersMap, nil
+}
+
+// getBaseUpdateInfo GETs a JSON file over HTTP which includes information about the update.
+func getBaseUpdateInfo(url string) (updateInfo rpcmessages.UpdateInfo, err error) {
+	client := http.Client{
+		Timeout: 15 * time.Second, // timeout is chosen arbitrary, but should account for (very) slow tor connections.
+	}
+
+	response, err := client.Get(url)
+	if err != nil {
+		return updateInfo, err
+	}
+
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	updateInfo = rpcmessages.UpdateInfo{}
+
+	err = json.NewDecoder(response.Body).Decode(&updateInfo)
+	if err != nil {
+		return updateInfo, fmt.Errorf("could not decode JSON response: %s", err)
+	}
+
+	return updateInfo, nil
 }

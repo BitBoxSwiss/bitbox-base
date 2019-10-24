@@ -29,6 +29,7 @@ func main() {
 	prometheusURL := flag.String("prometheusurl", "http://localhost:9090", "Url of the prometheus server in the form of 'http://localhost:9090'")
 	redisPort := flag.String("redisport", "6379", "Port of the Redis server")
 	redisMock := flag.Bool("redismock", false, "Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock")
+	imageUpdateInfoURL := flag.String("updateinfourl", "https://shiftcrypto.ch/updates/base.json", "URL to query information about updates from (defaults to https://shiftcrypto.ch/updates/base.json)")
 	flag.Parse()
 
 	argumentMap := make(map[string]string)
@@ -43,6 +44,7 @@ func main() {
 	argumentMap["bbbCmdScript"] = *bbbCmdScript
 	argumentMap["prometheusURL"] = *prometheusURL
 	argumentMap["redisPort"] = *redisPort
+	argumentMap["imageUpdateInfoURL"] = *imageUpdateInfoURL
 	argumentMap["middlewareVersion"] = version
 
 	logBeforeExit := func() {

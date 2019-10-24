@@ -15,6 +15,7 @@ type Environment struct {
 	prometheusURL      string
 	redisPort          string
 	middlewareVersion  string
+	imageUpdateInfoURL string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -34,6 +35,7 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		prometheusURL:      argumentMap["prometheusURL"],
 		redisPort:          argumentMap["redisPort"],
 		middlewareVersion:  argumentMap["middlewareVersion"],
+		imageUpdateInfoURL: argumentMap["imageUpdateInfoURL"],
 	}
 	return environment
 }
@@ -86,4 +88,9 @@ func (environment *Environment) GetMiddlewareVersion() string {
 // GetMiddlewarePort is a getter for the port the middleware is listening on
 func (environment *Environment) GetMiddlewarePort() string {
 	return environment.middlewarePort
+}
+
+// GetImageUpdateInfoURL is a getter for the URL that specifies where the middleware queries the update info.
+func (environment *Environment) GetImageUpdateInfoURL() string {
+	return environment.imageUpdateInfoURL
 }

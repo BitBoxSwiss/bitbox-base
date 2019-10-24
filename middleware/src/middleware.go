@@ -17,6 +17,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/util/semver"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,6 +42,8 @@ type Middleware struct {
 	verificationProgress rpcmessages.VerificationProgressResponse
 	serviceInfo          rpcmessages.GetServiceInfoResponse
 	baseUpdateProgress   rpcmessages.GetBaseUpdateProgressResponse
+	baseUpdateAvailable  rpcmessages.IsBaseUpdateAvailableResponse
+	baseVersion          *semver.SemVer
 	isMockmode           bool
 	// Saves state for the setup process
 	isMiddlewarePasswordSet bool
@@ -77,6 +80,11 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 		},
 		isMockmode:              mock,
 		isMiddlewarePasswordSet: false,
+		baseUpdateAvailable: rpcmessages.IsBaseUpdateAvailableResponse{
+			ErrorResponse:   &rpcmessages.ErrorResponse{Success: true},
+			UpdateAvailable: false,
+		},
+		baseVersion: semver.NewSemVer(0, 0, 0),
 	}
 	middleware.prometheusClient = prometheus.NewClient(middleware.environment.GetPrometheusURL())
 
@@ -118,6 +126,11 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 	}
 
 	return middleware, nil
+}
+
+// IsBaseUpdateAvaliable indicates if a Base firmeware is available and returns information about the update
+func (middleware *Middleware) IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAvailableResponse {
+	return middleware.baseUpdateAvailable
 }
 
 // GetSampleInfo is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
@@ -202,9 +215,57 @@ func (middleware *Middleware) rpcLoop() {
 	}
 }
 
+// updateCheckLoop repeatedly checks for information about new Base image updates
+// When an update is available it's
+func (middleware *Middleware) updateCheckLoop() {
+	// This time is chosen arbitrary, but the time should be not too high for users to be notified
+	// not to long after the update release and not too low to avoid to frequent update checks.
+	const timeBetweenUpdateChecks time.Duration = 30 * time.Minute
+
+	for {
+		updateInfo, err := getBaseUpdateInfo(middleware.environment.GetImageUpdateInfoURL())
+		if err != nil {
+			log.Printf("Could not GET update info: %s\n", err)
+			time.Sleep(timeBetweenUpdateChecks)
+			continue
+		}
+
+		newVersion, err := semver.NewSemVerFromString(updateInfo.Version)
+		if err != nil {
+			log.Printf("Could not parse update info version as SemVer: %s\n", err)
+			time.Sleep(timeBetweenUpdateChecks)
+			continue
+		}
+
+		if !middleware.baseVersion.AtLeast(newVersion) {
+			log.Printf("A Base image update is available from version %s to %s.\n", middleware.baseVersion.String(), newVersion.String())
+			middleware.baseUpdateAvailable.UpdateAvailable = true
+			middleware.baseUpdateAvailable.UpdateInfo = updateInfo
+			middleware.events <- []byte(rpcmessages.OpBaseUpdateIsAvailable)
+		}
+
+		time.Sleep(timeBetweenUpdateChecks)
+	}
+}
+
 // Start gives a trigger for the handler to start the rpc event loop
 func (middleware *Middleware) Start() <-chan []byte {
 	go middleware.rpcLoop()
+
+	// before the updateCheckLoop is started the Middleware needes the Base version
+	baseVersion, err := middleware.redisClient.GetString(redis.BaseVersion)
+	if err != nil {
+		log.Printf("Error: could not get the Base version from Redis: %s", err)
+	}
+
+	baseSemVersion, err := semver.NewSemVerFromString(baseVersion)
+	if err != nil {
+		log.Printf("Error: could not parse the Base version as semver: %s", err)
+	}
+	middleware.baseVersion = baseSemVersion
+	log.Printf("Current Base image version is %s.\n", middleware.baseVersion.String())
+
+	go middleware.updateCheckLoop()
 	return middleware.events
 }
 
