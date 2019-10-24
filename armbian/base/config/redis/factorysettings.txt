@@ -1,6 +1,8 @@
 SET base:version xxx
 SET base:overlayroot:enabled 1
-SET base:rootpasslogin:enabled 0
+SET base:sshd:rootlogin no
+SET base:sshd:passwordlogin no
+SET base:sshd:hostkey /data/ssh/ssh_host_ecdsa_key
 SET base:dashboard:web:enabled 1
 SET base:dashboard:hdmi:enabled 0
 SET base:autosetupssd:enabled 1

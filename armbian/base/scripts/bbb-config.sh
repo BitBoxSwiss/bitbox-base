@@ -16,7 +16,7 @@ assumes Redis database running to be used with 'redis-cli'
 possible commands:
   enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
-             tor_electrum|overlayroot|root_pwlogin|unsigned_updates>
+             tor_electrum|overlayroot|pwlogin|rootlogin|unsigned_updates>
 
   disable   any 'enable' argument
 
@@ -272,16 +272,30 @@ case "${COMMAND}" in
                 redis_set "base:overlayroot:enabled" "${ENABLE}"
                 ;;
 
-            ROOT_PWLOGIN)
+            ROOTLOGIN)
+                # internal use only, eg. to allow scp/ftp during development
+                # option is not meant to be available in user interface
                 checkMockMode
 
-                # unlock/lock root user for password login
                 if [[ ${ENABLE} -eq 1 ]]; then
-                    exec_overlayroot all-layers "passwd -u root"
+                    redis_set "base:sshd:rootlogin" "yes"
                 else
-                    exec_overlayroot all-layers "passwd -l root"
+                    redis_set "base:sshd:rootlogin" "no"
                 fi
-                redis_set "base:rootpasslogin:enabled" "${ENABLE}"
+                generateConfig "sshd_config.template"
+                systemctl restart sshd.service
+                ;;
+
+            PWLOGIN)
+                checkMockMode
+
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    redis_set "base:sshd:passwordlogin" "yes"
+                else
+                    redis_set "base:sshd:passwordlogin" "no"
+                fi
+                generateConfig "sshd_config.template"
+                systemctl restart sshd.service
                 ;;
 
             UNSIGNED_UPDATES)
