@@ -49,9 +49,6 @@ SET bitcoind:dbcache 300
 SET bitcoind:maxconnections 40
 SET bitcoind:maxuploadtarget 5000
 SET bitcoind:proxy 127.0.0.1:9050
-SET bitcoind:seednode:1 nkf5e6b7pl4jfd4a.onion
-SET bitcoind:seednode:2 xqzfakpeuvrobvpj.onion
-SET bitcoind:seednode:3 tsyvzsqwa2kkf6b2.onion
 SET bitcoind:reindex-chainstate 0
 
 SET lightningd:version xxx
