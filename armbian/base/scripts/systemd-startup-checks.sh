@@ -95,6 +95,9 @@ chown -R electrs:bitcoin /mnt/ssd/electrs/
 chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/electrs/
 
 ## system folders
+mkdir -p /var/log/redis
+chown -R redis:redis /var/log/redis
+
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 
