@@ -5,15 +5,15 @@ import (
 	"sync"
 	"testing"
 
-	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	rpcserver "github.com/digitalbitbox/bitbox-base/middleware/src/rpcserver"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcserver/mocks"
 
 	"github.com/stretchr/testify/require"
 )
 
-func getToggleSettingArgs(enabled bool) rpcmessages.ToggleSettingArgs {
-	return rpcmessages.ToggleSettingArgs{ToggleSetting: enabled}
+func getToggleSettingArgs() rpcmessages.ToggleSettingArgs {
+	return rpcmessages.ToggleSettingArgs{ToggleSetting: true}
 }
 
 type rpcConn struct {
@@ -41,6 +41,7 @@ type TestingRPCServer struct {
 	serverReadChan  chan []byte
 	client          *rpc.Client
 	rpcServer       *rpcserver.RPCServer
+	middlewareMock  *mocks.Middleware
 }
 
 func NewTestingRPCServer() TestingRPCServer {
@@ -64,15 +65,45 @@ func NewTestingRPCServer() TestingRPCServer {
 	argumentMap["bbbConfigScript"] = "/bin/echo"
 	argumentMap["bbbCmdScript"] = "/bin/echo"
 
-	middlewareInstance := middleware.NewMiddleware(argumentMap, true)
+	// The mocks are generated with the following command in rpcserver.go:
+	//go:generate mockery -name Middleware
+	testingRPCServer.middlewareMock = &mocks.Middleware{}
 
-	testingRPCServer.rpcServer = rpcserver.NewRPCServer(middlewareInstance)
+	testingRPCServer.rpcServer = rpcserver.NewRPCServer(testingRPCServer.middlewareMock)
 	testingRPCServer.serverWriteChan = testingRPCServer.rpcServer.RPCConnection.WriteChan()
 	testingRPCServer.serverReadChan = testingRPCServer.rpcServer.RPCConnection.ReadChan()
 
 	go testingRPCServer.rpcServer.Serve()
 
 	testingRPCServer.client = rpc.NewClient(&rpcConn{readChan: testingRPCServer.clientReadChan, writeChan: testingRPCServer.clientWriteChan})
+
+	// To test the rpcserver, the mocked middleware functions need to accept and return some values.
+	testingRPCServer.middlewareMock.On("ValidateToken", "").Return(nil)
+	testingRPCServer.middlewareMock.On("SystemEnv").Return(rpcmessages.GetEnvResponse{})
+	testingRPCServer.middlewareMock.On("ResyncBitcoin").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("ReindexBitcoin").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("BackupSysconfig").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("BackupHSMSecret").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("SetHostname", rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-test"}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("RestoreSysconfig").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("RestoreHSMSecret").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("SampleInfo").Return(rpcmessages.SampleInfoResponse{})
+	testingRPCServer.middlewareMock.On("EnableTor", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableTorMiddleware", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableTorElectrs", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableTorSSH", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableClearnetIBD", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("ShutdownBase").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("RebootBase").Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableRootLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("GetBaseInfo").Return(rpcmessages.GetBaseInfoResponse{})
+	testingRPCServer.middlewareMock.On("SetRootPassword", rpcmessages.SetRootPasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("VerificationProgress").Return(rpcmessages.VerificationProgressResponse{})
+	testingRPCServer.middlewareMock.On("UserAuthenticate", rpcmessages.UserAuthenticateArgs{}).Return(
+		rpcmessages.UserAuthenticateResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}},
+	)
+	testingRPCServer.middlewareMock.On("UserChangePassword", rpcmessages.UserChangePasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
+
 	return testingRPCServer
 }
 
@@ -99,22 +130,22 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer := NewTestingRPCServer()
 
 	// The RPCs must get an argument passed.
-	// We pass a boolean to RPCs that don't need an argument.
-	dummyArg := true
+	// We pass the generic auth request to rpc's that do not take an argument besides the authentication token.
+	authArg := rpcmessages.AuthGenericRequest{}
 
 	var systemEnvReply rpcmessages.GetEnvResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", dummyArg, &systemEnvReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSystemEnv", authArg, &systemEnvReply)
 
 	var reindexBitcoinReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ReindexBitcoin", dummyArg, &reindexBitcoinReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ReindexBitcoin", authArg, &reindexBitcoinReply)
 	require.Equal(t, true, reindexBitcoinReply.Success)
 
 	var resyncBitcoinReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", dummyArg, &resyncBitcoinReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", authArg, &resyncBitcoinReply)
 	require.Equal(t, true, resyncBitcoinReply.Success)
 
 	var sampleInfoReply rpcmessages.SampleInfoResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", dummyArg, &sampleInfoReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", authArg, &sampleInfoReply)
 
 	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-test"}
 	setHostnameReply := rpcmessages.ErrorResponse{}
@@ -122,94 +153,70 @@ func TestRPCServer(t *testing.T) {
 	require.Equal(t, true, setHostnameReply.Success)
 
 	var verificationProgressReply rpcmessages.VerificationProgressResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", dummyArg, &verificationProgressReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", authArg, &verificationProgressReply)
 
 	var backupSysconfigReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.BackupSysconfig", dummyArg, &backupSysconfigReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.BackupSysconfig", authArg, &backupSysconfigReply)
 	require.Equal(t, true, backupSysconfigReply.Success)
 
 	var backupHSMSecretReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.BackupHSMSecret", dummyArg, &backupHSMSecretReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.BackupHSMSecret", authArg, &backupHSMSecretReply)
 	require.Equal(t, true, backupSysconfigReply.Success)
 
 	var restoreSysconfigReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreSysconfig", dummyArg, &restoreSysconfigReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreSysconfig", authArg, &restoreSysconfigReply)
 	require.Equal(t, true, restoreSysconfigReply.Success)
 
 	var restoreHSMSecretReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreHSMSecret", dummyArg, &restoreHSMSecretReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.RestoreHSMSecret", authArg, &restoreHSMSecretReply)
 	require.Equal(t, true, restoreSysconfigReply.Success)
 
 	var enableTorReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", getToggleSettingArgs(true), &enableTorReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", getToggleSettingArgs(), &enableTorReply)
 	require.Equal(t, true, enableTorReply.Success)
 
-	var disableTorReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTor", getToggleSettingArgs(false), &disableTorReply)
-	require.Equal(t, true, disableTorReply.Success)
-
 	var enableTorMiddlewareReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", getToggleSettingArgs(true), &enableTorMiddlewareReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", getToggleSettingArgs(), &enableTorMiddlewareReply)
 	require.Equal(t, true, enableTorMiddlewareReply.Success)
 
-	var disableTorMiddlewareReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorMiddleware", getToggleSettingArgs(false), &disableTorMiddlewareReply)
-	require.Equal(t, true, disableTorMiddlewareReply.Success)
-
 	var enableTorElectrsReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", getToggleSettingArgs(true), &enableTorElectrsReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", getToggleSettingArgs(), &enableTorElectrsReply)
 	require.Equal(t, true, enableTorElectrsReply.Success)
 
-	var disableTorElectrsReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorElectrs", getToggleSettingArgs(false), &disableTorElectrsReply)
-	require.Equal(t, true, disableTorElectrsReply.Success)
-
 	var enableTorSSHReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", getToggleSettingArgs(true), &enableTorSSHReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", getToggleSettingArgs(), &enableTorSSHReply)
 	require.Equal(t, true, enableTorSSHReply.Success)
 
-	var disableTorSSHReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableTorSSH", getToggleSettingArgs(false), &disableTorSSHReply)
-	require.Equal(t, true, disableTorSSHReply.Success)
-
 	var enableClearnetIBDReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", getToggleSettingArgs(true), &enableClearnetIBDReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", getToggleSettingArgs(), &enableClearnetIBDReply)
 	require.Equal(t, true, enableClearnetIBDReply.Success)
 
-	var disableClearnetIBDReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableClearnetIBD", getToggleSettingArgs(false), &disableClearnetIBDReply)
-	require.Equal(t, true, disableClearnetIBDReply.Success)
-
 	var enableRootLoginReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", getToggleSettingArgs(true), &enableRootLoginReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", getToggleSettingArgs(), &enableRootLoginReply)
 	require.Equal(t, true, enableRootLoginReply.Success)
 
-	var disableRootLoginReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", getToggleSettingArgs(false), &disableRootLoginReply)
-	require.Equal(t, true, disableRootLoginReply.Success)
-
-	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "admin", Password: "ICanHasPassword?"}
-	var userAuthenticateReply rpcmessages.ErrorResponse
+	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "", Password: ""}
+	var userAuthenticateReply rpcmessages.UserAuthenticateResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserAuthenticate", userAuthenticateArg, &userAuthenticateReply)
-	require.Equal(t, true, userAuthenticateReply.Success)
+	require.Equal(t, true, userAuthenticateReply.ErrorResponse.Success)
 
-	userChangePasswordArg := rpcmessages.UserChangePasswordArgs{Username: "admin", NewPassword: "longerpassword"}
+	userChangePasswordArg := rpcmessages.UserChangePasswordArgs{Username: "", NewPassword: ""}
 	var userChangePasswordReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.UserChangePassword", userChangePasswordArg, &userChangePasswordReply)
 	require.Equal(t, true, userChangePasswordReply.Success)
 
 	var shutdownBaseReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.ShutdownBase", dummyArg, &shutdownBaseReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.ShutdownBase", authArg, &shutdownBaseReply)
 	require.Equal(t, true, shutdownBaseReply.Success)
 
 	var rebootBaseReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", dummyArg, &rebootBaseReply)
+	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", authArg, &rebootBaseReply)
 	require.Equal(t, true, rebootBaseReply.Success)
 
 	/*
 		This can't be unit tested until there is a Prometheus mock.
 			var baseInfoReply rpcmessages.GetBaseInfoResponse
-			testingRPCServer.RunRPCCall(t, "RPCServer.GetBaseInfo", dummyArg, &baseInfoReply)
+			testingRPCServer.RunRPCCall(t, "RPCServer.GetBaseInfo", authArg, &baseInfoReply)
 			require.Equal(t, true, baseInfoReply.ErrorResponse.Success)
 	*/
 }

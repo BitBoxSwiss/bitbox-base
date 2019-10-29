@@ -3,6 +3,7 @@ package middleware
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
@@ -11,12 +12,23 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
+	"golang.org/x/crypto/bcrypt"
 )
+
+// UserAuthStruct holds the structure that is written into the redis middleware:auth key's value.
+type UserAuthStruct struct {
+	BCryptedPassword string `json:"password"`
+	Role             string `json:"role"`
+}
+
+// initialAdminPassword is the default password that allows login when setting up a base.
+const initialAdminPassword = "ICanHasPasword?"
 
 // Middleware connects to services on the base with provided parameters and emits events for the handler.
 type Middleware struct {
@@ -25,14 +37,14 @@ type Middleware struct {
 	events               chan []byte
 	prometheusClient     prometheus.Client
 	redisClient          redis.Redis
+	jwtAuth              *authentication.JwtAuth
 	verificationProgress rpcmessages.VerificationProgressResponse
 	serviceInfo          rpcmessages.GetServiceInfoResponse
 	baseUpdateProgress   rpcmessages.GetBaseUpdateProgressResponse
 	isMockmode           bool
-	// Saves state for the dummy setup process
-	// TODO: should be removed as soon as Authentication is implemented
-	dummyIsBaseSetup   bool
-	dummyAdminPassword string
+	// Saves state for the setup process
+	isMiddlewarePasswordSet bool
+	isBaseSetupDone         bool
 }
 
 // GetMiddlewareVersion returns the Middleware Version for the `GET /version` endpoint.
@@ -42,7 +54,7 @@ func (middleware *Middleware) GetMiddlewareVersion() string {
 
 // NewMiddleware returns a new instance of the middleware.
 // For testing a mock boolean can be passed, which mocks e.g. redis.
-func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
+func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error) {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
@@ -63,9 +75,8 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 			ProgressPercentage:    0,
 			ProgressDownloadedKiB: 0,
 		},
-		isMockmode:         mock,
-		dummyIsBaseSetup:   false,
-		dummyAdminPassword: "",
+		isMockmode:              mock,
+		isMiddlewarePasswordSet: false,
 	}
 	middleware.prometheusClient = prometheus.NewClient(middleware.environment.GetPrometheusURL())
 
@@ -74,7 +85,39 @@ func NewMiddleware(argumentMap map[string]string, mock bool) *Middleware {
 	} else if mock {
 		middleware.redisClient = redis.NewMockClient("")
 	}
-	return middleware
+	err := middleware.checkMiddlewareSetup()
+	if err != nil {
+		log.Println("failed to update the middleware password set flag")
+		return &Middleware{}, err
+	}
+	if !middleware.isMiddlewarePasswordSet {
+		usersMap := make(map[string]UserAuthStruct)
+		bcryptedPassword, err := bcrypt.GenerateFromPassword([]byte(initialAdminPassword), 12)
+		if err != nil {
+			log.Println("Failed to generate new standard password")
+			return &Middleware{}, err
+		}
+		usersMap["admin"] = UserAuthStruct{BCryptedPassword: string(bcryptedPassword), Role: "admin"}
+
+		authStructureString, err := json.Marshal(&usersMap)
+		if err != nil {
+			log.Println("Unable to marshal auth structure map")
+			return &Middleware{}, err
+		}
+		err = middleware.redisClient.SetString(redis.MiddlewareAuth, string(authStructureString))
+		if err != nil {
+			log.Println("Unable to initialize auth data structure")
+			return &Middleware{}, err
+		}
+	}
+
+	middleware.jwtAuth, err = authentication.NewJwtAuth()
+	// return if there is an error, this should not really happen though on our device and in our dev environments, low entropy is usually common in embedded environments
+	if err != nil {
+		return &Middleware{}, err
+	}
+
+	return middleware, nil
 }
 
 // GetSampleInfo is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
@@ -213,16 +256,15 @@ func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationPro
 	return middleware.verificationProgress
 }
 
-// DummyIsBaseSetup returns the current dummyIsBaseSetup bool
-// FIXME: this is a dummy function and should be removed once authentication is implemented
-func (middleware *Middleware) DummyIsBaseSetup() bool {
-	return middleware.dummyIsBaseSetup
+// SetupStatus returns the current status in the setup process as a SetupStatusResponse struct. This includes the middleware password set boolean and the base setup boolean.
+func (middleware *Middleware) SetupStatus() rpcmessages.SetupStatusResponse {
+	return rpcmessages.SetupStatusResponse{MiddlewarePasswordSet: middleware.isMiddlewarePasswordSet, BaseSetup: middleware.isBaseSetupDone}
 }
 
-// DummyAdminPassword returns the current dummyAdminPassword string
-// FIXME: this is a dummy function and should be removed once authentication is implemented
-func (middleware *Middleware) DummyAdminPassword() string {
-	return middleware.dummyAdminPassword
+// InitialAdminPassword is a getter that returns the constant initialAdminPassword string
+// This password is only valid for authentication until the admin user changes it.
+func (middleware *Middleware) InitialAdminPassword() string {
+	return initialAdminPassword
 }
 
 // BackupSysconfig creates a backup of the system configuration onto a flashdrive.
@@ -261,6 +303,11 @@ func (middleware *Middleware) BackupSysconfig() (response rpcmessages.ErrorRespo
 		}
 	}
 
+	//BackupSysconfig is the last call in the base setup. Once it is completed successfully, the setup is done.
+	err = middleware.redisClient.SetString(redis.BaseSetupDone, "1")
+	if err != nil {
+		log.Println("redis failed to set the base setup done flag. This is not a critical error, but the setup will be repeated again")
+	}
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
@@ -276,7 +323,6 @@ func (middleware *Middleware) BackupHSMSecret() rpcmessages.ErrorResponse {
 			Code:    errorCode,
 		}
 	}
-
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
@@ -335,56 +381,161 @@ func (middleware *Middleware) RestoreHSMSecret() rpcmessages.ErrorResponse {
 }
 
 // UserAuthenticate returns an ErrorResponse struct in response to a rpcserver request.
-// FIXME: This is a dummy implementation of the UserAuthenticate RPC call.
-// in the future this should return an AuthentificationResponse with e.g. an JWT.
-// This currently uses the `dummyIsBaseSetup` boolean, which should be removed when the proper authentication is implemented.
-func (middleware *Middleware) UserAuthenticate(args rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse {
-	// TODO: replace the dummyIsBaseSetup with a proper variable loaded from e.g. redis
-	// dummyIsBaseSetup should only be used for the dummy UserAuthenticate RPC and gets reset on middleware restart
-	if !middleware.dummyIsBaseSetup {
-		if args.Username == "admin" && args.Password == "ICanHasPassword?" {
-			// middleware.dummyIsBaseSetup is only set to true after the initial admin password is changed
-			return rpcmessages.ErrorResponse{Success: true}
-		}
-	} else if middleware.dummyIsBaseSetup {
-		dummyUsers := map[string]string{
-			"admin":   middleware.dummyAdminPassword,
-			"satoshi": "shift1",
-			"dev":     "dev",
-		}
-		if expectedPasssword, userIsInMap := dummyUsers[args.Username]; userIsInMap {
-			if args.Password == expectedPasssword {
-				return rpcmessages.ErrorResponse{Success: true}
-			}
+// To check if the user should be authenticated from default values, the bool 'isMiddlewarePasswordSet' is read from redis
+func (middleware *Middleware) UserAuthenticate(args rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse {
+	// isMiddlewarePasswordSet checks if the base is run the first time.
+	err := middleware.checkMiddlewareSetup()
+	if err != nil {
+		return rpcmessages.UserAuthenticateResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: "authentication failed, redis error",
+				Code:    rpcmessages.ErrorAuthenticationFailed,
+			},
 		}
 	}
 
-	return rpcmessages.ErrorResponse{
-		Success: false,
-		Message: "authentication unsuccessful",
-		Code:    rpcmessages.ErrorDummyAuthenticationNotSuccessful,
+	usersMap, err := middleware.getAuthStructure()
+	if err != nil {
+		return rpcmessages.UserAuthenticateResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: "authentication unsuccessful, see middleware logs for more information",
+				Code:    rpcmessages.ErrorAuthenticationFailed,
+			},
+		}
+	}
+
+	if _, ok := usersMap[args.Username]; !ok {
+		log.Printf("User %s not found in database", args.Username)
+		//TODO: Once we support multiple users work over the ErrorAuthenticationUsernameNotFound ErrorResponse message. It reveals information about the database.
+		return rpcmessages.UserAuthenticateResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: "authentication unsuccessful, username not found",
+				Code:    rpcmessages.ErrorAuthenticationUsernameNotFound,
+			},
+		}
+	}
+
+	passwordFromStorage := usersMap[args.Username].BCryptedPassword
+	err = bcrypt.CompareHashAndPassword([]byte(passwordFromStorage), []byte(args.Password))
+	if err != nil {
+		log.Println("Hash and password did not match")
+		return rpcmessages.UserAuthenticateResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: "authentication unsuccessful, incorrect password",
+				Code:    rpcmessages.ErrorAuthenticationPasswordIncorrect,
+			},
+		}
+	}
+
+	jwtTokenStr, err := middleware.jwtAuth.GenerateToken(args.Username)
+	if err != nil {
+		return rpcmessages.UserAuthenticateResponse{
+			ErrorResponse: &rpcmessages.ErrorResponse{
+				Success: false,
+				Message: "authentication unsuccessful, jwt error",
+				Code:    rpcmessages.ErrorAuthenticationFailed,
+			},
+		}
+	}
+
+	return rpcmessages.UserAuthenticateResponse{
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+		Token: jwtTokenStr,
 	}
 }
 
 // UserChangePassword returns an ErrorResponse struct in response to a rpcserver request
-// FIXME: This is a dummy implementation of the UserChangePassword RPC call
-// This dummy method approves all passwords which are longer or equal to 8 chars
+// The function first validates the current password with redis, then replaces it with the new password.
+// Passwords need to be longer than or equal to 8 chars.
 func (middleware *Middleware) UserChangePassword(args rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse {
-	if len(args.NewPassword) >= 8 {
-		if args.Username == "admin" {
-			middleware.dummyAdminPassword = args.NewPassword
-			if !middleware.dummyIsBaseSetup {
-				middleware.dummyIsBaseSetup = true // the change of the admin password completes the dummy setup process (for now)
-			}
+	if len(args.NewPassword) < 8 {
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "password change unsuccessful, the password needs to be at least 8 characters in length",
+			Code:    rpcmessages.ErrorPasswordTooShort,
 		}
-		return rpcmessages.ErrorResponse{Success: true}
 	}
 
-	return rpcmessages.ErrorResponse{
-		Success: false,
-		Message: "password change unsuccessful (too short)",
-		Code:    rpcmessages.ErrorDummyPasswordTooShort,
+	usersMap, err := middleware.getAuthStructure()
+	if err != nil {
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "authentication unsuccessful, see middleware logs for more information",
+			Code:    rpcmessages.ErrorAuthenticationFailed,
+		}
 	}
+
+	//TODO: Once we support multiple users work over the ErrorPasswordChangeUsernameNotExist message. It reveals information about the database.
+	if _, ok := usersMap[args.Username]; !ok {
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "username does not exist",
+			Code:    rpcmessages.ErrorPasswordChangeUsernameNotExist,
+		}
+	}
+
+	passwordFromStorage := usersMap[args.Username].BCryptedPassword
+	err = bcrypt.CompareHashAndPassword([]byte(passwordFromStorage), []byte(args.Password))
+	if err != nil {
+		log.Println("Hash and password did not match")
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "password change unsuccessful, current password was incorrect",
+			Code:    rpcmessages.ErrorPasswordChangePasswordIncorrect,
+		}
+	}
+
+	bcryptedPassword, err := bcrypt.GenerateFromPassword([]byte(args.NewPassword), 12)
+	if err != nil {
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "password change unsuccessful",
+			Code:    rpcmessages.ErrorPasswordChangeFailed,
+		}
+	}
+
+	userAuthSecrets := usersMap[args.Username]
+	userAuthSecrets.BCryptedPassword = string(bcryptedPassword)
+	userAuthSecrets.Role = "admin"
+	usersMap[args.Username] = userAuthSecrets
+	usersMapByteStr, err := json.Marshal(usersMap)
+	if err != nil {
+		log.Println("Failed marshaling the new user data for redis")
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "password change unsuccessful",
+			Code:    rpcmessages.ErrorPasswordChangeFailed,
+		}
+	}
+	err = middleware.redisClient.SetString(redis.MiddlewareAuth, string(usersMapByteStr))
+	if err != nil {
+		log.Println("Failed committing the new password to redis")
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: "password change unsuccessful",
+			Code:    rpcmessages.ErrorPasswordChangeFailed,
+		}
+	}
+
+	if !middleware.isMiddlewarePasswordSet {
+		err := middleware.redisClient.SetString(redis.MiddlewarePasswordSet, "1")
+		if err != nil {
+			log.Println("Failed setting middleware password set to true")
+		}
+		middleware.isMiddlewarePasswordSet = true // the change of the admin password completes the setup process (for now)
+	}
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// ValidateToken validates a jwt token string and returns an error if not valid and nil otherwise.
+func (middleware *Middleware) ValidateToken(token string) error {
+	return middleware.jwtAuth.ValidateToken(token)
 }
 
 // SetHostname sets the systems hostname
@@ -414,7 +565,7 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 // EnableTor enables/disables the tor.service and configures bitcoind and lightningd based on the passed ToggleSettingArgsEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable Tor: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable Tor: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -431,7 +582,7 @@ func (middleware *Middleware) EnableTor(toggleAction rpcmessages.ToggleSettingAr
 // EnableTorMiddleware enables/disables the tor hidden service for the middleware based on the passed ToggleSettingArgsEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable Tor for middleware: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable Tor for middleware: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_bbbmiddleware"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -448,7 +599,7 @@ func (middleware *Middleware) EnableTorMiddleware(toggleAction rpcmessages.Toggl
 // EnableTorElectrs enables/disables the tor hidden service for electrs based on the passed ToggleSettingArgsEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable Tor for electrs: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable Tor for electrs: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_electrs"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -465,7 +616,7 @@ func (middleware *Middleware) EnableTorElectrs(toggleAction rpcmessages.ToggleSe
 // EnableTorSSH enables/disables the tor hidden service for ssh based on the passed ToggleSettingArgsEnable/Disable argument
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableTorSSH(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable Tor for ssh: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable Tor for ssh: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "tor_ssh"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -481,7 +632,7 @@ func (middleware *Middleware) EnableTorSSH(toggleAction rpcmessages.ToggleSettin
 
 // EnableClearnetIBD enables/disables the initial block download over clearnet based on the passed ToggleSettingArgsEnable/Disable argument
 func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable clearnet IBD: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable clearnet IBD: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "bitcoin_ibd_clearnet"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
@@ -734,7 +885,7 @@ func (middleware *Middleware) UpdateBase(args rpcmessages.UpdateBaseArgs) rpcmes
 // EnableRootLogin enables/disables the login via the root user/password
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "root_pwlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)

@@ -9,7 +9,7 @@ check-go-env:
 	@echo "Checking that environment supports Go builds.."
 	@$(REPO_ROOT)/contrib/check-go-env.sh "$(REPO_ROOT)"
 
-ci:
+ci: generate
 	cd $(REPO_ROOT)/middleware/src
 	go test ./...
 	golangci-lint run
@@ -25,7 +25,7 @@ fetch-deps:
 native: check-go-env fetch-deps ci
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
-build:
+build: generate
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
 aarch64: check-go-env fetch-deps ci
@@ -56,3 +56,6 @@ regtest-generate:
 regtest-info:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
 	docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=${RPCPORT} -rpcuser=${RPCUSER} -rpcpassword=${RPCPASSWORD} getblockchaininfo
+
+generate:
+	go generate ./...

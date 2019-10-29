@@ -44,10 +44,12 @@ type Middleware interface {
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
-	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.ErrorResponse
+	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
+	SetupStatus() rpcmessages.SetupStatusResponse
 	/* --- RPCs end --- */
 
+	ValidateToken(token string) error
 	GetMiddlewareVersion() string
 }
 
