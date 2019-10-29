@@ -242,6 +242,9 @@ case "${MODULE}" in
                     echo "FLASHDRIVE MOUNT: device ${ARG} is not unique and/or has partitions."
                     errorExit FLASHDRIVE_MOUNT_NOT_UNIQUE
 
+                elif mountpoint /mnt/backup -q; then
+                    echo "FLASHDRIVE MOUNT: mountpoint /mnt/backup is already in use. Assuming prior mount, no error."
+
                 else
                     scsidev=$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}")
                     name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
@@ -306,6 +309,19 @@ case "${MODULE}" in
                     errorExit BACKUP_SYSCONFIG_NOT_A_MOUNTPOINT
                 fi
                 echo "OK: backup created as /mnt/backup/bbb-backup.rdb"
+
+                # add Factory Reset token
+                RESET_TOKEN="$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)"
+                RESET_TOKEN_HASH=$(echo -n "${RESET_TOKEN}" | sha256sum | tr -d "[:space:]-")
+
+                # write reset token to usb drive, no linebreak allowed
+                printf "%s" "${RESET_TOKEN}" > /mnt/backup/.reset-token
+
+                # append reset token hash for permission check locally
+                echo "${RESET_TOKEN_HASH}" >> /data/reset-token-hashes
+                chmod 600 /data/reset-token-hashes
+                echo "OK: reset token created on flashdrive"
+
                 ;;
 
             # backup c-lightning on-chain keys in 'hsm_secret' into Redis database
