@@ -1041,7 +1041,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "firmware version",
+          "title": "Base image",
           "type": "text"
         },
         {

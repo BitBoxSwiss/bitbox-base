@@ -60,14 +60,14 @@ possible commands:
 
 The following commands are available:
 
-* **setup**: 
+* **setup**:
   * **datadir**: called on boot to check if the persistent data directory is already set up, and initializes it if necessary. Multiple scenarios need to be considered:
-    * read/write disk, without Mender (likely a development image)  
+    * read/write disk, without Mender (likely a development image)
       the `/data` directory can be created directly, copying the initial content from the source directory `/data_source`
     * read-only disk, without Mender (e.g. a DIY image)
       image is build using `OVERLAYROOT` option, so all changes written to the root filesystem are volatile due to the tmpfs overlay. To preserve changes in `/data`, the directory is created as a symbolic link to `/mnt/ssd/data` on the SSD
     * read-only disk, with Mender (BitBox Base production image)
-      the `/data` directory is mounted from a separate, persistent partition that is not overwritten on update. Initial content is copied once from `/data_src` into that partition. 
+      the `/data` directory is mounted from a separate, persistent partition that is not overwritten on update. Initial content is copied once from `/data_src` into that partition.
 
 * **base**: does exactly what it says, but could contain custom commands before powering down in the future
   * **restart**: restarts the device
@@ -85,15 +85,15 @@ The following commands are available:
 
 * **backup**
   * **sysconfig**: copies the Redis datastore `/data/redis/bitboxbase.rdb` to a mounted flashdrive
-  * **hsm_secret**: stores the c-lightning on-chain seed `/mnt/ssd/bitcoin/.lightning/hsm_secret` into Redis, encoded as base64  
+  * **hsm_secret**: stores the c-lightning on-chain seed `/mnt/ssd/bitcoin/.lightning/hsm_secret` into Redis, encoded as base64
 
 * **restore**
   * **sysconfig**: restores the Redis datastore `/data/redis/bitboxbase.rdb` from a mounted flashdrive and restarts Redis
   * **hsm_secret**: saves the c-lightning on-chain seed from Redis into `/mnt/ssd/bitcoin/.lightning/hsm_secret`
 
 * **mender-update**
-  * **install**: expects a firmware version and downloads/verifies/installs the Mender update artefact into the inactive partition. A reboot is required to boot into the updated system.
-  * **commit**: commits an update to become persistent. If it is not committed, the device falls back to the previous firmware on reboot.  
+  * **install**: expects a Base image version and downloads/verifies/installs the Mender update artefact into the inactive partition. A reboot is required to boot into the updated system.
+  * **commit**: commits an update to become persistent. If it is not committed, the device falls back to the previous Base image on reboot.
 
 ### [**bbb-systemctl.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-systemctl.sh): manage and check systemd units in batch
 Batch control all systemd units at once, e.g. for getting an overall status or stop all services.

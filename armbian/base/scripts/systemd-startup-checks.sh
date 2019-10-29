@@ -159,7 +159,7 @@ sed -i 's/#overlayroot:swapfile#//g' /etc/fstab
 mount -a
 swapon /mnt/ssd/swapfile || true
 
-# Firmware updates
+# Base image updates
 # ------------------------------------------------------------------------------
 # initialize mender configuration
 if [[ -f /etc/mender/mender.conf ]] && ! grep -q '/shift/' /etc/mender/mender.conf ; then

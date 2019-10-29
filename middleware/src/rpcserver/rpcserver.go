@@ -288,7 +288,7 @@ func (server *RPCServer) GetServiceInfo(dummyArg bool, reply *rpcmessages.GetSer
 	return nil
 }
 
-// UpdateBase updates the Base firmeware and sends a ErrorResponse over RPC
+// UpdateBase updates the Base image and sends a ErrorResponse over RPC
 func (server *RPCServer) UpdateBase(args rpcmessages.UpdateBaseArgs, reply *rpcmessages.ErrorResponse) error {
 	*reply = server.middleware.UpdateBase(args)
 	log.Printf("sent reply %v: ", reply)

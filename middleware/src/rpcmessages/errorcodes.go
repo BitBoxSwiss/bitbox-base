@@ -82,10 +82,10 @@ const (
 	// ErrorMenderUpdateInstallFailed is thrown if `mender -install` failed.
 	ErrorMenderUpdateInstallFailed ErrorCode = "MENDER_UPDATE_INSTALL_FAILED"
 
-	// ErrorMenderUpdateNoVersion thrown if no firmware version passed to the script.
+	// ErrorMenderUpdateNoVersion thrown if no Base image version passed to the script.
 	ErrorMenderUpdateNoVersion ErrorCode = "MENDER_UPDATE_NO_VERSION"
 
-	// ErrorMenderUpdateInvalidVersion is thrown if an invalid firmware version passed to the script.
+	// ErrorMenderUpdateInvalidVersion is thrown if an invalid Base image version passed to the script.
 	ErrorMenderUpdateInvalidVersion ErrorCode = "MENDER_UPDATE_INVALID_VERSION"
 
 	// ErrorMenderUpdateAlreadyInProgress is thrown by the middleware, if an update is already in progress.
