@@ -98,7 +98,7 @@ func NewTestingRPCServer() TestingRPCServer {
 	testingRPCServer.middlewareMock.On("EnableRootLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("EnablePasswordLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("GetBaseInfo").Return(rpcmessages.GetBaseInfoResponse{})
-	testingRPCServer.middlewareMock.On("SetRootPassword", rpcmessages.SetRootPasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("SetLoginPassword", rpcmessages.SetLoginPasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("VerificationProgress").Return(rpcmessages.VerificationProgressResponse{})
 	testingRPCServer.middlewareMock.On("UserAuthenticate", rpcmessages.UserAuthenticateArgs{}).Return(
 		rpcmessages.UserAuthenticateResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}},

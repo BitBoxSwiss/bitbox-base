@@ -43,7 +43,7 @@ type Middleware interface {
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
-	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
+	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse

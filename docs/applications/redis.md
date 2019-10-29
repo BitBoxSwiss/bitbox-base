@@ -56,11 +56,11 @@ always-show-logo no
 
 The Redis datastore is already used within the Armbian build process and populated with the factory configuration settings.
 All values are imported from [`armbian/base/config/redis/factorysettings.txt`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/config/redis/factorysettings.txt) using the [Redis mass insertion protocol](https://redis.io/topics/mass-insert) with the helper script [`armbian/base/scripts/redis-pipe.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/redis-pipe.sh).
+Keys with value `xxx` are replaced on the running system and are added for documenation only.
 
 ```
 SET base:version xxx
 SET base:overlayroot:enabled 1
-SET base:rootpasslogin:enabled 0
 SET base:dashboard:web:enabled 1
 SET base:dashboard:hdmi:enabled 0
 SET base:autosetupssd:enabled 1
@@ -73,7 +73,7 @@ SET tor:base:enabled 1
 SET tor:ssh:enabled 0
 SET tor:electrs:enabled 1
 SET tor:bbbmiddleware:enabled 1
-                        
+
 SET bitcoind:ibd 1
 SET bitcoind:ibd-clearnet 0
 SET bitcoind:network mainnet

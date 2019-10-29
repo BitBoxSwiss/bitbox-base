@@ -885,7 +885,7 @@ func (middleware *Middleware) UpdateBase(args rpcmessages.UpdateBaseArgs) rpcmes
 // EnableRootLogin enables/disables the ssh login of the root user
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "rootlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -902,7 +902,7 @@ func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSet
 // EnablePasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnablePasswordLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable password login: %t' via the config script.\n", toggleAction)
+	log.Printf("Executing 'Enable password login: %t' via the config script.\n", toggleAction.ToggleSetting)
 	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "pwlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
@@ -916,10 +916,10 @@ func (middleware *Middleware) EnablePasswordLogin(toggleAction rpcmessages.Toggl
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// SetRootPassword sets the system main ssh/login password
-func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse {
-	log.Println("Setting a new root password via the config script")
-	password := args.RootPassword
+// SetLoginPassword sets the system main ssh/login password
+func (middleware *Middleware) SetLoginPassword(args rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse {
+	log.Println("Setting a new login password via the config script")
+	password := args.LoginPassword
 
 	// Unicode passwords are allowed, but each Unicode rune is only counted as one when comparing the length
 	// len("₿") = 3
@@ -944,7 +944,7 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 	return rpcmessages.ErrorResponse{
 		Success: false,
 		Message: "The password has to be at least 8 chars. An unicode char is counted as one.",
-		Code:    rpcmessages.ErrorSetRootPasswordTooShort,
+		Code:    rpcmessages.ErrorSetLoginPasswordTooShort,
 	}
 }
 
