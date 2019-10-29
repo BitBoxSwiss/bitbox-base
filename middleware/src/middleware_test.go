@@ -194,6 +194,20 @@ func TestEnableTorSSH(t *testing.T) {
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
+func TestEnablePasswordLogin(t *testing.T) {
+	testMiddleware := setupTestMiddleware()
+
+	responseEnable := testMiddleware.EnablePasswordLogin(getToggleSettingArgs(true))
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
+
+	responseDisable := testMiddleware.EnablePasswordLogin(getToggleSettingArgs(false))
+	require.Equal(t, true, responseDisable.Success, true)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
+}
+
 func TestEnableRootLogin(t *testing.T) {
 	testMiddleware := setupTestMiddleware(t)
 

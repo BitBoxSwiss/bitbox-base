@@ -20,7 +20,7 @@ possible commands:
 
   disable   any 'enable' argument
 
-  set       <hostname|root_pw|wifi_ssid|wifi_pw>
+  set       <hostname|loginpw|wifi_ssid|wifi_pw>
             bitcoin_network         <mainnet|testnet>
             bitcoin_dbcache         int (MB)
             other arguments         string
@@ -429,7 +429,7 @@ case "${COMMAND}" in
                 fi
                 ;;
 
-            ROOT_PW)
+            LOGINPW)
                 checkMockMode
 
                 exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"

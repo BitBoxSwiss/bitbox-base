@@ -20,24 +20,16 @@ usage: bbb-config.sh [--version] [--help]
                     <command> [<args>]
 
 possible commands:
-  enable    <dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-            tor_ssh|tor_electrum|overlayroot>
+  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+             dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
+             tor_electrum|overlayroot|pwlogin|rootlogin|unsigned_updates>
 
   disable   any 'enable' argument
 
-  set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
-            bitcoin_network     <mainnet|testnet>
-            bitcoin_ibd         <true|false>
-            bitcoin_dbcache     int (MB)
-            other arguments     string
-
-  get       any 'enable' or 'set' argument, or
-            <all|tor_ssh_onion|tor_electrum_onion>
-
-  apply     no argument, applies all configuration settings to the system
-            [not yet implemented]
-
-  exec      <bitcoin_reindex>
+  set       <hostname|loginpw|wifi_ssid|wifi_pw>
+            bitcoin_network         <mainnet|testnet>
+            bitcoin_dbcache         int (MB)
+            other arguments         string
 ```
 
 ### [**bbb-cmd.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-cmd.sh): execution of standard commands
@@ -50,7 +42,6 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
   setup         <datadir>
-  base          <restart|shutdown>
   bitcoind      <reindex|resync|refresh_rpcauth>
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>

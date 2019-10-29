@@ -882,11 +882,11 @@ func (middleware *Middleware) UpdateBase(args rpcmessages.UpdateBaseArgs) rpcmes
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// EnableRootLogin enables/disables the login via the root user/password
+// EnableRootLogin enables/disables the ssh login of the root user
 // and returns a ErrorResponse indicating if the call was successful.
 func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
-	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction.ToggleSetting)
-	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "root_pwlogin"})
+	log.Printf("Executing 'Enable root login: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "rootlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{
@@ -899,7 +899,24 @@ func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSet
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// SetRootPassword sets the systems root password
+// EnablePasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
+// and returns a ErrorResponse indicating if the call was successful.
+func (middleware *Middleware) EnablePasswordLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
+	log.Printf("Executing 'Enable password login: %t' via the config script.\n", toggleAction)
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "pwlogin"})
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(out, err, nil)
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(out, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	return rpcmessages.ErrorResponse{Success: true}
+}
+
+// SetRootPassword sets the system main ssh/login password
 func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse {
 	log.Println("Setting a new root password via the config script")
 	password := args.RootPassword
@@ -908,7 +925,7 @@ func (middleware *Middleware) SetRootPassword(args rpcmessages.SetRootPasswordAr
 	// len("₿") = 3
 	// len([]rune("₿")) = 1
 	if len([]rune(password)) >= 8 {
-		out, err := middleware.runBBBConfigScript([]string{"set", "root_pw", password})
+		out, err := middleware.runBBBConfigScript([]string{"set", "loginpw", password})
 		if err != nil {
 			errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 				rpcmessages.ErrorSetNeedsTwoArguments,
