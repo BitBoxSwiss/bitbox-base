@@ -16,6 +16,7 @@ possible commands:
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
+  reset         <auth|config|image|ssd>
   mender-update <install|commit>
 
 "
@@ -427,6 +428,48 @@ case "${MODULE}" in
                     echo "ERR: mender commit failed with error code ${ERR}"
                     errorExit MENDER_UPDATE_COMMIT_FAILED
                 fi
+                ;;
+
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                errorExit CMD_SCRIPT_INVALID_ARG
+        esac
+        ;;
+
+    RESET)
+        # possbile commands
+        #   reset auth:     reset authentication for running BitBoxApp setup wizard again
+        #   reset config:   [not yet implemented] reset system configuration to factory defaults from original Redis values
+        #   reset image:    [not yet implemented] reflash Base image
+        #   reset ssd:      [not yet implemented] wipe ssd with all Bitcoin and Lightning data (funds/channels will be lost)
+
+        # must provide argument '--assume-yes' (e.g. bbb-cmd.sh reset auth --assume-yes) for non-interactive usage
+
+        if [[ "${COMMAND}" != "AUTH" ]] && [[ "${COMMAND}" != "CONFIG" ]] && [[ "${COMMAND}" != "IMAGE" ]] && [[ "${COMMAND}" != "SSD" ]]; then
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                errorExit CMD_SCRIPT_INVALID_ARG
+        fi
+
+        if [[ "${ARG^^}" != "--ASSUME-YES" ]]; then
+            printf "\nThis will reset the BitBoxBase with command '%s'. Continue?\nType: YES or abort with Ctrl-C\n> " "${COMMAND}"
+            read -r ask_confirmation
+
+            if [[ "${ask_confirmation}" != "YES" ]]; then
+                echo "Aborted."
+                errorExit CMD_SCRIPT_MANUAL_ABORT
+            fi
+            echo "INFO: reset manually confirmed"
+        else
+            echo "INFO: reset confirmed with '--assume-yes'"
+        fi
+
+        case "${COMMAND}" in
+            # reset authentication for running BitBoxApp setup wizard again
+            AUTH)
+                redis_set "base:setup" 0
+                redis_set "middleware:passwordSetup" 0
+
+                echo "OK: middleware authentication reset, setup wizard can be run again."
                 ;;
 
             *)
