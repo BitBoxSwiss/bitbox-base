@@ -26,7 +26,7 @@ Running your own Bitcoin node in combination with a hardware wallet is still to 
 * As a networked appliance, remote attack surface is minimized by exposing as little ports as possible.
 * The hardware platform uses best-in-class components, built for performance and resilience.
 * With the integrated BitBox secure module, the node offers functionality previously not possible with hardware wallets.
-* Atomic upgrades allows seamless and reliable firmware upgrades with fallback.
+* Atomic upgrades allows seamless and reliable Base image upgrades with fallback.
 * Expert settings allow access to low-level configuration.
 
 ## Buy or Build

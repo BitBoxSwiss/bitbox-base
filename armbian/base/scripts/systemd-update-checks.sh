@@ -30,7 +30,7 @@ source /opt/shift/scripts/include/updateTorOnions.sh.inc
 
 redis_require
 
-# update hardcoded firmware version
+# update hardcoded Base image version
 VERSION=$(head -n1 /opt/shift/config/version)
 redis_set "base:version" "${VERSION}"
 
@@ -109,7 +109,7 @@ else
                 echo "INFO: service verification try ${run} of 100 unsuccessful, retrying in 10 seconds"
                 sleep 2
             else
-                echo "ERR: service verification try ${run} of 100 unsuccessful, falling back to previous firmware version"
+                echo "ERR: service verification try ${run} of 100 unsuccessful, falling back to previous Base image version"
                 redis_set "base:updating" 90
                 /opt/shift/scripts/bbb-cmd.sh base restart
                 errorExit MENDER_UPDATE_SYSCONFIG_FAILED

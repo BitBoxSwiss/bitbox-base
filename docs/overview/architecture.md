@@ -30,7 +30,7 @@ Building a solution platform that focuses on security and performance, the BitBo
 
 ### Operating system
 
-The operating system is custom-built as a minimal firmware, running in read-only mode and allowing atomic updates with fallback.
+The operating system is a custom-built Armbian image, with minimal functionality, running in read-only mode and allowing atomic updates with fallback.
 
 * [Armbian](https://www.armbian.com/): custom built Linux operating system, mounted as read-only with tmpfs overlayfs from eMMC storage
 * [Mender.io](https://mender.io/): Over-the-air update management solution, enabling atomic full diskimage updates, using dual partitions for fallback
@@ -52,7 +52,7 @@ Additional noteworthy components on the BitBox Base:
 
 * [Base Supervisor](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor): custom daemon for operational monitoring and control, providing system health information and node configuration
 * [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network
-* [Redis](https://redis.io/): in-memory key/value datastore, acting as central configuration repository 
+* [Redis](https://redis.io/): in-memory key/value datastore, acting as central configuration repository
 * [Prometheus](https://prometheus.io/): monitoring of system and software components
 * [Grafana](https://grafana.com/): visualization of system and network performance metrics
 
@@ -61,7 +61,7 @@ Additional noteworthy components on the BitBox Base:
 Connectivity from the Bitcoin wallet application to the node backend is a challenge. We provide the following complementary options to allow for privacy and ease-of-use:
 
 1. Local network: automatic detection using mDNS within the local network.
-2. Tor network: private connectivity without any router configuration, needs Tor installed on client device.  
+2. Tor network: private connectivity without any router configuration, needs Tor installed on client device.
 3. Shift Connect: zero-knowledge Tor/Web proxy operated by Shift for use with any client device
 
 Overall, we strive to make using our BitBox products as simple as possible.
