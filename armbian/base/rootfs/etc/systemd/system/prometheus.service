@@ -11,6 +11,7 @@ ExecStart=/usr/local/bin/prometheus \
     --web.listen-address="127.0.0.1:9090" \
     --config.file /etc/prometheus/prometheus.yml \
     --storage.tsdb.path=/mnt/ssd/prometheus \
+    --storage.tsdb.retention.time=720d
     --web.console.templates=/etc/prometheus/consoles \
     --web.console.libraries=/etc/prometheus/console_libraries
 
