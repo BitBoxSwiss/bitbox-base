@@ -28,6 +28,7 @@ func main() {
 	bbbCmdScript := flag.String("bbbcmdscript", "/opt/shift/scripts/bbb-cmd.sh", "Path to the bbb-cmd file that allows executing system commands")
 	prometheusURL := flag.String("prometheusurl", "http://localhost:9090", "Url of the prometheus server in the form of 'http://localhost:9090'")
 	redisPort := flag.String("redisport", "6379", "Port of the Redis server")
+	redisMock := flag.Bool("redismock", false, "Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock")
 	flag.Parse()
 
 	argumentMap := make(map[string]string)
@@ -53,9 +54,9 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
-	middleware, err := middleware.NewMiddleware(argumentMap, false)
+	middleware, err := middleware.NewMiddleware(argumentMap, *redisMock)
 	if err != nil {
-		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true.", err.Error())
+		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
 	}
 	log.Println("--------------- Started middleware --------------")
 
