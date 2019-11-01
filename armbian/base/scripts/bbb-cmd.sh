@@ -246,6 +246,11 @@ case "${MODULE}" in
                     echo "FLASHDRIVE MOUNT: mountpoint /mnt/backup is already in use. Assuming prior mount, no error."
 
                 else
+                    if mountpoint /mnt/backup -q; then
+                        echo "FLASHDRIVE MOUNT: mountpoint /mnt/backup in use, unmounting..."
+                        umount /mnt/backup
+                    fi
+
                     scsidev=$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}")
                     name=$( echo "${scsidev}" | cut -s -f 1 -d " " )
                     size=$( echo "${scsidev}" | cut -s -f 2 -d " " )
