@@ -61,13 +61,15 @@ else
 
         /opt/shift/scripts/bbb-config.sh set hostname "$(redis_get 'base:hostname')"
 
-        generateConfig "bitcoin.conf.template"
-        generateConfig "lightningd.conf.template"
-        generateConfig "electrs.conf.template"
-        generateConfig "bbbmiddleware.conf.template"
         generateConfig "bashrc-custom.template"
+        generateConfig "bbbmiddleware.conf.template"
+        generateConfig "bitboxbase.service.template"
+        generateConfig "bitcoin.conf.template"
+        generateConfig "electrs.conf.template"
         generateConfig "grafana.ini.template"
         generateConfig "mender.conf.template"
+        generateConfig "iptables.rules.template"
+        generateConfig "lightningd.conf.template"
         generateConfig "torrc.template"
 
         if [[ $(redis_get "base:wifi:enabled") -eq 1 ]]; then
@@ -83,13 +85,15 @@ else
         fi
 
         set -x
-        systemctl restart networking.service        || true
+        systemctl restart iptables-restore          || true
         systemctl restart avahi-daemon.service      || true
+        systemctl restart networking.service        || true
+        systemctl restart bbbmiddleware.service     || true
         systemctl restart bitcoind.service          || true
         systemctl restart electrs.service           || true
         systemctl restart lightningd.service        || true
-        systemctl restart bbbmiddleware.service     || true
         systemctl restart grafana-server.service    || true
+
         set +x
 
         echo "OK: restarted all reconfigured services"

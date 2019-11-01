@@ -79,7 +79,14 @@ setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
 ## lightningd socket
+mkdir -p /mnt/ssd/bitcoin/.lightning
+chmod u+rw,g+rx,g-w,o-rwx /mnt/ssd/bitcoin/.lightning
+chmod 700 /mnt/ssd/bitcoin/.lightning/* || true
 chmod 770 /mnt/ssd/bitcoin/.lightning/lightning-rpc || true
+
+mkdir -p /mnt/ssd/bitcoin/.lightning-testnet
+chmod u+rw,g+rx,g-w,o-rwx /mnt/ssd/bitcoin/.lightning-testnet
+chmod 700 /mnt/ssd/bitcoin/.lightning-testnet/* || true
 chmod 770 /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc || true
 
 ## electrs data storage
@@ -88,6 +95,9 @@ chown -R electrs:bitcoin /mnt/ssd/electrs/
 chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/electrs/
 
 ## system folders
+mkdir -p /var/log/redis
+chown -R redis:redis /var/log/redis
+
 mkdir -p /mnt/ssd/prometheus
 chown -R prometheus:system /mnt/ssd/prometheus/
 
