@@ -346,7 +346,7 @@ rm -f /etc/ssh/ssh_host_*
 
 ## optionally, enable ssh password login
 if [ "$BASE_SSH_PASSWORD_LOGIN" == "true" ]; then
-  /opt/shift/scripts/bbb-config.sh enable pwlogin
+  /opt/shift/scripts/bbb-config.sh enable sshpwlogin
 fi
 
 ## set hostname

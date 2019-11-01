@@ -69,7 +69,7 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	EnablePasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableSSHPasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
@@ -402,11 +402,11 @@ func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, rep
 	return nil
 }
 
-// EnablePasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
+// EnableSSHPasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) EnablePasswordLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
-	*reply = server.middleware.EnablePasswordLogin(args)
+func (server *RPCServer) EnableSSHPasswordLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableSSHPasswordLogin(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }

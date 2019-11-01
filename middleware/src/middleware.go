@@ -899,11 +899,11 @@ func (middleware *Middleware) EnableRootLogin(toggleAction rpcmessages.ToggleSet
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
-// EnablePasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
+// EnableSSHPasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
 // and returns a ErrorResponse indicating if the call was successful.
-func (middleware *Middleware) EnablePasswordLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
+func (middleware *Middleware) EnableSSHPasswordLogin(toggleAction rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
 	log.Printf("Executing 'Enable password login: %t' via the config script.\n", toggleAction.ToggleSetting)
-	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "pwlogin"})
+	out, err := middleware.runBBBConfigScript([]string{determineEnableValue(toggleAction), "sshpwlogin"})
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, nil)
 		return rpcmessages.ErrorResponse{

@@ -96,7 +96,7 @@ func NewTestingRPCServer() TestingRPCServer {
 	testingRPCServer.middlewareMock.On("ShutdownBase").Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("RebootBase").Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("EnableRootLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
-	testingRPCServer.middlewareMock.On("EnablePasswordLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("EnableSSHPasswordLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("GetBaseInfo").Return(rpcmessages.GetBaseInfoResponse{})
 	testingRPCServer.middlewareMock.On("SetLoginPassword", rpcmessages.SetLoginPasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("VerificationProgress").Return(rpcmessages.VerificationProgressResponse{})
@@ -196,9 +196,9 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.EnableRootLogin", getToggleSettingArgs(), &enableRootLoginReply)
 	require.Equal(t, true, enableRootLoginReply.Success)
 
-	var enablePasswordLoginReply rpcmessages.ErrorResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.EnablePasswordLogin", getToggleSettingArgs(), &enablePasswordLoginReply)
-	require.Equal(t, true, enablePasswordLoginReply.Success)
+	var enableSSHPasswordLoginReply rpcmessages.ErrorResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.EnableSSHPasswordLogin", getToggleSettingArgs(), &enableSSHPasswordLoginReply)
+	require.Equal(t, true, enableSSHPasswordLoginReply.Success)
 
 	userAuthenticateArg := rpcmessages.UserAuthenticateArgs{Username: "", Password: ""}
 	var userAuthenticateReply rpcmessages.UserAuthenticateResponse
