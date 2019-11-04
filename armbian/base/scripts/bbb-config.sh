@@ -16,11 +16,11 @@ assumes Redis database running to be used with 'redis-cli'
 possible commands:
   enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
-             tor_electrum|overlayroot|pwlogin|rootlogin|unsigned_updates>
+             tor_electrum|overlayroot|sshpwlogin|rootlogin|unsigned_updates>
 
   disable   any 'enable' argument
 
-  set       <hostname|root_pw|wifi_ssid|wifi_pw>
+  set       <hostname|loginpw|wifi_ssid|wifi_pw>
             bitcoin_network         <mainnet|testnet>
             bitcoin_dbcache         int (MB)
             other arguments         string
@@ -286,7 +286,7 @@ case "${COMMAND}" in
                 systemctl restart sshd.service
                 ;;
 
-            PWLOGIN)
+            SSHPWLOGIN)
                 checkMockMode
 
                 if [[ ${ENABLE} -eq 1 ]]; then
@@ -429,7 +429,7 @@ case "${COMMAND}" in
                 fi
                 ;;
 
-            ROOT_PW)
+            LOGINPW)
                 checkMockMode
 
                 exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"

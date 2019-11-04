@@ -12,7 +12,7 @@ Here we describe how to set the initial configuration on build, control it inter
 
 ### Initial configuration on build
 
-The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).  
+The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
 
 Available options are described directly in the file and are set to default values.
 A few examples of build options you can set:
@@ -42,18 +42,16 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_ibd_clearnet|dashboard_hdmi|dashboard_web|wifi|autosetup_ssd|
-             tor|tor_bbbmiddleware|tor_ssh|tor_electrum|overlayroot|root_pwlogin>
+  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+             dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
+             tor_electrum|overlayroot|sshpwlogin|rootlogin|unsigned_updates>
 
   disable   any 'enable' argument
 
-  set       <bitcoin_network|hostname|root_pw|wifi_ssid|wifi_pw>
-            bitcoin_network     <mainnet|testnet>
-            bitcoin_ibd         <true|false>
-            bitcoin_dbcache     int (MB)
-            other arguments     string
-
-  get       <tor_ssh_onion|tor_electrum_onion>
+  set       <hostname|loginpw|wifi_ssid|wifi_pw>
+            bitcoin_network         <mainnet|testnet>
+            bitcoin_dbcache         int (MB)
+            other arguments         string
 ```
 
 ### *bbb-cmd.sh*: execution of standard commands
@@ -76,7 +74,7 @@ possible commands:
 
 ### *Redis*: storage of configuration values
 
-The [Redis](https://redis.io/) key/value datastore is used to manage configuration data. 
+The [Redis](https://redis.io/) key/value datastore is used to manage configuration data.
 It can be queried from all software components, be it from the command line, Bash, Python or Go with minimal overhead.
 
 * from the terminal, Redis can be used with its command-line utility [`redis-cli`](https://redis.io/topics/rediscli)
@@ -100,9 +98,9 @@ electrs:db_dir        /mnt/ssd/electrs/db
 
 ### *bbbconfgen*: Updating of configuration files
 
-Configuration files are created dynamically using [`bbbconfgen`](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen), with the templates located in [`armbian/base/config/templates/`](https://github.com/digitalbitbox/bitbox-base/tree/master/armbian/base/config/templates): 
+Configuration files are created dynamically using [`bbbconfgen`](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen), with the templates located in [`armbian/base/config/templates/`](https://github.com/digitalbitbox/bitbox-base/tree/master/armbian/base/config/templates):
 
-This application parses a template, populates it with the corresponding Redis values, and stores it to the system (even into the read-only filesystem, if applicable). 
+This application parses a template, populates it with the corresponding Redis values, and stores it to the system (even into the read-only filesystem, if applicable).
 
 * during build, the bash function `generateConfig()` is used within the Armbian customizing script.
 * in regular operation, changes to Redis values and the regeneration of config files are typically executed through the `bbb-config.sh` or `bbb-cmd.sh` scripts.

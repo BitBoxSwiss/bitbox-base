@@ -194,6 +194,20 @@ func TestEnableTorSSH(t *testing.T) {
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
+func TestEnableSSHPasswordLogin(t *testing.T) {
+	testMiddleware := setupTestMiddleware(t)
+
+	responseEnable := testMiddleware.EnableSSHPasswordLogin(getToggleSettingArgs(true))
+	require.Equal(t, true, responseEnable.Success)
+	require.Equal(t, "", responseEnable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseEnable.Code)
+
+	responseDisable := testMiddleware.EnableSSHPasswordLogin(getToggleSettingArgs(false))
+	require.Equal(t, true, responseDisable.Success, true)
+	require.Equal(t, "", responseDisable.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
+}
+
 func TestEnableRootLogin(t *testing.T) {
 	testMiddleware := setupTestMiddleware(t)
 
@@ -208,29 +222,29 @@ func TestEnableRootLogin(t *testing.T) {
 	require.Equal(t, rpcmessages.ErrorCode(""), responseDisable.Code)
 }
 
-func TestSetRootPassword(t *testing.T) {
+func TestSetLoginPassword(t *testing.T) {
 	testMiddleware := setupTestMiddleware(t)
 
-	// test valid root password set
-	responseValid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "iusethispasswordeverywhere"})
+	// test valid login password set
+	responseValid := testMiddleware.SetLoginPassword(rpcmessages.SetLoginPasswordArgs{LoginPassword: "iusethispasswordeverywhere"})
 	require.Equal(t, true, responseValid.Success)
 	require.Equal(t, "", responseValid.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseValid.Code)
 
-	// test invalid (too short) root password set
-	responseInvalid := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "shrtone"})
+	// test invalid (too short) login password set
+	responseInvalid := testMiddleware.SetLoginPassword(rpcmessages.SetLoginPasswordArgs{LoginPassword: "shrtone"})
 	require.Equal(t, false, responseInvalid.Success)
 	require.Equal(t, "The password has to be at least 8 chars. An unicode char is counted as one.", responseInvalid.Message)
-	require.Equal(t, rpcmessages.ErrorSetRootPasswordTooShort, responseInvalid.Code)
+	require.Equal(t, rpcmessages.ErrorSetLoginPasswordTooShort, responseInvalid.Code)
 
 	// test 7 unicode's as password (too short)
-	responseUnicode7 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿₿₿₿₿₿₿"})
+	responseUnicode7 := testMiddleware.SetLoginPassword(rpcmessages.SetLoginPasswordArgs{LoginPassword: "₿₿₿₿₿₿₿"})
 	require.Equal(t, false, responseUnicode7.Success)
 	require.Equal(t, "The password has to be at least 8 chars. An unicode char is counted as one.", responseUnicode7.Message)
-	require.Equal(t, rpcmessages.ErrorSetRootPasswordTooShort, responseUnicode7.Code)
+	require.Equal(t, rpcmessages.ErrorSetLoginPasswordTooShort, responseUnicode7.Code)
 
 	// test 8 unicode's as password (valid)
-	responseUnicode8 := testMiddleware.SetRootPassword(rpcmessages.SetRootPasswordArgs{RootPassword: "₿😂🔥🌑🚀📈世界"})
+	responseUnicode8 := testMiddleware.SetLoginPassword(rpcmessages.SetLoginPasswordArgs{LoginPassword: "₿😂🔥🌑🚀📈世界"})
 	require.Equal(t, true, responseUnicode8.Success)
 	require.Equal(t, "", responseUnicode8.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), responseUnicode8.Code)

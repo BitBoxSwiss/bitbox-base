@@ -264,12 +264,12 @@ func (_m *Middleware) SetHostname(_a0 rpcmessages.SetHostnameArgs) rpcmessages.E
 	return r0
 }
 
-// SetRootPassword provides a mock function with given fields: _a0
-func (_m *Middleware) SetRootPassword(_a0 rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse {
+// SetLoginPassword provides a mock function with given fields: _a0
+func (_m *Middleware) SetLoginPassword(_a0 rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse {
 	ret := _m.Called(_a0)
 
 	var r0 rpcmessages.ErrorResponse
-	if rf, ok := ret.Get(0).(func(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse); ok {
+	if rf, ok := ret.Get(0).(func(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(rpcmessages.ErrorResponse)

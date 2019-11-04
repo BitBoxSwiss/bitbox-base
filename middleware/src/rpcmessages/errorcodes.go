@@ -168,6 +168,6 @@ const (
 )
 
 const (
-	// ErrorSetRootPasswordTooShort is thrown if the provided root password is too short.
-	ErrorSetRootPasswordTooShort ErrorCode = "SET_ROOTPASSWORD_PASSWORD_TOO_SHORT"
+	// ErrorSetLoginPasswordTooShort is thrown if the provided root password is too short.
+	ErrorSetLoginPasswordTooShort ErrorCode = "SET_LOGINPASSWORD_PASSWORD_TOO_SHORT"
 )

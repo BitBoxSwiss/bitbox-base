@@ -69,11 +69,12 @@ type Middleware interface {
 	ShutdownBase() rpcmessages.ErrorResponse
 	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableSSHPasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
-	SetRootPassword(rpcmessages.SetRootPasswordArgs) rpcmessages.ErrorResponse
+	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
 	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
@@ -386,7 +387,7 @@ func (server *RPCServer) RebootBase(args rpcmessages.AuthGenericRequest, reply *
 	return nil
 }
 
-// EnableRootLogin enables/disables login via the root user/password.
+// EnableRootLogin enables/disables the ssh login of the root user
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
 func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
@@ -401,18 +402,27 @@ func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, rep
 	return nil
 }
 
-// SetRootPassword sets the systems root password.
+// EnableSSHPasswordLogin enables/disables the ssh login with a password (in addition to ssh keys)
+// The boolean argument passed is used to for enabling and disabling.
+// It sends the middleware's ErrorResponse over rpc.
+func (server *RPCServer) EnableSSHPasswordLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	*reply = server.middleware.EnableSSHPasswordLogin(args)
+	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// SetLoginPassword sets the system main ssh/login password
 // Passwords have to be at least 8 chars in length.
 // For Unicode passwords the number of unicode chars is counted and not the byte count.
 // It sends the middleware's ErrorResponse over rpc.
-func (server *RPCServer) SetRootPassword(args rpcmessages.SetRootPasswordArgs, reply *rpcmessages.ErrorResponse) error {
+func (server *RPCServer) SetLoginPassword(args rpcmessages.SetLoginPasswordArgs, reply *rpcmessages.ErrorResponse) error {
 	err := server.middleware.ValidateToken(args.Token)
 	if err != nil {
-		*reply = server.formulateJWTError("SetRootPassword")
+		*reply = server.formulateJWTError("SetLoginPassword")
 		return nil
 	}
 
-	*reply = server.middleware.SetRootPassword(args)
+	*reply = server.middleware.SetLoginPassword(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }
