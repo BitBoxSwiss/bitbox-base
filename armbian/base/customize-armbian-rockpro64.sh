@@ -364,10 +364,13 @@ if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevic
 fi
 
 ## disable Armbian ramlog and limit logsize if overlayroot is enabled
-if [ "$BASE_OVERLAYROOT" == "true" ]; then
-  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
-  sed -i 's/log.hdd/log/g' /etc/logrotate.conf
-  importFile /etc/logrotate.d/rsyslog
+if [[ "$BASE_OVERLAYROOT" == "true" ]]; then
+  # allow missing files if build-ondevice (e.g. not Armbian distro)
+  if [[ -f /etc/default/armbian-ramlog ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+    sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
+    sed -i 's/log.hdd/log/g' /etc/logrotate.conf
+    importFile /etc/logrotate.d/rsyslog
+  fi
 fi
 
 ## retain less NGINX logs
@@ -390,7 +393,9 @@ ln -sfn /mnt/ssd/system/journal /var/log/journal
 importFile "/etc/mender/mender.conf"
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
-sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+if [[ -f /etc/default/armbian-zram-config ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+fi
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 
 ## startup checks
@@ -715,15 +720,17 @@ importFile "/etc/systemd/system/iptables-restore.service"
 
 # FINALIZE ---------------------------------------------------------------------
 
-## Remove build-only packages
-apt -y remove git
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  ## Remove build-only packages
+  apt -y remove git
 
-## Delete unnecessary local files
-rm -rf /usr/share/doc/*
-rm -rf /var/lib/apt/lists/*
-rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
-find /var/log -maxdepth 1 -type f -delete
-locale-gen en_US.UTF-8
+  ## Delete unnecessary local files
+  rm -rf /usr/share/doc/*
+  rm -rf /var/lib/apt/lists/*
+  rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
+  find /var/log -maxdepth 1 -type f -delete
+  locale-gen en_US.UTF-8
+fi
 
 ## Clean up
 apt install -f

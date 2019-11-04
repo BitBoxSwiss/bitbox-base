@@ -55,10 +55,15 @@ def getIP():
 def getSystemInfo():
     rediskeys = ['base:hostname','base:version','build:date','build:time','build:commit']
     info = {}
-    # add Redis values
+        # add Redis values
     for k in rediskeys:
         infoName = k.lower().replace(":", "_")
-        infoValue = r.get(k).decode("utf-8")
+        infoValue = r.get(k)
+        if infoValue is not None:
+            infoValue = infoValue.decode("utf-8")
+        else:
+            infoValue = 'n/a'
+
         info[infoName] = infoValue
 
     info['base_ipaddress'] = getIP()
