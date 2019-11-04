@@ -9,5 +9,5 @@ native: check-go-env
 	go install $(REPO_ROOT)/tools/bbbsupervisor
 
 aarch64: check-go-env
-	GOARCH=arm64 go install $(REPO_ROOT)/tools/bbbsupervisor
-	cp ${GOPATH}/bin/linux_arm64/bbbsupervisor $(REPO_ROOT)/bin/go/
+	GOARCH=arm64 go build $(REPO_ROOT)/tools/bbbsupervisor
+	cp $(REPO_ROOT)/tools/bbbsupervisor/bbbsupervisor $(REPO_ROOT)/bin/go/
