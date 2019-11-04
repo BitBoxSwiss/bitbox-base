@@ -11,9 +11,6 @@ set -eu
 
 # --- generic functions --------------------------------------------------------
 
-# include function exec_overlayroot(), to execute a command, either within overlayroot-chroot or directly
-source /opt/shift/scripts/include/exec_overlayroot.sh.inc
-
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc
 
@@ -23,76 +20,9 @@ source /opt/shift/scripts/include/generateConfig.sh.inc
 # include errorExit() function
 source /opt/shift/scripts/include/errorExit.sh.inc
 
-# include updateTorOnions() function
-source /opt/shift/scripts/include/updateTorOnions.sh.inc
-
 # ------------------------------------------------------------------------------
 
 redis_require
-
-# update hardcoded Base image version
-VERSION=$(head -n1 /opt/shift/config/version)
-redis_set "base:version" "${VERSION}"
-
-# update onion addresses in Redis
-updateTorOnions
-
-# check for reset triggers on flashdrive
-if FLASHDRIVE="$(/opt/shift/scripts/bbb-cmd.sh flashdrive check)"; then
-    echo "RESET: device ${FLASHDRIVE} detected"
-    if /opt/shift/scripts/bbb-cmd.sh flashdrive mount "${FLASHDRIVE}"; then
-        echo "RESET: flashdrive mounted"
-
-        # are all necessary files for a reset present?
-        if [[ -f /mnt/backup/.reset-token ]] && [[ -f /data/reset-token-hashes ]]; then
-            FLASHDRIVE_TOKEN_HASH="$(sha256sum /mnt/backup/.reset-token | cut -f 1 -d " ")"
-            echo "RESET: reset token present on flashdrive, hashed value: ${FLASHDRIVE_TOKEN_HASH}"
-
-            # is hashed reset token present on Base?
-            if grep -q "${FLASHDRIVE_TOKEN_HASH}" /data/reset-token-hashes; then
-                echo "RESET: valid reset token found"
-
-                if [[ -f /mnt/backup/reset-base-auth ]]; then
-                    echo "RESET: trigger file 'reset-base-auth' found, initiating reset of authentication"
-                    /opt/shift/scripts/bbb-cmd.sh reset auth --assume-yes
-                    mv /mnt/backup/reset-base-auth /mnt/backup/reset-base-auth.done
-                fi
-
-                if [[ -f /mnt/backup/reset-base-config ]]; then
-                    echo "RESET: trigger file 'reset-base-config' found. Feature not implemented yet."
-                    mv /mnt/backup/reset-base-config /mnt/backup/reset-base-config.done
-                fi
-
-                if [[ -f /mnt/backup/reset-base-ssd ]]; then
-                    echo "RESET: trigger file 'reset-base-ssd' found. Feature not implemented yet."
-                    mv /mnt/backup/reset-base-ssd /mnt/backup/reset-base-ssd.done
-                fi
-
-                if [[ -f /mnt/backup/reset-base-image ]]; then
-                    echo "RESET: trigger file 'reset-base-image' found. Feature not implemented yet."
-                    mv /mnt/backup/reset-base-image /mnt/backup/reset-base-image.done
-                fi
-            else
-                echo "RESET: reset token on flashdrive does not match authorized tokens on the Base"
-            fi
-        else
-            echo "RESET: not all files for a reset present, doing nothing."
-        fi
-
-        umount /mnt/backup
-
-    else
-        echo "RESET: warning, could not mount flashdrive ${FLASHDRIVE}"
-    fi
-else
-    echo "RESET: no flashdrive detected."
-fi
-
-# enable Bitcoin-related services if key  == 1
-if [[ $(redis_get "base:bitcoind-services:enabled") -eq 1 ]]; then
-    echo "INFO: enabling Bitcoin-related services"
-    /opt/shift/scripts/bbb-config.sh enable bitcoin_services
-fi
 
 # check if booting after update
 # valid status codes of 'base:updating'

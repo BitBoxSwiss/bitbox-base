@@ -14,7 +14,7 @@ source /opt/shift/scripts/include/redis.sh.inc
 # ------------------------------------------------------------------------------
 
 REFRESH_RPCAUTH="$(redis_get 'bitcoind:refresh-rpcauth')"
-if [ "${REFRESH_RPCAUTH}" -ne 0 ]; then
+if [ -z "${REFRESH_RPCAUTH}" ] || [ "${REFRESH_RPCAUTH}" -ne 0 ]; then
     # either Redis not ready yet or new credentials requested
     echo "INFO: bitcoind:refresh-rpcauth not 0, holding off bbbmiddleware start for bitcoind to warm up"
     sleep 15

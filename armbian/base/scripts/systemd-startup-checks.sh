@@ -129,7 +129,9 @@ chown -R redis:system /data/redis/
 ifmetric eth0 10
 
 timedatectl set-ntp true
-echo "180" > /sys/class/hwmon/hwmon0/pwm1
+
+# allow failure, e.g. if not running on Armbian
+echo "180" > /sys/class/hwmon/hwmon0/pwm1 || true
 
 # check for TLS certificate and create it if missing
 if [ ! -f /data/ssl/nginx-selfsigned.key ]; then
