@@ -9,5 +9,5 @@ native: check-go-env
 	go install $(REPO_ROOT)/tools/bbbfancontrol
 
 aarch64: check-go-env
-	GOARCH=arm64 go install $(REPO_ROOT)/tools/bbbfancontrol
-	cp ${GOPATH}/bin/linux_arm64/bbbfancontrol $(REPO_ROOT)/bin/go/
+	GOARCH=arm64 go build $(REPO_ROOT)/tools/bbbfancontrol
+	cp $(REPO_ROOT)/tools/bbbfancontrol/bbbfancontrol $(REPO_ROOT)/bin/go/
