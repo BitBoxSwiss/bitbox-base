@@ -218,39 +218,3 @@ func (client Client) ConvertErrorToErrorResponse(err error) rpcmessages.ErrorRes
 		Code:    rpcmessages.ErrorPrometheusError,
 	}
 }
-
-// Blocks returns the bitcoin block count from Prometheus
-// Deprecated: is needed util middleware.GetVerificationProgress is replaced by GetServiceInfo or refactored to use GetInt itself.
-func (client *Client) Blocks() int64 {
-	log.Println("Calling deprecated function prometheus.Blocks()")
-	blocks, err := client.GetInt(BitcoinBlockCount)
-	if err != nil {
-		log.Printf("Deprecated function Blocks(): %s", err.Error())
-		return 0
-	}
-	return blocks
-}
-
-// Headers returns the bitcoin header count from Prometheus
-// Deprecated: is needed util middleware.GetVerificationProgress is replaced by GetServiceInfo or refactored to use GetInt itself.
-func (client *Client) Headers() int64 {
-	log.Println("Calling deprecated function prometheus.Headers()")
-	headers, err := client.GetInt(BitcoinHeaderCount)
-	if err != nil {
-		log.Printf("Deprecated function Headers(): %s", err.Error())
-		return 0
-	}
-	return headers
-}
-
-// VerificationProgress returns the bitcoin verification progress from Prometheus
-// Deprecated: is needed util middleware.GetVerificationProgress is replaced by GetServiceInfo or refactored to use GetInt itself.
-func (client *Client) VerificationProgress() float64 {
-	log.Println("Calling deprecated function prometheus.VerificationProgress()")
-	verificationProgress, err := client.GetFloat(BitcoinVerificationProgress)
-	if err != nil {
-		log.Printf("Deprecated function VerificationProgress(): %s", err.Error())
-		return 0
-	}
-	return verificationProgress
-}

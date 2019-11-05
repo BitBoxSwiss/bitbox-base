@@ -11,14 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/util/semver"
-	lightning "github.com/fiatjaf/lightningd-gjson-rpc"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,18 +31,16 @@ const initialAdminPassword = "ICanHasPasword?"
 
 // Middleware connects to services on the base with provided parameters and emits events for the handler.
 type Middleware struct {
-	info                 rpcmessages.SampleInfoResponse
-	environment          system.Environment
-	events               chan []byte
-	prometheusClient     prometheus.Client
-	redisClient          redis.Redis
-	jwtAuth              *authentication.JwtAuth
-	verificationProgress rpcmessages.VerificationProgressResponse
-	serviceInfo          rpcmessages.GetServiceInfoResponse
-	baseUpdateProgress   rpcmessages.GetBaseUpdateProgressResponse
-	baseUpdateAvailable  rpcmessages.IsBaseUpdateAvailableResponse
-	baseVersion          *semver.SemVer
-	isMockmode           bool
+	environment         system.Environment
+	events              chan []byte
+	prometheusClient    prometheus.Client
+	redisClient         redis.Redis
+	jwtAuth             *authentication.JwtAuth
+	serviceInfo         rpcmessages.GetServiceInfoResponse
+	baseUpdateProgress  rpcmessages.GetBaseUpdateProgressResponse
+	baseUpdateAvailable rpcmessages.IsBaseUpdateAvailableResponse
+	baseVersion         *semver.SemVer
+	isMockmode          bool
 	// Saves state for the setup process
 	isMiddlewarePasswordSet bool
 	isBaseSetupDone         bool
@@ -61,17 +57,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
-		events: make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
-		info: rpcmessages.SampleInfoResponse{
-			Blocks:         0,
-			Difficulty:     0.0,
-			LightningAlias: "disconnected",
-		},
-		verificationProgress: rpcmessages.VerificationProgressResponse{
-			Blocks:               0,
-			Headers:              0,
-			VerificationProgress: 0.0,
-		},
+		events:      make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
 		serviceInfo: rpcmessages.GetServiceInfoResponse{},
 		baseUpdateProgress: rpcmessages.GetBaseUpdateProgressResponse{
 			State:                 rpcmessages.UpdateNotInProgress,
@@ -133,83 +119,11 @@ func (middleware *Middleware) IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAv
 	return middleware.baseUpdateAvailable
 }
 
-// GetSampleInfo is a function that demonstrates a connection to bitcoind. Currently it gets the blockcount and difficulty and writes it into the SampleInfo. Once the demo is no longer needed, it should be removed
-func (middleware *Middleware) GetSampleInfo() bool {
-	connCfg := rpcclient.ConnConfig{
-		HTTPPostMode: true,
-		DisableTLS:   true,
-		Host:         "127.0.0.1:" + middleware.environment.GetBitcoinRPCPort(),
-		User:         middleware.environment.GetBitcoinRPCUser(),
-		Pass:         middleware.environment.GetBitcoinRPCPassword(),
-	}
-	client, err := rpcclient.New(&connCfg, nil)
-	if err != nil {
-		log.Println(err.Error() + " Failed to create new bitcoind rpc client")
-	}
-	//client is shutdown/deconstructed again as soon as this function returns
-	defer client.Shutdown()
-
-	//Get current block count.
-	blockCount, err := client.GetBlockCount()
-	if err != nil {
-		log.Println(err.Error() + " No blockcount received")
-		return false
-	}
-
-	blockChainInfo, err := client.GetBlockChainInfo()
-	if err != nil {
-		log.Println(err.Error() + " GetBlockChainInfo rpc call failed")
-		return false
-	}
-
-	ln := &lightning.Client{
-		Path: middleware.environment.GetLightningRPCPath(),
-	}
-
-	nodeinfo, err := ln.Call("getinfo")
-	if err != nil {
-		log.Println(err.Error() + " Lightningd getinfo called failed.")
-		return false
-	}
-
-	updateInfo := rpcmessages.SampleInfoResponse{
-		Blocks:         blockCount,
-		Difficulty:     blockChainInfo.Difficulty,
-		LightningAlias: nodeinfo.Get("alias").String(),
-	}
-	if updateInfo != middleware.info {
-		middleware.info = updateInfo
-		return true
-	}
-	return false
-}
-
-// GetVerificationProgress makes calls to prometheus to get the current block, header and verification progress number and stores it in
-// the middleware's verificationProgress struct. If the new data was available, the function returns true, if the data remained static, false.
-func (middleware *Middleware) GetVerificationProgress() bool {
-	updateVerificationProgress := rpcmessages.VerificationProgressResponse{
-		Blocks:               middleware.prometheusClient.Blocks(),
-		Headers:              middleware.prometheusClient.Headers(),
-		VerificationProgress: middleware.prometheusClient.VerificationProgress(),
-	}
-	if updateVerificationProgress != middleware.verificationProgress {
-		middleware.verificationProgress = updateVerificationProgress
-		return true
-	}
-	return false
-}
-
 // rpcLoop gets new data from the various rpc connections of the middleware and emits events if new data is available
 func (middleware *Middleware) rpcLoop() {
 	for {
 		if middleware.didServiceInfoChange() {
 			middleware.events <- []byte(rpcmessages.OpServiceInfoChanged)
-		}
-		if middleware.GetSampleInfo() {
-			middleware.events <- []byte(rpcmessages.OpUCanHasSampleInfo)
-		}
-		if middleware.GetVerificationProgress() {
-			middleware.events <- []byte(rpcmessages.OpUCanHasVerificationProgress)
 		}
 		time.Sleep(5 * time.Second)
 	}
@@ -305,16 +219,6 @@ func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
 func (middleware *Middleware) SystemEnv() rpcmessages.GetEnvResponse {
 	response := rpcmessages.GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
 	return response
-}
-
-// SampleInfo returns the cached SampleInfoResponse struct
-func (middleware *Middleware) SampleInfo() rpcmessages.SampleInfoResponse {
-	return middleware.info
-}
-
-// VerificationProgress returns the cached VerificationProgressResponse struct
-func (middleware *Middleware) VerificationProgress() rpcmessages.VerificationProgressResponse {
-	return middleware.verificationProgress
 }
 
 // SetupStatus returns the current status in the setup process as a SetupStatusResponse struct. This includes the middleware password set boolean and the base setup boolean.

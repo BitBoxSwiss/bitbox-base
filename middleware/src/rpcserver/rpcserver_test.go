@@ -87,7 +87,6 @@ func NewTestingRPCServer() TestingRPCServer {
 	testingRPCServer.middlewareMock.On("SetHostname", rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-test"}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("RestoreSysconfig").Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("RestoreHSMSecret").Return(rpcmessages.ErrorResponse{Success: true})
-	testingRPCServer.middlewareMock.On("SampleInfo").Return(rpcmessages.SampleInfoResponse{})
 	testingRPCServer.middlewareMock.On("EnableTor", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("EnableTorMiddleware", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("EnableTorElectrs", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
@@ -99,7 +98,6 @@ func NewTestingRPCServer() TestingRPCServer {
 	testingRPCServer.middlewareMock.On("EnableSSHPasswordLogin", rpcmessages.ToggleSettingArgs{ToggleSetting: true}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("GetBaseInfo").Return(rpcmessages.GetBaseInfoResponse{})
 	testingRPCServer.middlewareMock.On("SetLoginPassword", rpcmessages.SetLoginPasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
-	testingRPCServer.middlewareMock.On("VerificationProgress").Return(rpcmessages.VerificationProgressResponse{})
 	testingRPCServer.middlewareMock.On("UserAuthenticate", rpcmessages.UserAuthenticateArgs{}).Return(
 		rpcmessages.UserAuthenticateResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}},
 	)
@@ -146,16 +144,10 @@ func TestRPCServer(t *testing.T) {
 	testingRPCServer.RunRPCCall(t, "RPCServer.ResyncBitcoin", authArg, &resyncBitcoinReply)
 	require.Equal(t, true, resyncBitcoinReply.Success)
 
-	var sampleInfoReply rpcmessages.SampleInfoResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetSampleInfo", authArg, &sampleInfoReply)
-
 	setHostnameArg := rpcmessages.SetHostnameArgs{Hostname: "bitbox-base-test"}
 	setHostnameReply := rpcmessages.ErrorResponse{}
 	testingRPCServer.RunRPCCall(t, "RPCServer.SetHostname", setHostnameArg, &setHostnameReply)
 	require.Equal(t, true, setHostnameReply.Success)
-
-	var verificationProgressReply rpcmessages.VerificationProgressResponse
-	testingRPCServer.RunRPCCall(t, "RPCServer.GetVerificationProgress", authArg, &verificationProgressReply)
 
 	var backupSysconfigReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.BackupSysconfig", authArg, &backupSysconfigReply)

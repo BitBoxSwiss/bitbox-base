@@ -68,6 +68,20 @@ func (_m *Middleware) EnableRootLogin(_a0 rpcmessages.ToggleSettingArgs) rpcmess
 	return r0
 }
 
+// EnableSSHPasswordLogin provides a mock function with given fields: _a0
+func (_m *Middleware) EnableSSHPasswordLogin(_a0 rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
+	ret := _m.Called(_a0)
+
+	var r0 rpcmessages.ErrorResponse
+	if rf, ok := ret.Get(0).(func(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(rpcmessages.ErrorResponse)
+	}
+
+	return r0
+}
+
 // EnableTor provides a mock function with given fields: _a0
 func (_m *Middleware) EnableTor(_a0 rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse {
 	ret := _m.Called(_a0)
@@ -250,20 +264,6 @@ func (_m *Middleware) ResyncBitcoin() rpcmessages.ErrorResponse {
 	return r0
 }
 
-// SampleInfo provides a mock function with given fields:
-func (_m *Middleware) SampleInfo() rpcmessages.SampleInfoResponse {
-	ret := _m.Called()
-
-	var r0 rpcmessages.SampleInfoResponse
-	if rf, ok := ret.Get(0).(func() rpcmessages.SampleInfoResponse); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(rpcmessages.SampleInfoResponse)
-	}
-
-	return r0
-}
-
 // SetHostname provides a mock function with given fields: _a0
 func (_m *Middleware) SetHostname(_a0 rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse {
 	ret := _m.Called(_a0)
@@ -385,20 +385,6 @@ func (_m *Middleware) ValidateToken(token string) error {
 		r0 = rf(token)
 	} else {
 		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// VerificationProgress provides a mock function with given fields:
-func (_m *Middleware) VerificationProgress() rpcmessages.VerificationProgressResponse {
-	ret := _m.Called()
-
-	var r0 rpcmessages.VerificationProgressResponse
-	if rf, ok := ret.Get(0).(func() rpcmessages.VerificationProgressResponse); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(rpcmessages.VerificationProgressResponse)
 	}
 
 	return r0
