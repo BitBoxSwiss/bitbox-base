@@ -30,7 +30,7 @@
 -A INPUT -p udp --sport 68 --dport 67 -j ACCEPT
 
 # Allow mDNS.
--A INPUT -p udp --sport 5353 --dport 5353 -j ACCEPT
+-A INPUT -p udp --dport 5353 -j ACCEPT
 
 # Allow inbound TCP traffic to bitcoin port, if Tor is disabled
 -A INPUT -p tcp --dport 8333 -j ACCEPT                  {{ tor:base:enabled #rmLineTrue }}
@@ -83,7 +83,7 @@
 -A OUTPUT -p tcp -m tcp --dport 53 -j ACCEPT
 
 # Allow mDNS.
--A OUTPUT -p udp --sport 5353 --dport 5353 -j ACCEPT
+-A OUTPUT -p udp --dport 5353 -j ACCEPT
 
 # Allow outbound LLMNR.
 -A OUTPUT -p udp -d 224.0.0.252 --sport 5355 --dport 5355 -j ACCEPT
