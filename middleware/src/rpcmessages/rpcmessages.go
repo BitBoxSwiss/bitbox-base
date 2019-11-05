@@ -16,6 +16,8 @@ const (
 	OpServiceInfoChanged = "s"
 	// OpBaseUpdateProgressChanged notifies when the BaseUpdateProgress changes while performing a Base Update.
 	OpBaseUpdateProgressChanged = "u"
+	// OpBaseUpdateIsAvailable notifies when a firmeware update is available for the Base.
+	OpBaseUpdateIsAvailable = "x"
 )
 
 /*
@@ -100,6 +102,20 @@ type VerificationProgressResponse struct {
 	Blocks               int64   `json:"blocks"`
 	Headers              int64   `json:"headers"`
 	VerificationProgress float64 `json:"verificationProgress"`
+}
+
+// UpdateInfo holds information about a available Base image update
+type UpdateInfo struct {
+	Description string `json:"description"`
+	Version     string `json:"version"`
+	Severity    string `json:"severity"`
+}
+
+// IsBaseUpdateAvailableResponse is returned as an response for an IsBaseUpdateAvaliable RPC call.
+type IsBaseUpdateAvailableResponse struct {
+	ErrorResponse   *ErrorResponse
+	UpdateAvailable bool       `json:"available"`
+	UpdateInfo      UpdateInfo `json:"info"`
 }
 
 // BaseUpdateState is the used to hold the current state for a Base update.

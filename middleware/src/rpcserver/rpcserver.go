@@ -72,6 +72,7 @@ type Middleware interface {
 	EnableSSHPasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
+	IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAvailableResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
@@ -482,6 +483,20 @@ func (server *RPCServer) GetBaseUpdateProgress(args rpcmessages.AuthGenericReque
 
 	*reply = server.middleware.GetBaseUpdateProgress()
 	log.Printf("sent reply %v: ", reply)
+	return nil
+}
+
+// IsBaseUpdateAvaliable sends a IsBaseUpdateAvailableResponse over RPC
+func (server *RPCServer) IsBaseUpdateAvaliable(args rpcmessages.AuthGenericRequest, reply *rpcmessages.IsBaseUpdateAvailableResponse) error {
+	err := server.middleware.ValidateToken(args.Token)
+	if err != nil {
+		errorResponse := server.formulateJWTError("IsBaseUpdateAvaliable")
+		*reply = rpcmessages.IsBaseUpdateAvailableResponse{ErrorResponse: &errorResponse}
+		return nil
+	}
+
+	*reply = server.middleware.IsBaseUpdateAvaliable()
+	log.Printf("IsBaseUpdateAvaliable reply: %v\n", reply)
 	return nil
 }
 

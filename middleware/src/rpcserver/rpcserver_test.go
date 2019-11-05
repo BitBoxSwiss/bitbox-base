@@ -104,6 +104,7 @@ func NewTestingRPCServer() TestingRPCServer {
 		rpcmessages.UserAuthenticateResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}},
 	)
 	testingRPCServer.middlewareMock.On("UserChangePassword", rpcmessages.UserChangePasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
+	testingRPCServer.middlewareMock.On("IsBaseUpdateAvaliable").Return(rpcmessages.IsBaseUpdateAvailableResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}})
 
 	return testingRPCServer
 }
@@ -217,6 +218,10 @@ func TestRPCServer(t *testing.T) {
 	var rebootBaseReply rpcmessages.ErrorResponse
 	testingRPCServer.RunRPCCall(t, "RPCServer.RebootBase", authArg, &rebootBaseReply)
 	require.Equal(t, true, rebootBaseReply.Success)
+
+	var isBaseUpdateAvaliableReply rpcmessages.IsBaseUpdateAvailableResponse
+	testingRPCServer.RunRPCCall(t, "RPCServer.IsBaseUpdateAvaliable", authArg, &isBaseUpdateAvaliableReply)
+	require.Equal(t, true, isBaseUpdateAvaliableReply.ErrorResponse.Success)
 
 	/*
 		This can't be unit tested until there is a Prometheus mock.

@@ -50,7 +50,7 @@ func setupTestData() map[string]string {
 	mockRedisMap := make(map[string]string)
 
 	// General mock data
-	mockRedisMap[string(BaseVersion)] = "0.0.1-redis-mock"
+	mockRedisMap[string(BaseVersion)] = "0.0.1"
 	mockRedisMap[string(BaseHostname)] = "bitbox-base-redis-mock"
 	mockRedisMap[string(TorEnabled)] = "1"
 	mockRedisMap[string(BitcoindListen)] = "1"
