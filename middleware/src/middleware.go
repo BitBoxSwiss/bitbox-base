@@ -16,7 +16,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
-	"github.com/digitalbitbox/bitbox-base/middleware/src/util/semver"
+	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 	"golang.org/x/crypto/bcrypt"
 )
 
