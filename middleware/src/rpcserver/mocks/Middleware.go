@@ -180,8 +180,8 @@ func (_m *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
 	return r0
 }
 
-// IsBaseUpdateAvaliable provides a mock function with given fields:
-func (_m *Middleware) IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAvailableResponse {
+// IsBaseUpdateAvailable provides a mock function with given fields:
+func (_m *Middleware) IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse {
 	ret := _m.Called()
 
 	var r0 rpcmessages.IsBaseUpdateAvailableResponse
