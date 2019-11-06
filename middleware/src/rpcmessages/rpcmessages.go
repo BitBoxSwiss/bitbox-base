@@ -93,7 +93,7 @@ type UpdateInfo struct {
 	Severity    string `json:"severity"`
 }
 
-// IsBaseUpdateAvailableResponse is returned as an response for an IsBaseUpdateAvaliable RPC call.
+// IsBaseUpdateAvailableResponse is returned as an response for an IsBaseUpdateAvailable RPC call.
 type IsBaseUpdateAvailableResponse struct {
 	ErrorResponse   *ErrorResponse
 	UpdateAvailable bool       `json:"available"`

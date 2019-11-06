@@ -114,8 +114,8 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 	return middleware, nil
 }
 
-// IsBaseUpdateAvaliable indicates if a Base firmeware is available and returns information about the update
-func (middleware *Middleware) IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAvailableResponse {
+// IsBaseUpdateAvailable indicates if a Base firmeware is available and returns information about the update
+func (middleware *Middleware) IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse {
 	return middleware.baseUpdateAvailable
 }
 

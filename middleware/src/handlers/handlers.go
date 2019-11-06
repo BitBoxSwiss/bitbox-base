@@ -40,7 +40,7 @@ type Middleware interface {
 	EnableSSHPasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
-	IsBaseUpdateAvaliable() rpcmessages.IsBaseUpdateAvailableResponse
+	IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
