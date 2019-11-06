@@ -44,32 +44,6 @@ func TestSystemEnvResponse(t *testing.T) {
 	require.Equal(t, systemEnvResponse.Network, "testnet")
 }
 
-func TestSampleInfo(t *testing.T) {
-	testMiddleware := setupTestMiddleware(t)
-
-	sampleInfo := testMiddleware.SampleInfo()
-	emptySampleInfo := rpcmessages.SampleInfoResponse{
-		Blocks:         0,
-		Difficulty:     0.0,
-		LightningAlias: "disconnected",
-	}
-
-	require.Equal(t, sampleInfo, emptySampleInfo)
-}
-
-func TestVerificationProgress(t *testing.T) {
-	testMiddleware := setupTestMiddleware(t)
-
-	verificationProgress := testMiddleware.VerificationProgress()
-	emptyVerificationProgress := rpcmessages.VerificationProgressResponse{
-		Blocks:               0,
-		Headers:              0,
-		VerificationProgress: 0.0,
-	}
-
-	require.Equal(t, verificationProgress, emptyVerificationProgress)
-}
-
 func TestResyncBitcoin(t *testing.T) {
 	testMiddleware := setupTestMiddleware(t)
 

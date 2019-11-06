@@ -60,7 +60,6 @@ type Middleware interface {
 	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	RestoreSysconfig() rpcmessages.ErrorResponse
 	RestoreHSMSecret() rpcmessages.ErrorResponse
-	SampleInfo() rpcmessages.SampleInfoResponse
 	EnableTor(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	EnableTorMiddleware(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	EnableTorElectrs(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
@@ -76,7 +75,6 @@ type Middleware interface {
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
-	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
 	SetupStatus() rpcmessages.SetupStatusResponse
@@ -166,33 +164,6 @@ func (server *RPCServer) ResyncBitcoin(args rpcmessages.AuthGenericRequest, repl
 	}
 
 	*reply = server.middleware.ResyncBitcoin()
-	log.Printf("sent reply %v: ", reply)
-	return nil
-}
-
-// GetSampleInfo sends the middleware's SampleInfoResponse over rpc
-func (server *RPCServer) GetSampleInfo(args rpcmessages.AuthGenericRequest, reply *rpcmessages.SampleInfoResponse) error {
-	err := server.middleware.ValidateToken(args.Token)
-	if err != nil {
-		*reply = rpcmessages.SampleInfoResponse{}
-		log.Printf("received rpc request to GetSampleInfo with invalid json web token")
-		return nil
-	}
-	*reply = server.middleware.SampleInfo()
-	log.Printf("sent reply %v: ", reply)
-	return nil
-}
-
-// GetVerificationProgress sends the middleware's VerificationProgressResponse over rpc
-func (server *RPCServer) GetVerificationProgress(args rpcmessages.AuthGenericRequest, reply *rpcmessages.VerificationProgressResponse) error {
-	err := server.middleware.ValidateToken(args.Token)
-	if err != nil {
-		*reply = rpcmessages.VerificationProgressResponse{}
-		log.Printf("received rpc request to GetVerificationProgress with invalid json web token")
-		return nil
-	}
-
-	*reply = server.middleware.VerificationProgress()
 	log.Printf("sent reply %v: ", reply)
 	return nil
 }

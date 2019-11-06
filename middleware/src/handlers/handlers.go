@@ -22,7 +22,6 @@ type Middleware interface {
 
 	/* --- RPCs --- */
 	SystemEnv() rpcmessages.GetEnvResponse
-	SampleInfo() rpcmessages.SampleInfoResponse
 	ResyncBitcoin() rpcmessages.ErrorResponse
 	ReindexBitcoin() rpcmessages.ErrorResponse
 	BackupSysconfig() rpcmessages.ErrorResponse
@@ -45,7 +44,6 @@ type Middleware interface {
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
 	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
-	VerificationProgress() rpcmessages.VerificationProgressResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
 	SetupStatus() rpcmessages.SetupStatusResponse

@@ -18,17 +18,13 @@ envinit:
 	@echo "Initializing Go environment.."
 	$(REPO_ROOT)/middleware/contrib/envinit.sh
 
-fetch-deps:
-	@echo "Fetching dependencies.."
-	go get -v ./...
-
-native: check-go-env fetch-deps ci
+native: check-go-env ci
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
 build: generate
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
-aarch64: check-go-env fetch-deps ci
+aarch64: check-go-env ci
 	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
 	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/bin/go/bbbmiddleware
 
