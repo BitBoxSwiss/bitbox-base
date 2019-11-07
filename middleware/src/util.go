@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -294,7 +295,10 @@ func parseBaseUpdateStdout(outputLine string) (containsUpdateProgressInfo bool, 
 
 func (middleware *Middleware) setBaseUpdateStateAndNotify(state rpcmessages.BaseUpdateState) {
 	middleware.baseUpdateProgress.State = state
-	middleware.events <- []byte(rpcmessages.OpBaseUpdateProgressChanged)
+	middleware.events <- handlers.Event{
+		Identifier:      []byte(rpcmessages.OpBaseUpdateProgressChanged),
+		QueueIfNoClient: true,
+	}
 }
 
 // checkMiddlewareSetup checks if the middleware password has been set yet and if the user is done with the base

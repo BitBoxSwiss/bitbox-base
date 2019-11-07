@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
@@ -33,7 +34,7 @@ const initialAdminPassword = "ICanHasPasword?"
 // Middleware connects to services on the base with provided parameters and emits events for the handler.
 type Middleware struct {
 	environment         system.Environment
-	events              chan []byte
+	events              chan handlers.Event
 	prometheusClient    prometheus.Client
 	redisClient         redis.Redis
 	jwtAuth             *authentication.JwtAuth
@@ -58,7 +59,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
-		events:      make(chan []byte), //the channel size needs to be increased every time we had an extra endpoint
+		events:      make(chan handlers.Event), //the channel size needs to be increased every time we had an extra endpoint
 		serviceInfo: rpcmessages.GetServiceInfoResponse{},
 		baseUpdateProgress: rpcmessages.GetBaseUpdateProgressResponse{
 			State:                 rpcmessages.UpdateNotInProgress,
@@ -124,7 +125,10 @@ func (middleware *Middleware) IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAv
 func (middleware *Middleware) rpcLoop() {
 	for {
 		if middleware.didServiceInfoChange() {
-			middleware.events <- []byte(rpcmessages.OpServiceInfoChanged)
+			middleware.events <- handlers.Event{
+				Identifier:      []byte(rpcmessages.OpServiceInfoChanged),
+				QueueIfNoClient: false,
+			}
 		}
 		time.Sleep(5 * time.Second)
 	}
@@ -156,7 +160,10 @@ func (middleware *Middleware) updateCheckLoop() {
 			log.Printf("A Base image update is available from version %s to %s.\n", middleware.baseVersion.String(), newVersion.String())
 			middleware.baseUpdateAvailable.UpdateAvailable = true
 			middleware.baseUpdateAvailable.UpdateInfo = updateInfo
-			middleware.events <- []byte(rpcmessages.OpBaseUpdateIsAvailable)
+			middleware.events <- handlers.Event{
+				Identifier:      []byte(rpcmessages.OpBaseUpdateIsAvailable),
+				QueueIfNoClient: false,
+			}
 		}
 
 		time.Sleep(timeBetweenUpdateChecks)
@@ -164,7 +171,7 @@ func (middleware *Middleware) updateCheckLoop() {
 }
 
 // Start gives a trigger for the handler to start the rpc event loop
-func (middleware *Middleware) Start() <-chan []byte {
+func (middleware *Middleware) Start() <-chan handlers.Event {
 	go middleware.rpcLoop()
 
 	// before the updateCheckLoop is started the Middleware needes the Base version
