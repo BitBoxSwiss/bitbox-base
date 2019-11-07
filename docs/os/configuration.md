@@ -7,7 +7,7 @@ nav_order: 110
 ---
 ## Configuration
 
-It's important to keep the BitBox Base in a consistently configured state.
+It's important to keep the BitBoxBase in a consistently configured state.
 Here we describe how to set the initial configuration on build, control it internally during operations, store and backup the configuration and manage it remotely from the BitBox App.
 
 ### Initial configuration on build
@@ -18,7 +18,7 @@ Available options are described directly in the file and are set to default valu
 A few examples of build options you can set:
 
 * `BASE_BITCOIN_NETWORK`: set to `mainnet` or `testnet`
-* `BASE_HOSTNAME`: set it to `alice` and your BitBox Base will be visible as `alice.local` within your network
+* `BASE_HOSTNAME`: set it to `alice` and your BitBoxBase will be visible as `alice.local` within your network
 * `BASE_AUTOSETUP_SSD`: set to "true" to automatically initialize the SSD on first boot
 * `BASE_OVERLAYROOT`: set to 'true' to make the root filesystem read-only
 * ...and many more.
@@ -29,13 +29,13 @@ To preserve a local configuration, you can copy the file to `build-local.conf` i
 
 System configuration is managed internally using the script [`bbb-config.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-config.sh).
 Its goal is to centrally define how changes are applied to the system and reuse a single set of commands.
-This is why it is called by the build script as well as by the BitBox Base Middleware during operations.
+This is why it is called by the build script as well as by the BitBoxBase Middleware during operations.
 Changes are applied by simple operating system commands like copying and deleting files, or replacing text values withing configuration files.
 
 You can call the script `bbb-config.sh --help` to see all possible commands and arguments:
 
 ```
-BitBox Base: system configuration utility
+BitBoxBase: system configuration utility
 usage: bbb-config.sh [--version] [--help]
                      <command> [<args>]
 
@@ -59,7 +59,7 @@ possible commands:
 Similar to the configuration script, the [`bbb-cmd.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-cmd.sh) script acts as the central repository for standard commands, to be called from the Middleware.
 
 ```
-BitBox Base: system commands repository
+BitBoxBase: system commands repository
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// BitBox Base Supervisor
+// BitBoxBase Supervisor
 // ----------------------
 // Watches systemd logs (via journalctl) and queries Prometheus to detect potential issues and take action.
 //

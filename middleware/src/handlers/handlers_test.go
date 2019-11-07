@@ -118,7 +118,7 @@ func initializeNoise(client *websocket.Conn, t *testing.T) (*noise.CipherState, 
 	})
 	require.NoError(t, err)
 
-	//Ask the BitBox Base to begin the noise 'XX' handshake
+	//Ask the BitBoxBase to begin the noise 'XX' handshake
 	err = client.WriteMessage(1, []byte(opICanHasHandShaek))
 	require.NoError(t, err)
 	_, responseBytes, err := client.ReadMessage()

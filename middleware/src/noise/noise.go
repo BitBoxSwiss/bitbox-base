@@ -72,7 +72,7 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 		Initiator:     false,
 	})
 	if err != nil {
-		return errors.New("failed to generate a new noise handshake state for the wallet app communication with the BitBox Base")
+		return errors.New("failed to generate a new noise handshake state for the wallet app communication with the BitBoxBase")
 	}
 
 	// check the websocket connection

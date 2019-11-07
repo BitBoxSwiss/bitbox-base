@@ -22,7 +22,7 @@ During normal operation, the board does not need to be cooled actively, running 
 
 ### Storage
 
-For speed, resilience and silent operations the BitBox Base uses an **SSD M.2 drive** that can be mounted on a PCIe adapter which connects directly to the PCIe slog on the board. As no adapter was available that minimizes the height once mounted, we produced our own SSD adapter to not waste any space. Standard adapter work as well.
+For speed, resilience and silent operations the BitBoxBase uses an **SSD M.2 drive** that can be mounted on a PCIe adapter which connects directly to the PCIe slog on the board. As no adapter was available that minimizes the height once mounted, we produced our own SSD adapter to not waste any space. Standard adapter work as well.
 
 Additional components are a 16GB **eMMC module** and a **power supply**, which surprisingly can be quite low-powered (e.g. 12V/3A) due to the humble SSD drive.
 
@@ -34,4 +34,4 @@ This component, running a modified Bitcoin-only BitBox firmware, allows for new 
 
 ### Case
 
-For the first low quantity batches, the BitBox Base **cases are 3D printed** with a size of approximately 95 x 142 mm. Due to the tinted glass cover, the final product will have a premium-feel nonetheless.
+For the first low quantity batches, the BitBoxBase **cases are 3D printed** with a size of approximately 95 x 142 mm. Due to the tinted glass cover, the final product will have a premium-feel nonetheless.

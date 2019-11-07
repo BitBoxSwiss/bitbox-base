@@ -2,12 +2,12 @@
 # shellcheck disable=SC1091
 set -eu
 
-# BitBox Base: system commands repository
+# BitBoxBase: system commands repository
 #
 
 # print usage information for script
 usage() {
-  echo "BitBox Base: system commands repository
+  echo "BitBoxBase: system commands repository
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
@@ -46,7 +46,7 @@ errorExit() {
 if [[ $MOCKMODE -ne 1 ]]; then
 
     if [[ ! -d /opt/shift/scripts/include/ ]]; then
-        echo "ERR: includes directory /opt/shift/scripts/include/ not found, must run on BitBox Base system. Run in MockMode for testing."
+        echo "ERR: includes directory /opt/shift/scripts/include/ not found, must run on BitBoxBase system. Run in MockMode for testing."
         errorExit SCRIPT_INCLUDES_NOT_FOUND
     fi
 

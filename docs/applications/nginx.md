@@ -7,7 +7,7 @@ nav_order: 140
 ## NGINX: Reverse Proxy
 
 To avoid exposing applications directly to the network, all network communication is proxied through [NGINX](https://www.nginx.com/), a powerful open-source web server and proxy.
-The BitBox Base only uses the reverse-proxy functionality, routing both HTTP and TCP traffic.
+The BitBoxBase only uses the reverse-proxy functionality, routing both HTTP and TCP traffic.
 By only exposing a single, battle-tested server to the network, the attack surface is minimized significantly.
 Together with the strict `iptables` firewall rules, all unknown communication patterns are ignored.
 

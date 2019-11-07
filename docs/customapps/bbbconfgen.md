@@ -4,10 +4,10 @@ title: Confgen
 nav_order: 125
 parent: Custom applications
 ---
-## BitBox Base Confgen
+## BitBoxBase Confgen
 
 Application to generate text files from a template, replacing placeholders that specify Redis keys.
-It's written in Go as part of the [BitBox Base](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch) and used for automatically generating configuration files.
+It's written in Go as part of the [BitBoxBase](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch) and used for automatically generating configuration files.
 
 The program reads a text file specified using the `--template` argument, parses the contents and writes it into a target file that is either specified with the `--output` argument, or directly on the first line of the template.
 
@@ -32,9 +32,9 @@ Command-line arguments:
 
 Optionally, the output file can be specified on the first line in the template text file.
 This line will be dropped and only used if no --output argument is supplied.
-  
+
   {{ #output: /tmp/output.txt }}
-  
+
 Placeholders in the template text file are defined as follows.
 Make sure to respect spaces between arguments.
 

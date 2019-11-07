@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base: restore iptables rules
+Description=BitBoxBase: restore iptables rules
 Before=network.target
 
 [Service]

@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base update checks
+Description=BitBoxBase update checks
 After=redis.service
 
 [Service]

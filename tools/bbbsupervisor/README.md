@@ -3,7 +3,7 @@
 Every running system needs to be managed.
 On a services level, this is the job of `systemd` which starts application services in the right order, keeps track of logs and restarts services if they crash.
 On top of this default service management, an application is needed that follows custom logic for the many intricacies of the various application components.
-The **BitBox Base Supervisor** `bbbsupervisor` is custom-built to monitor application logs and other system metrics, watches for very specific application messages, knows how to interpret them and can take the required action.
+The **BitBoxBase Supervisor** `bbbsupervisor` is custom-built to monitor application logs and other system metrics, watches for very specific application messages, knows how to interpret them and can take the required action.
 
 ## Scope
 
@@ -25,7 +25,7 @@ The Base Supervisor is started and managed using a simple systemd unit file:
 
 ```console
 [Unit]
-Description=BitBox Base Supervisor
+Description=BitBoxBase Supervisor
 After=local-fs.target
 
 [Service]

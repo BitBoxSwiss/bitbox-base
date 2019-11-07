@@ -2,7 +2,7 @@
 # shellcheck disable=SC1091
 set -eu
 
-# BitBox Base: batch control system units
+# BitBoxBase: batch control system units
 #
 
 # --- generic functions --------------------------------------------------------
@@ -16,7 +16,7 @@ source /opt/shift/scripts/include/errorExit.sh.inc
 # ------------------------------------------------------------------------------
 
 function usage() {
-    echo "BitBox Base: batch control system units"
+    echo "BitBoxBase: batch control system units"
     echo "Usage: bbb-systemctl <status|start|restart|stop|enable|disable>"
 }
 
@@ -37,7 +37,7 @@ fi
 case ${ACTION} in
     status)
         echo "
-Checking systemd unit status of BitBox Base...
+Checking systemd unit status of BitBoxBase...
 highlight: failed, activating, inactive
 
 bitcoind:                 $(systemctl is-active bitcoind.service)

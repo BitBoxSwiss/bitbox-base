@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base Middleware
+Description=BitBoxBase Middleware
 After=multi-user.target bitcoind.service
 
 [Service]

@@ -1,6 +1,6 @@
 [Unit]
-Description=BitBox Base startup checks
-After=network-online.target 
+Description=BitBoxBase startup checks
+After=network-online.target
 
 [Service]
 

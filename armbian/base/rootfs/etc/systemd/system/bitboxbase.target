@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base startup target
+Description=BitBoxBase startup target
 Requires=multi-user.target
 After=multi-user.target
 AllowIsolate=yes

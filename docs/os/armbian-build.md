@@ -30,12 +30,12 @@ To set up and run the build environment in the virtual machine, the following so
 * Docker ([download](https://www.docker.com/get-started)), version >= 18.06.3-ce
 
 All sources and build scripts are contained in this repository, which needs to be cloned locally.
-The following commands are executed in the command line, either the Linux terminal or Windows PowerShell.  
+The following commands are executed in the command line, either the Linux terminal or Windows PowerShell.
 
 In Linux you can directly run `make`, while in Windows PowerShell you need to run the build script directly with `sh`.
 In the following instructions, Windows users just replace `make` with `sh .\build.sh`.
 
-* Clone the BitBox Base repository to a local directory.
+* Clone the BitBoxBase repository to a local directory.
   ```bash
   git clone https://github.com/digitalbitbox/bitbox-base.git
   cd bitbox-base/armbian
@@ -56,7 +56,7 @@ Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/
 
 ### Compile Armbian from source
 
-Now the operating system image can be built. The whole BitBox Base configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
+Now the operating system image can be built. The whole BitBoxBase configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
 *Note*: you might need use `sudo` for all `make` commands, depending on your Docker configuration.
 
@@ -70,7 +70,7 @@ Now the operating system image can be built. The whole BitBox Base configuration
   lsblk
   sudo dd if=bin/img-armbian/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
   sync
-  ```  
+  ```
 
 * After initial build, you can update the image with an adjusted system configuration script, without building Armbian from scratch:
   ```bash

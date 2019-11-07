@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// BitBox Base Config Generator
+// BitBoxBase Config Generator
 // ----------------------------
 // Generates configuration files from template, substituting placeholders with Redis values.
 // See helpText specified below for usage information.
@@ -51,7 +51,7 @@ var (
 const (
 	helpText = `generates configuration files from a template, substituting placeholders with Redis values
 
-Command-line arguments: 
+Command-line arguments:
   --template      input template config file
   --output        output config file
   --redis-addr    redis connection address  (default "localhost:6379")
@@ -63,18 +63,18 @@ Command-line arguments:
 
 Optionally, the output file can be specified on the first line in the template file.
 This line will be dropped and only used if no --output argument is supplied.
-  
+
   {{ #output: /tmp/output.conf }}
-  
+
 Placeholders in the template file are defined as follows.
 Make sure to respect spaces between arguments.
-  
+
   {{ key }}                     is replaced by Redis 'key', only if key is present
   {{ key #rm }}                 ...deletes the placeholder if key not found
   {{ key #rmLine }}             ...deletes the whole line if key not found
   {{ key #default: some val }}  ...uses default value if key not found
 
-The #rmLineTrue and #rmLineFalse functions allows to drop a line conditionally. 
+The #rmLineTrue and #rmLineFalse functions allows to drop a line conditionally.
 
   {{ key #rmLineTrue }}         drop line if a key is set to '1', 'true', 'yes' or 'y'
   {{ key #rmLineFalse }}        drop line if a key is set to '0', 'false', 'no', 'n' or not at all

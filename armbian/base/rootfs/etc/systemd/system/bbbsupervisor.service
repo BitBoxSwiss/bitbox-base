@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base Supervisor
+Description=BitBoxBase Supervisor
 After=multi-user.target
 
 [Service]

@@ -6,7 +6,7 @@ nav_order: 160
 ---
 ## Grafana: Performance Visualization
 
-The BitBox Base is a headless device that does not provide a graphical user interface.
+The BitBoxBase is a headless device that does not provide a graphical user interface.
 But it also contains a lot of information about the Bitcoin network, running applications and the system itself.
 These metrics are collected by the [Prometheus](prometheus.md) monitoring service and used both by the Base Supervisor and Middleware.
 To make this information readily available for analysis, it is also visualized using [Grafana](https://grafana.com/), an open-source platform for time-series analytics.

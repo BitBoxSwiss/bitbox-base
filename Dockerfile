@@ -1,6 +1,6 @@
 #
 # The docker image produced by this config provides the build environment
-# for BitBox Base.
+# for BitBoxBase.
 #
 FROM golang:1.13.1-stretch as bitbox-base
 RUN apt-get update && apt-get install -y --no-install-recommends \

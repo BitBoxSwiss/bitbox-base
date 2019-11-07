@@ -3,7 +3,7 @@
 
 set -eu
 
-# BitBox Base: auto-setup of SSD
+# BitBoxBase: auto-setup of SSD
 #
 
 # --- generic functions --------------------------------------------------------
@@ -15,7 +15,7 @@ source /opt/shift/scripts/include/errorExit.sh.inc
 
 function usage() {
     printf "
-BitBox Base: Auto-Setup SSD
+BitBoxBase: Auto-Setup SSD
 
 This script checks for potential storage targets and automates the setup process.
 Use with caution, data on targets will be deleted.

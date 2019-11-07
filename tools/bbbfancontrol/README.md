@@ -1,6 +1,6 @@
 # bbbfancontrol
 
-Simple program to control fan speed on a single board computer according to current system temperature. It's written in Go and aimed for the ROCKPro64 SBC as part of the [BitBox Base](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch).
+Simple program to control fan speed on a single board computer according to current system temperature. It's written in Go and aimed for the ROCKPro64 SBC as part of the [BitBoxBase](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch).
 
 The program reads the current system temperature from a single file, calculates the appropriate fan PWM value and writes it into a control file. The default values are set for the ROCKPro64 board running Armbian.
 
@@ -71,7 +71,7 @@ Usage of bbbfancontrol:
 ```bash
 $ bbbfancontrol -v -fmin 80 -tmin 40 -tmax 55 -cycle 30 -kickstart 2
 
-BitBox Base fan control, version 0.1
+BitBoxBase fan control, version 0.1
 temp:      /sys/class/thermal/thermal_zone0/temp
 tmin:      40
 tmax:      55
@@ -97,7 +97,7 @@ The application can be started and managed using a simple systemd unit file:
 
 ```console
 [Unit]
-Description=BitBox Base fancontrol
+Description=BitBoxBase fancontrol
 After=local-fs.target
 
 [Service]

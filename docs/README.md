@@ -1,4 +1,4 @@
-### BitBox Base documentation is available at
+### BitBoxBase documentation is available at
 
 https://base.shiftcrypto.ch
 

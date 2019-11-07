@@ -4,11 +4,11 @@ title: Supervisor
 nav_order: 120
 parent: Custom applications
 ---
-## BitBox Base Supervisor
+## BitBoxBase Supervisor
 
 Every running system needs to be managed.
 On a services level, this is the job of `systemd` which starts application services in the right order and restarts them on failure.
-On top of this default service management, the BitBox Base Supervisor (`bbbsupervisor`) monitors the system using custom logic for the many intricacies of the various application components.
+On top of this default service management, the BitBoxBase Supervisor (`bbbsupervisor`) monitors the system using custom logic for the many intricacies of the various application components.
 It follows application logs and checks system metrics in Prometheus, detects predefined events and when changes to the system become necessary, and is then able to trigger custom actions.
 
 ### Technical documentation

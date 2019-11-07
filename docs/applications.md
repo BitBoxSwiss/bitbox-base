@@ -5,4 +5,4 @@ nav_order: 600
 has_children: true
 permalink: /applications
 ---
-# BitBox Base: Applications
+# BitBoxBase: Applications

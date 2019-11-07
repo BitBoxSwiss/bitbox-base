@@ -6,7 +6,7 @@ parent: Custom applications
 ---
 ## Building Go binaries
 
-The BitBox Base runs custom software written in Go that has to be compiled and become part of [the Armbian image](/os/armbian-build.md).
+The BitBoxBase runs custom software written in Go that has to be compiled and become part of [the Armbian image](/os/armbian-build.md).
 This page describes the process used to build those images.
 
 The top-level [`Makefile`](https://github.com/digitalbitbox/bitbox-base/blob/master/Makefile) for the repository has two targets:

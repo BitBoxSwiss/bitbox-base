@@ -15,12 +15,12 @@
 # limitations under the License.
 # -----------------------------------------------------------------------------
 
-# BitBox Base: build script for Armbian base image
+# BitBoxBase: build script for Armbian base image
 #
 # repository:    https://github.com/digitalbitbox/bitbox-base
 # documentation: https://digitalbitbox.github.io/bitbox-base/
 #
-# This script is used when building the BitBox Base Armbian image, but can also
+# This script is used when building the BitBoxBase Armbian image, but can also
 # be run on a fresh Armbian install to configure and run various services.
 # This currently includes the Bitcoin Core, c-lightning, electrs, Prometheus,
 # Grafana, NGINX and an mDNS responder to broadcast to the local subnet.

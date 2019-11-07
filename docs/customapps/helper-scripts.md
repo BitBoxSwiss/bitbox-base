@@ -15,7 +15,7 @@ General system configuration utility, centrally defining recurring configuration
 This script can be used manually from the command line, but is also used by the BitBox Middleware and Supervisor to trigger configuration operations.
 
 ```
-BitBox Base: system configuration utility
+BitBoxBase: system configuration utility
 usage: bbb-config.sh [--version] [--help]
                     <command> [<args>]
 
@@ -37,7 +37,7 @@ possible commands:
 Similar to the configuration script, the [`bbb-cmd.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-cmd.sh) script acts as the central repository for standard commands, mainly to be called from the Middleware.
 
 ```
-BitBox Base: system commands repository
+BitBoxBase: system commands repository
 usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
@@ -57,7 +57,7 @@ The following commands are available:
       the `/data` directory can be created directly, copying the initial content from the source directory `/data_source`
     * read-only disk, without Mender (e.g. a DIY image)
       image is build using `OVERLAYROOT` option, so all changes written to the root filesystem are volatile due to the tmpfs overlay. To preserve changes in `/data`, the directory is created as a symbolic link to `/mnt/ssd/data` on the SSD
-    * read-only disk, with Mender (BitBox Base production image)
+    * read-only disk, with Mender (BitBoxBase production image)
       the `/data` directory is mounted from a separate, persistent partition that is not overwritten on update. Initial content is copied once from `/data_src` into that partition.
 
 * **base**: does exactly what it says, but could contain custom commands before powering down in the future
@@ -89,6 +89,6 @@ The following commands are available:
 ### [**bbb-systemctl.sh**](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-systemctl.sh): manage and check systemd units in batch
 Batch control all systemd units at once, e.g. for getting an overall status or stop all services.
 ```
-BitBox Base: batch control system units
+BitBoxBase: batch control system units
 Usage: bbb-systemctl.sh <status|start|restart|stop|enable|disable|verify>
 ```
