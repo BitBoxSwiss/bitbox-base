@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/digitalbitbox/bitbox-base.svg?branch=master)](https://travis-ci.org/digitalbitbox/bitbox-base)
 
-## Personal Bitcoin sovereignty node
+## Personal Bitcoin & Lightning node
 
 The BitBoxBase is an ongoing project of [Shift Cryptosecurity](https://shiftcrypto.ch/) that aims to build a personal Bitcoin full node appliance.
 The whole software stack is free open-source.
