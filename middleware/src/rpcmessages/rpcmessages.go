@@ -12,8 +12,12 @@ const (
 	OpServiceInfoChanged = "s"
 	// OpBaseUpdateProgressChanged notifies when the BaseUpdateProgress changes while performing a Base Update.
 	OpBaseUpdateProgressChanged = "u"
-	// OpBaseUpdateIsAvailable notifies when a firmeware update is available for the Base.
+	// OpBaseUpdateIsAvailable notifies when a image update is available for the Base.
 	OpBaseUpdateIsAvailable = "x"
+	// OpBaseUpdateSuccess notifies when the Base image update succeeded.
+	OpBaseUpdateSuccess = "a"
+	// OpBaseUpdateFailure notifies when the Base image update failed.
+	OpBaseUpdateFailure = "b"
 )
 
 /*

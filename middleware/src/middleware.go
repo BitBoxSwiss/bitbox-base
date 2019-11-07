@@ -213,9 +213,26 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 			log.Printf("Dropping IPC notification with unsupported version: %s\n", notification.String())
 		}
 
+		log.Printf("Received notification with topic '%s': %v\n", notification.Topic, notification.Payload)
+
 		switch notification.Topic {
-		case "sampletopic":
-			log.Printf("Received notification with sample topic: %v\n", notification.Payload)
+		case "mender-update":
+			if success, ok := ipcnotification.ParseMenderUpdatePayload(notification.Payload); ok {
+				switch success {
+				case true:
+					middleware.events <- handlers.Event{
+						Identifier:      []byte(rpcmessages.OpBaseUpdateSuccess),
+						QueueIfNoClient: true,
+					}
+				case false:
+					middleware.events <- handlers.Event{
+						Identifier:      []byte(rpcmessages.OpBaseUpdateFailure),
+						QueueIfNoClient: true,
+					}
+				}
+			} else {
+				log.Printf("Could not parse %s notification payload: %v\n", notification.Topic, notification.Payload)
+			}
 		default:
 			log.Printf("Dropping IPC notification with unknown topic: %s\n", notification.String())
 		}
