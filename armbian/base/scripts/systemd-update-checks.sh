@@ -88,6 +88,12 @@ else
     echo "RESET: no flashdrive detected."
 fi
 
+# enable Bitcoin-related services if key  == 1
+if [[ $(redis_get "base:bitcoind-services:enabled") -eq 1 ]]; then
+    echo "INFO: enabling Bitcoin-related services"
+    /opt/shift/scripts/bbb-config.sh enable bitcoin_services
+fi
+
 # check if booting after update
 # valid status codes of 'base:updating'
 #    0: no update in progress

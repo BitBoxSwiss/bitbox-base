@@ -14,7 +14,7 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+  enable    <bitcoin_services|bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
              tor_electrum|overlayroot|sshpwlogin|rootlogin|unsigned_updates>
 
@@ -102,6 +102,24 @@ case "${COMMAND}" in
         fi
 
         case "${SETTING}" in
+            BITCOIN_SERVICES)
+                checkMockMode
+
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    exec_overlayroot all-layers "systemctl enable bitcoind.service"
+                    exec_overlayroot all-layers "systemctl enable lightningd.service"
+                    exec_overlayroot all-layers "systemctl enable electrs.service"
+                    exec_overlayroot all-layers "systemctl enable prometheus-bitcoind.service"
+                else
+                    exec_overlayroot all-layers "systemctl disable bitcoind.service"
+                    exec_overlayroot all-layers "systemctl disable lightningd.service"
+                    exec_overlayroot all-layers "systemctl disable electrs.service"
+                    exec_overlayroot all-layers "systemctl disable prometheus-bitcoind.service"
+                fi
+                echo "Setting bitcoind configuration for 'active initial sync'."
+                redis_set "base:bitcoind-services:enabled" "${ENABLE}"
+                ;;
+
             BITCOIN_INCOMING)
                 checkMockMode
 
