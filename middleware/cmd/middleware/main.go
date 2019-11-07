@@ -30,6 +30,7 @@ func main() {
 	redisPort := flag.String("redisport", "6379", "Port of the Redis server")
 	redisMock := flag.Bool("redismock", false, "Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock")
 	imageUpdateInfoURL := flag.String("updateinfourl", "https://shiftcrypto.ch/updates/base.json", "URL to query information about updates from (defaults to https://shiftcrypto.ch/updates/base.json)")
+	notificationNamedPipePath := flag.String("notificationNamedPipePath", "/tmp/middleware-notification.pipe", "notificationNamedPipe specifies the path where the Middleware creates a named pipe to receive notifications from other processes on the BitBoxBase (defaults to /tmp/middleware-notification.pipe)")
 	flag.Parse()
 
 	argumentMap := make(map[string]string)
@@ -45,6 +46,7 @@ func main() {
 	argumentMap["prometheusURL"] = *prometheusURL
 	argumentMap["redisPort"] = *redisPort
 	argumentMap["imageUpdateInfoURL"] = *imageUpdateInfoURL
+	argumentMap["notificationNamedPipePath"] = *notificationNamedPipePath
 	argumentMap["middlewareVersion"] = version
 
 	logBeforeExit := func() {
@@ -56,6 +58,7 @@ func main() {
 		}
 	}
 	defer logBeforeExit()
+
 	middleware, err := middleware.NewMiddleware(argumentMap, *redisMock)
 	if err != nil {
 		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
