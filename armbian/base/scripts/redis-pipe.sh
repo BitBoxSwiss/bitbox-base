@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# BitBox Base: mass import key/value pairs into Redis
+# BitBoxBase: mass import key/value pairs into Redis
 #
 # Pipe a text file with Redis commands (one per line) to this script to
 # convert it to the Redis protocol for mass insertion.

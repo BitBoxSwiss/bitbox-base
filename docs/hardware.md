@@ -5,11 +5,11 @@ nav_order: 300
 has_children: true
 permalink: /hardware
 ---
-# BitBox Base: Hardware
+# BitBoxBase: Hardware
 
-The BitBox Base aims to be a best-in-class solution, providing important functionalities for Bitcoin, while being able to handle additional use-cases related to digital and financial sovereignty in the future. The hardware therefore needs to be reliable and future-proof, with the possibility to upgrade individual parts like data storage.
+The BitBoxBase aims to be a best-in-class solution, providing important functionalities for Bitcoin, while being able to handle additional use-cases related to digital and financial sovereignty in the future. The hardware therefore needs to be reliable and future-proof, with the possibility to upgrade individual parts like data storage.
 
-![BitBox Base: Protoype photo](hardware/bbb-photo.jpg)  
+![BitBoxBase: Protoype photo](hardware/bbb-photo.jpg)
 
 The solution is comprised of the following main components:
 
@@ -20,6 +20,6 @@ The solution is comprised of the following main components:
 
 This preliminary schematic shows the combination of these components:
 
-![BitBox Base: Schematic exploded](hardware/bbb-schematic.png)  
+![BitBoxBase: Schematic exploded](hardware/bbb-schematic.png)
 
-All in all this hardware platform provides enough power to download and verify the whole Bitcoin blockchain over Tor in less than two days. During the initial block download active cooling is essential, as both CPU and SSD are under heavy load. Once in regular operations mode, the BitBox Base is able to run very quietly.
+All in all this hardware platform provides enough power to download and verify the whole Bitcoin blockchain over Tor in less than two days. During the initial block download active cooling is essential, as both CPU and SSD are under heavy load. Once in regular operations mode, the BitBoxBase is able to run very quietly.

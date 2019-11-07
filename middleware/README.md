@@ -1,4 +1,4 @@
-# BitBox Base Middleware
+# BitBoxBase Middleware
 
 This project serves as a communication hub between bitcoin core, electrum-x,
 c-lightning and further services that run on the base and the
@@ -60,7 +60,7 @@ and bitcoind. The arguments are expected to be passed in the following fashion:
     ./bbbmiddleware -rpcuser rpcuser -rpcpassword rpcpassword -rpcport 18332 -lightning-rpc-path /home/bitcoin/.lightning/lightning-rpc
 
 Running `./bbbmiddleware -h` will print the following help:
-    
+
   -bbbconfigscript string
     	Path to the bbb-config file that allows setting system configuration (default "/opt/shift/scripts/bbb-config.sh")
   -datadir string
@@ -89,9 +89,9 @@ The ports available are:
  - 60401 for electrs rpc
 
 The current regtest docker-compose file will start two lightnind instances. Their
-rpc files can be accessed in `integration_test/volumes/clightning1` and 
+rpc files can be accessed in `integration_test/volumes/clightning1` and
 `intergation_test/volumes/clightning2` respectively.
-To acces the lightningd unix port, the makefile target will ask for a sudo password 
+To acces the lightningd unix port, the makefile target will ask for a sudo password
 to change permissions of the lightning-rpc file.
 
 ## Initialize the regtest blockchain with:
@@ -109,7 +109,7 @@ Get blockchain info:
     bitcoin-cli -regtest -rpcport=18443 -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo
     lightning-cli --rpc-file integration_test/volumes/clightning1/lightning-rpc getinfo
 
-You can run any of these commands from within the docker containers without having bitcoin-cli or lightning-cli installed on your host machine  
+You can run any of these commands from within the docker containers without having bitcoin-cli or lightning-cli installed on your host machine
 e.g. run from the `integration_test` directory:
 
     docker-compose exec bitcoind bitcoin-cli -regtest -rpcport=18443 -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo
@@ -119,8 +119,7 @@ e.g. run from the `integration_test` directory:
     middleware -rpcport=18443 -rpcpassword=rpcpass -rpcuser=rpcuser -electrsport=60401 -lightning-rpc-path=integration_test/volumes/clightning1/lightning-rpc
 
 ## To connect clightning1 with clightning2:
-  The two c-lightning instances allow communication between each other.  
+  The two c-lightning instances allow communication between each other.
   Run getinfo on clightning2 and then connect to its id on clightning1 with:
 
     docker exec -ti lightningd1 lightning-cli connect 026c213484d4b3cb8aff9d4186439bf4032b793831051cf1b4189c7d83a6ec47f1 10.10.0.13:9735
-

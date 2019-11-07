@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base logrotation
+Description=BitBoxBase logrotation
 
 [Service]
 

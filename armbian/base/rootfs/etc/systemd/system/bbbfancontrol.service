@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base fancontrol
+Description=BitBoxBase fancontrol
 After=local-fs.target
 
 [Service]

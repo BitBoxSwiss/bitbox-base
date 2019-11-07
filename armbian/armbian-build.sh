@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# BitBox Base: build Armbian base image
+# BitBoxBase: build Armbian base image
 #
-# Script to automate the build process of the customized Armbian base image for the BitBox Base.
+# Script to automate the build process of the customized Armbian base image for the BitBoxBase.
 # Additional information: https://digitalbitbox.github.io/bitbox-base
 #
 set -eu
 
 function usage() {
-	echo "Build customized Armbian base image for BitBox Base"
+	echo "Build customized Armbian base image for BitBoxBase"
 	echo "Usage: ${0} [build|update|ondevice]"
 	echo
 	echo "running the setup directly ondevice currently support"

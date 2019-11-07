@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base Middleware
+Description=BitBoxBase Middleware
 After=lightningd.service
 
 [Service]

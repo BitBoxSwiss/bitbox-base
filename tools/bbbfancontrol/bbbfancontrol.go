@@ -73,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("BitBox Base fan control, version", versionNum)
+	fmt.Println("BitBoxBase fan control, version", versionNum)
 	if *verbose {
 		fmt.Println("temp:     ", *tempFile)
 		fmt.Println("tmin:     ", *tempMin)

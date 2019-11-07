@@ -2,10 +2,10 @@ package prometheus
 
 /* This file holds constants for the used Prometheus queries */
 
-// BasePrometheusQuery is a string representing a Prometheus query used in the BitBox Base.
+// BasePrometheusQuery is a string representing a Prometheus query used in the BitBoxBase.
 type BasePrometheusQuery string
 
-// Queries for the Prometheus server running on the Bitbox Base
+// Queries for the Prometheus server running on the BitBoxBase
 const (
 	BitcoinVerificationProgress BasePrometheusQuery = "bitcoin_verification_progress"
 	BitcoinBlockCount           BasePrometheusQuery = "bitcoin_blocks"

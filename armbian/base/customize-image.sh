@@ -26,13 +26,13 @@ Main() {
 } # Main
 
 CustomizeArmbian() {
-    echo "Running BitBox Base customization script..."
+    echo "Running BitBoxBase customization script..."
 
     # copy custom files to Armbian build overlay
     mkdir -p /opt/shift
     cp -aR /tmp/overlay/* /opt/shift
     chmod -R +x /opt/shift/scripts
-    
+
     # run custom customization script
     /bin/bash /tmp/overlay/customize-armbian-rockpro64.sh
 } # CustomizeArmbian

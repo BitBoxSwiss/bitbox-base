@@ -6,7 +6,7 @@ nav_order: 150
 ---
 ## Prometheus: System Monitoring
 
-There's a lot going on within the BitBox Base and it's good to have reliable metrics over time to aid in development, fine-tuning, during operations and when looking for the cause of a specific error.
+There's a lot going on within the BitBoxBase and it's good to have reliable metrics over time to aid in development, fine-tuning, during operations and when looking for the cause of a specific error.
 [Prometheus](https://prometheus.io/) takes care of that.
 It is a open-source monitoring solution that is easily extensible to monitor any application.
 Measurements are stored in a time-series database that can easily be queried and visualized, e.g. using [Grafana](grafana.md).
@@ -62,7 +62,7 @@ The following metrics are collected both from the system and from specific appli
   * Installation: downloaded from the [GitHub releases page](https://github.com/prometheus/node_exporter/releases), verified against a hardcoded checksum and installed by the Armbian build script similar to Prometheus itself
   * Service management: run by systemd as `prometheus-node-exporter.service`
   * Prometheus URI: <http://127.0.0.1:9100>
-* **BitBox Base**
+* **BitBoxBase**
   * Installation: single Python3 script [`prometheus-base.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/prometheus-base.py) that is copied to `/opt/shift/scripts/`
   * Service management: run by systemd as `prometheus-base.service`
   * Prometheus URI: <http://127.0.0.1:8400>

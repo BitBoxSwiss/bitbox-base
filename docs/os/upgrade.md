@@ -19,7 +19,7 @@ In terms of upgrading a system, there are several approaches:
 
 ### Our approach: atomic disk image updates
 
-We are working towards the goal to build the BitBox Base as an appliance with 'firmware', not as a small Linux server.
+We are working towards the goal to build the BitBoxBase as an appliance with 'firmware', not as a small Linux server.
 This is why we decided to implement a full disk image update process, using the [Mender](https://mender.io/) open-source solution.
 
 This solution has the following features:
@@ -50,12 +50,12 @@ This post-processing creates Mender upgrade artifacts for over-the-air (OTA) upd
 
 The disk image has the Mender client built in. It is executed on demand by the Middleware to update the device.
 
-On the BitBox Base, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "root filesystem A".
+On the BitBoxBase, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "root filesystem A".
 When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "root filesystem B".
 After successful verification of the update signature and completion of the download, the bootloader is configured to boot from the updated "root filesystem B" once.
 The device is then rebooted.
 
-The BitBox Base now boots into the updated "root filesystem B", where various custom checks can be performed.
+The BitBoxBase now boots into the updated "root filesystem B", where various custom checks can be performed.
 If everything works as expected, the updated "root filesystem B" is commited to the bootloader as the new active partition.
 
 If the device is unable to boot, or if application-level checks fail after the update, the system automatically falls back to booting to the previous "root filesystem A", which was working before the upgrade.

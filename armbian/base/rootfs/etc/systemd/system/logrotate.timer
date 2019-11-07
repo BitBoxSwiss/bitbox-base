@@ -1,5 +1,5 @@
 [Unit]
-Description=BitBox Base logrotation (ever 10 minutes)
+Description=BitBoxBase logrotation (ever 10 minutes)
 
 [Timer]
 OnUnitActiveSec=10min

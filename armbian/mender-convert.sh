@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# BitBox Base: Create Mender-enabled images
-# 
+# BitBoxBase: Create Mender-enabled images
+#
 # Script to automate the conversion process of an Armbian image into a
-# Mender provisioning image and update artefacts for the BitBox Base. 
+# Mender provisioning image and update artefacts for the BitBoxBase.
 #
 set -eu
 
@@ -77,7 +77,7 @@ case ${ACTION} in
 
 		echo "Mender files ready for provisioning:"
 		stat -c "%y %s %n" "../../bin/img-mender/${VERSION}/${TARGET_NAME}"*
-		echo 
+		echo
 		echo "Write to eMMC with the following command (check target device /dev/sdX first!):"
 		echo "dd if=./bin/img-mender/${VERSION}/${TARGET_NAME}.img of=/dev/sdX bs=4M conv=sync status=progress && sync"
 		echo

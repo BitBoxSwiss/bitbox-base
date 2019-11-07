@@ -1,12 +1,12 @@
 #!/bin/bash
 set -eu
 
-# BitBox Base: stresstest the ssd with stressdisk utility
+# BitBoxBase: stresstest the ssd with stressdisk utility
 #
 # prerequisites: installed tmux and unzip
 
 function usage() {
-  echo "BitBox Base: stresstest the ssd
+  echo "BitBoxBase: stresstest the ssd
 usage: stresstest-ssd.sh
 "
 }

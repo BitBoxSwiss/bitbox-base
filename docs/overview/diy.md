@@ -6,7 +6,7 @@ nav_order: 140
 ---
 ## Do It Yourself!
 
-The BitBox Base projects encourages you to build your own Bitcoin full node! It is still under heavy development and not ready for primetime, so this section will become more detailed over time.
+The BitBoxBase projects encourages you to build your own Bitcoin full node! It is still under heavy development and not ready for primetime, so this section will become more detailed over time.
 
 ### Hardware assembly
 
@@ -33,27 +33,27 @@ The automated build process compiles the custom Armbian operating system, instal
 
 Make sure you have the following prerequisites installed on your computer. At the moment, we test the whole process on Ubuntu only.
 
-* Docker CE, version >= 18.06.3  
+* Docker CE, version >= 18.06.3
   install manually according to [the official documentation](https://docs.docker.com/install/)
-  
-* [Git](https://git-scm.com/) and `qemu-user-static`  
+
+* [Git](https://git-scm.com/) and `qemu-user-static`
   ```
   sudo apt-get install git qemu-user-static
   ```
 
 **Compile Armbian and custom applications**
 
-The BitBox Base runs a minimal Armbian operating system with additional custom applications written by Shift Cryptosecurity.
-The main output is an Armbian image that contains the compiled custom applications and can be used to boot the BitBox Base.
+The BitBoxBase runs a minimal Armbian operating system with additional custom applications written by Shift Cryptosecurity.
+The main output is an Armbian image that contains the compiled custom applications and can be used to boot the BitBoxBase.
 
 We assume that running Docker requires `sudo`, therefore `sudo make` is needed. If your Docker installation allows execution for regular users, `sudo` is not necessary.
 
-* Building the BitBox Base system image  
+* Building the BitBoxBase system image
   ```bash
   sudo make
   ```
 
-* Optional: updating the BitBox Base system image later with an adjusted build configuration  
+* Optional: updating the BitBoxBase system image later with an adjusted build configuration
   ```bash
   sudo make update
   ```
@@ -63,10 +63,10 @@ See [Building the Armbian base image](/os/armbian-build.md) and related pages fo
 **Create Mender.io update artefacts**
 
 The Armbian disk image contains only one partition and cannot be updated remotely.
-To integrate the BitBox Base with the professional Mender.io update management solution, this image is postprocessed.
+To integrate the BitBoxBase with the professional Mender.io update management solution, this image is postprocessed.
 The result is a disk image with multiple partition that contain the mender configuration and allow over-the-air updates.
 
-* Creating Mender.io disk image and update artefacts based on the Armbian system image  
+* Creating Mender.io disk image and update artefacts based on the Armbian system image
   ```bash
   sudo make mender-artefacts
   ```

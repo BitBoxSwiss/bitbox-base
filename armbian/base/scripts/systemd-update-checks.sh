@@ -183,7 +183,7 @@ else
     fi
 
     if [[ $(redis_get "base:updating") -eq 40 ]]; then
-        echo "OK: updated to BitBox Base version $(redis_get 'base:version')"
+        echo "OK: updated to BitBoxBase version $(redis_get 'base:version')"
         redis_set "base:updating" 0
     fi
 

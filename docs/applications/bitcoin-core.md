@@ -6,7 +6,7 @@ nav_order: 100
 ---
 ## Bitcoin Core
 
-Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>. The BitBox Base uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks. All data is regarded as untrusted until it is locally verified to match the consensus rules of Bitcoin Core.
+Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>. The BitBoxBase uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks. All data is regarded as untrusted until it is locally verified to match the consensus rules of Bitcoin Core.
 
 ### Using binary releases
 
@@ -60,7 +60,7 @@ Some notes about this specific configuration:
 * **Network options**
   * `mainnet`/`testnet`: the build script defaults to building a mainnet node, but can be reconfigured by:
     * specifying the corresponding build parameter in [`build.conf`](../../armbian/base/build/build.conf)
-    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBox Base (see [Operating System/Helper Scripts](../os/helper-scripts.md)).
+    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBoxBase (see [Operating System/Helper Scripts](../os/helper-scripts.md)).
 
 * **Server options**
   * `server`: enables the RPC interface
@@ -72,8 +72,8 @@ Some notes about this specific configuration:
   * `disablewallet`: wallet functionality of bitcoind is not used and therefore disabled
 
 * **RPC options**
-  * `rpconnect`: specifying `127.0.0.1`, the bitcoind api listens only for local connections 
-  * `rpcport`: the bitcoind api always listens on port `8334`, both for mainnet and testnet 
+  * `rpconnect`: specifying `127.0.0.1`, the bitcoind api listens only for local connections
+  * `rpcport`: the bitcoind api always listens on port `8334`, both for mainnet and testnet
   * `rpcauth`: authentication to bitcoind api uses the `rpcauth` method, with clients using static `rpcuser` and `rpcpassword` values. Credentials are created using an [adapted version](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bitcoind-rpcauth.py) of the Bitcoin Core [rpcauth.py](https://github.com/bitcoin/bitcoin/tree/master/share/rpcauth) Python script
 
 * **Performance options**
@@ -173,7 +173,7 @@ Some notes about this specific configuration:
 * `After`: started after regular Linux start and after Redis is available.
 * `Requires`: the `systemd-startup-checks.sh` must run successfully.
 * `ExecStartPre`: a preparation script is run as root (see `=+` option) to check Redis availability, valid RPCAUTH credentials and access to the SSD
-* `ExecStart`: starts `bitcoind` 
+* `ExecStart`: starts `bitcoind`
 * `User` / `Group`: runs as service user "bitcoin"
 * `Restart`: always restarted, unless manually stopped
 * `PrivateTmp`: using a private tmp directory
@@ -181,7 +181,7 @@ Some notes about this specific configuration:
 * `NoNewPrivileges`: disallow the process and all of its children to gain new privileges through execve()
 * `PrivateDevices`: use a new /dev namespace only populated with API pseudo devices such as /dev/null, /dev/zero and /dev/random
 * `MemoryDenyWriteExecute`: deny the creation of writable and executable memory mappings
-* `WantedBy`: custom applications are executed after Linux system boot (target `multi-user.target`) for the custom target `bitboxbase.target` 
+* `WantedBy`: custom applications are executed after Linux system boot (target `multi-user.target`) for the custom target `bitboxbase.target`
 
 
 ## Data storage

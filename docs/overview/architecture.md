@@ -6,14 +6,14 @@ nav_order: 110
 ---
 ## Architecture
 
-The BitBox Base integrates seamlessly with the [BitBox App](https://shiftcrypto.ch/app/), which functions as control center for all node functionality, and supported hardware wallets.
+The BitBoxBase integrates seamlessly with the [BitBox App](https://shiftcrypto.ch/app/), which functions as control center for all node functionality, and supported hardware wallets.
 The two components discover each other within a local network without manual configuration and can then reconnect after initial pairing using different connection methods.
 
 See dedicated documentation sections on the left for additional details.
 
 ### User interface
 
-The BitBox Base runs as a headless appliance with a minimal status display.
+The BitBoxBase runs as a headless appliance with a minimal status display.
 It is used and managed through the free and open-source BitBox App.
 Having the user interface in a seperate application simplifies many things, allowing for automatic network discovery, a setup wizard and secure remote management.
 This apporach also reduces the attack surface significantly, as no webserver needs to be exposed and port-forwarding can be avoided completely.
@@ -23,7 +23,7 @@ The BitBox App is hosted in a seperate GitHub repository:
 
 ### Hardware
 
-Building a solution platform that focuses on security and performance, the BitBox Base uses an ARM-based board with enough processing power to enable additional features in the future.
+Building a solution platform that focuses on security and performance, the BitBoxBase uses an ARM-based board with enough processing power to enable additional features in the future.
 
 * [Pine64 ROCKPro64](https://www.pine64.org/rockpro64/) with fast 4GB memory and an internal 1TB SSD
 * BitBox secure element: adapted BitBox 02 that drives trusted screen and buttons
@@ -46,9 +46,9 @@ The following key applications are used:
 The following services are exposed:
 
 * [NGINX](https://www.nginx.com/): reverse proxy to handle all incoming traffic
-* [Base Middleware](https://github.com/digitalbitbox/bitbox-base/tree/master/middleware): custom middleware managing encrypted communication between BitBox Base and App
+* [Base Middleware](https://github.com/digitalbitbox/bitbox-base/tree/master/middleware): custom middleware managing encrypted communication between BitBoxBase and App
 
-Additional noteworthy components on the BitBox Base:
+Additional noteworthy components on the BitBoxBase:
 
 * [Base Supervisor](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor): custom daemon for operational monitoring and control, providing system health information and node configuration
 * [Tor](https://www.torproject.org/): external network connections exclusively use the privacy-focused Tor network
