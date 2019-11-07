@@ -201,15 +201,14 @@ case "${COMMAND}" in
                 checkMockMode
 
                 # create / delete symlink to enable NGINX block
-                # TODO(Stadicus): run in overlayroot-chroot for readonly rootfs
                 if [[ ${ENABLE} -eq 1 ]]; then
                     ln -sf /etc/nginx/sites-available/grafana.conf /etc/nginx/sites-enabled/grafana.conf
-                    systemctl enable grafana-server.service
+                    exec_overlayroot all-layers "systemctl enable grafana-server.service"
                     systemctl start grafana-server.service
                 else
-                    rm -f /etc/nginx/sites-enabled/grafana.conf
-                    systemctl disable grafana-server.service
+                    exec_overlayroot all-layers "systemctl disable grafana-server.service"
                     systemctl stop grafana-server.service
+                    rm -f /etc/nginx/sites-enabled/grafana.conf
                 fi
                 redis_set "base:dashboard:web:enabled" "${ENABLE}"
                 systemctl restart nginx.service
