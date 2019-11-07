@@ -11,4 +11,4 @@ As the BitBoxBase is designed as a networked appliance, it's important that the 
 
 The Debian-based Linux distribution Armbian also features a reliable build environment that allows to build the operating system from source, configure the resulting kernel in minute detail and customize the resulting disk image using regular bash scripts within a chroot environment.
 
-More detail on how to build the base operating image yourself will be detailed in the [Armbian build](armbian-build.md) docs.
+More detail on how to build the base operating image yourself will be detailed in the [Armbian build](os/armbian-build.md) docs.
