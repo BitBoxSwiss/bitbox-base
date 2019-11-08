@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Security considerations
-parent: Operating System
-nav_order: 130
+parent: Operating system
+nav_order: 800
 ---
 ## Security considerations
 

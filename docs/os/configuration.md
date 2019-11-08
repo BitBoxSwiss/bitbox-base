@@ -1,29 +1,14 @@
 ---
 layout: default
 title: Configuration
-parent: Operating System
-nav_order: 110
+parent: Operating system
+nav_order: 200
 
 ---
 ## Configuration
 
 It's important to keep the BitBoxBase in a consistently configured state.
-Here we describe how to set the initial configuration on build, control it internally during operations, store and backup the configuration and manage it remotely from the BitBox App.
-
-### Initial configuration on build
-
-The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
-
-Available options are described directly in the file and are set to default values.
-A few examples of build options you can set:
-
-* `BASE_BITCOIN_NETWORK`: set to `mainnet` or `testnet`
-* `BASE_HOSTNAME`: set it to `alice` and your BitBoxBase will be visible as `alice.local` within your network
-* `BASE_AUTOSETUP_SSD`: set to "true" to automatically initialize the SSD on first boot
-* `BASE_OVERLAYROOT`: set to 'true' to make the root filesystem read-only
-* ...and many more.
-
-To preserve a local configuration, you can copy the file to `build-local.conf` in the same directory. This file is excluded from Git source control and overwrites options from `build.conf`.
+Here we describe how to control the configuration during operations, how to store and backup the it and manage it remotely from the BitBox App.
 
 ### *bbb-config.sh*: manage configuration during operations
 
@@ -31,8 +16,9 @@ System configuration is managed internally using the script [`bbb-config.sh`](ht
 Its goal is to centrally define how changes are applied to the system and reuse a single set of commands.
 This is why it is called by the build script as well as by the BitBoxBase Middleware during operations.
 Changes are applied by simple operating system commands like copying and deleting files, or replacing text values withing configuration files.
+It also takes care to write the changes into the read-only rootfs when necessary.
 
-You can call the script `bbb-config.sh --help` to see all possible commands and arguments:
+The script can also be used directly from the command line, requiring sudo privileges. Call the script `bbb-config.sh --help` to see all possible commands and arguments:
 
 ```
 BitBoxBase: system configuration utility
@@ -56,7 +42,7 @@ possible commands:
 
 ### *bbb-cmd.sh*: execution of standard commands
 
-Similar to the configuration script, the [`bbb-cmd.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-cmd.sh) script acts as the central repository for standard commands, to be called from the Middleware.
+Similar to the configuration script, the [`bbb-cmd.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bbb-cmd.sh) script acts as the central repository for standard commands, to be called from the Middleware. Or run it from the commandline with sudo.
 
 ```
 BitBoxBase: system commands repository
@@ -98,6 +84,7 @@ electrs:db_dir        /mnt/ssd/electrs/db
 
 ### *bbbconfgen*: Updating of configuration files
 
+While the Middleware and some scripts query Redis directly, most keys need to be written into configuration files to take effect.
 Configuration files are created dynamically using [`bbbconfgen`](https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen), with the templates located in [`armbian/base/config/templates/`](https://github.com/digitalbitbox/bitbox-base/tree/master/armbian/base/config/templates):
 
 This application parses a template, populates it with the corresponding Redis values, and stores it to the system (even into the read-only filesystem, if applicable).
@@ -106,6 +93,8 @@ This application parses a template, populates it with the corresponding Redis va
 * in regular operation, changes to Redis values and the regeneration of config files are typically executed through the `bbb-config.sh` or `bbb-cmd.sh` scripts.
 
 To keep the configuration scripts consistent, the bash function `generateConfig()` is sourced from the include file [`generateConfig.sh.inc`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/include/generateConfig.sh.inc).
+
+If `bbbconfgen` is run from the commandline and overlay root filesystem is enabled, you need to make sure that the configuration file is not only written into the tmpfs overlay. Either disable overlayrootfs (and reboot first), or use the application within `overlayroot-chroot`.
 
 ### *BitBox App*: user interface
 

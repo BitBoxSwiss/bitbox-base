@@ -1,11 +1,11 @@
 ---
 layout: default
-title: User Interface
+title: User interface
 nav_order: 250
 has_children: true
 permalink: /ui
 ---
-# BitBoxBase: User Interface
+# BitBoxBase: User interface
 
 Our goal is to create a seamless experience with no technical setup. We are using the free and open-source BitBox App to manage the Base. This allows us to provide:
 

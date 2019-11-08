@@ -3,6 +3,9 @@ layout: default
 title: Middleware
 nav_order: 110
 parent: Custom applications
+has_children: true
+permalink: /customapps/middleware
+
 ---
 ## BitBoxBase Middleware
 
