@@ -166,8 +166,14 @@ else
             else
                 echo "ERR: service verification try ${run} of 100 unsuccessful, falling back to previous Base image version"
                 redis_set "base:updating" 90
-                /opt/shift/scripts/bbb-cmd.sh base restart
-                errorExit MENDER_UPDATE_SYSCONFIG_FAILED
+
+                # send update notification to Middleware (best effort)
+                timeout 5 echo '{"version": 1, "topic": "mender-update", "payload": {"success": false}}' >> /tmp/middleware-notification.pipe || true
+                sleep 10
+
+                # fallback
+                reboot
+
             fi
         done
 
@@ -179,12 +185,18 @@ else
             redis_set "base:updating" 40
         else
             echo "ERR: mender commit failed with error code ${?}"
+
+            # send update notification to Middleware (best effort)
+            timeout 5 echo '{"version": 1, "topic": "mender-update", "payload": {"success": false}}' >> /tmp/middleware-notification.pipe || true
         fi
     fi
 
     if [[ $(redis_get "base:updating") -eq 40 ]]; then
         echo "OK: updated to BitBoxBase version $(redis_get 'base:version')"
         redis_set "base:updating" 0
+
+        # send update notification to Middleware (best effort)
+        timeout 5 echo '{"version": 1, "topic": "mender-update", "payload": {"success": true}}' >> /tmp/middleware-notification.pipe || true
     fi
 
     if [[ $(redis_get "base:updating") -ne 0 ]]; then
