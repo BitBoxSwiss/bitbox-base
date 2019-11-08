@@ -121,19 +121,24 @@ def get_raw_tx(txid):
 
 
 def main():
-    # Start up the server to expose the metrics.
-    start_http_server(8334)
 
-    # set loop delay: slow during IBD, faster afterwards
-    query_loop_delay=360
+    # set loop delay:
+    #  5s until bitcoind is ready
+    # 30s on regular operations
+    #  5m during initial block download
+    query_loop_delay=5
+    http_server_started = False
 
     while True:
         try:
+            # connect to bitcoind to check RPC availability
             blockchaininfo = bitcoin("getblockchaininfo")
+
         except:
             blockchaininfo = None
             print("Error: Could not get data, Bitcoin Core still warming up?")
 
+        # get metrics if bitcoind RPC is available
         if blockchaininfo is not None:
             blockchaininfo = bitcoin("getblockchaininfo")
             networkinfo = bitcoin("getnetworkinfo")
@@ -160,7 +165,7 @@ def main():
             ibd = {True: 1, False: 0}
             BITCOIN_IBD.set(ibd.get(blockchaininfo["initialblockdownload"], 3))
             if blockchaininfo["initialblockdownload"]:
-                query_loop_delay=360
+                query_loop_delay=300
             else:
                 query_loop_delay=30
 
@@ -199,6 +204,11 @@ def main():
 
                 BITCOIN_LATEST_BLOCK_INPUTS.set(inputs)
                 BITCOIN_LATEST_BLOCK_OUTPUTS.set(outputs)
+
+            # Start up the server to expose the metrics once bitcoind is ready
+            if not http_server_started:
+                start_http_server(8334)
+                http_server_started = True
 
         time.sleep(query_loop_delay)
 
