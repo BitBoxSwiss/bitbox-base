@@ -324,11 +324,6 @@ func (middleware *Middleware) BackupSysconfig() (response rpcmessages.ErrorRespo
 		}
 	}
 
-	//BackupSysconfig is the last call in the base setup. Once it is completed successfully, the setup is done.
-	err = middleware.redisClient.SetString(redis.BaseSetupDone, "1")
-	if err != nil {
-		log.Println("redis failed to set the base setup done flag. This is not a critical error, but the setup will be repeated again")
-	}
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
@@ -967,6 +962,43 @@ func (middleware *Middleware) SetLoginPassword(args rpcmessages.SetLoginPassword
 		Message: "The password has to be at least 8 chars. An unicode char is counted as one.",
 		Code:    rpcmessages.ErrorSetLoginPasswordTooShort,
 	}
+}
+
+// FinalizeSetupWizard finalizes the setup wizard by setting a redis key,
+// enabling Bitcoin Core and related services and starting Bitcoin Core and
+// related services.
+func (middleware *Middleware) FinalizeSetupWizard() rpcmessages.ErrorResponse {
+	log.Println("Finalizing the setup wizard.")
+
+	out, err := middleware.runBBBConfigScript([]string{"enable", "bitcoin_services"})
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{})
+
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(out, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	out, err = middleware.runBBBSystemctlScript([]string{"start-bitcoin-services"})
+	if err != nil {
+		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{rpcmessages.ErrorSystemdServiceStartFailed})
+
+		return rpcmessages.ErrorResponse{
+			Success: false,
+			Message: strings.Join(out, "\n"),
+			Code:    errorCode,
+		}
+	}
+
+	err = middleware.redisClient.SetString(redis.BaseSetupDone, "1")
+	if err != nil {
+		log.Printf("Failed to finalize the setup wizard: %s", err)
+		return middleware.redisClient.ConvertErrorToErrorResponse(err)
+	}
+
+	return rpcmessages.ErrorResponse{Success: true}
 }
 
 // GetBaseInfo returns information about the Base in a GetBaseInfoResponse

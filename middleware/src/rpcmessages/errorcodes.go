@@ -140,6 +140,16 @@ const (
 )
 
 const (
+
+	/* bbb-systemctl.sh start-bitcoin-services
+	---------------------------------------*/
+
+	// ErrorSystemdServiceStartFailed is thrown when a systemd service cannot be
+	// started.
+	ErrorSystemdServiceStartFailed ErrorCode = "SYSTEMD_SERVICESTART_FAILED"
+)
+
+const (
 	// ErrorInitialAuthenticationNotSuccessful is thrown if the initial authentication with default username and password is not successful.
 	ErrorInitialAuthenticationNotSuccessful ErrorCode = "INITIAL_AUTHENTICATION_NOT_SUCCESSFUL"
 

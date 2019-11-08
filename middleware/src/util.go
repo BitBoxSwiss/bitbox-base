@@ -99,6 +99,13 @@ func (middleware *Middleware) unmountFlashdrive() rpcmessages.ErrorResponse {
 	return rpcmessages.ErrorResponse{Success: true}
 }
 
+// runBBBSystemctlScript runs the bbb-systemctl.sh script. The script restarts
+// and stops services on the Base.
+func (middleware *Middleware) runBBBSystemctlScript(args []string) (outputLines []string, err error) {
+	outputLines, err = runCommand(middleware.environment.GetBBBSystemctlScript(), args)
+	return
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(args []string) (outputLines []string, err error) {

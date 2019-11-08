@@ -12,6 +12,7 @@ type Environment struct {
 	lightningRPCPath          string
 	bbbConfigScript           string
 	bbbCmdScript              string
+	bbbSystemctlScript        string
 	prometheusURL             string
 	redisPort                 string
 	middlewareVersion         string
@@ -33,6 +34,7 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		Network:                   argumentMap["network"],
 		bbbConfigScript:           argumentMap["bbbConfigScript"],
 		bbbCmdScript:              argumentMap["bbbCmdScript"],
+		bbbSystemctlScript:        argumentMap["bbbSystemctlScript"],
 		prometheusURL:             argumentMap["prometheusURL"],
 		redisPort:                 argumentMap["redisPort"],
 		middlewareVersion:         argumentMap["middlewareVersion"],
@@ -70,6 +72,11 @@ func (environment *Environment) GetBBBConfigScript() string {
 // GetBBBCmdScript is a getter for the location of the bbb cmd script
 func (environment *Environment) GetBBBCmdScript() string {
 	return environment.bbbCmdScript
+}
+
+// GetBBBSystemctlScript is a getter for the location of the bbb-systemctl.sh script
+func (environment *Environment) GetBBBSystemctlScript() string {
+	return environment.bbbSystemctlScript
 }
 
 // GetPrometheusURL is a getter for the url the prometheus server is reachable on

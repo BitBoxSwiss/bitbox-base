@@ -27,8 +27,10 @@ func setupTestMiddleware(t *testing.T) *middleware.Middleware {
 	- the absolute location of those is different on each host this is run on
 	- the relative location is different depending here the tests are run from
 	*/
-	argumentMap["bbbConfigScript"] = "/bin/echo"
-	argumentMap["bbbCmdScript"] = "/bin/echo"
+	const echoBinaryPath string = "/bin/echo"
+	argumentMap["bbbConfigScript"] = echoBinaryPath
+	argumentMap["bbbCmdScript"] = echoBinaryPath
+	argumentMap["bbbSystemctlScript"] = echoBinaryPath
 
 	testMiddleware, err := middleware.NewMiddleware(argumentMap, true)
 	require.NoError(t, err)
@@ -372,6 +374,15 @@ func TestRebootBase(t *testing.T) {
 	testMiddleware := setupTestMiddleware(t)
 
 	response := testMiddleware.RebootBase()
+	require.Equal(t, true, response.Success)
+	require.Equal(t, "", response.Message)
+	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
+}
+
+func TestFinalizeBackup(t *testing.T) {
+	testMiddleware := setupTestMiddleware(t)
+
+	response := testMiddleware.FinalizeSetupWizard()
 	require.Equal(t, true, response.Success)
 	require.Equal(t, "", response.Message)
 	require.Equal(t, rpcmessages.ErrorCode(""), response.Code)
