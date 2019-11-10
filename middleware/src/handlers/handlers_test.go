@@ -24,10 +24,6 @@ const (
 
 func TestRootHandler(t *testing.T) {
 	argumentMap := make(map[string]string)
-	argumentMap["bitcoinRPCUser"] = "user"
-	argumentMap["bitcoinRPCPassword"] = "password"
-	argumentMap["bitcoinRPCPort"] = "8332"
-	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"
@@ -45,10 +41,6 @@ func TestRootHandler(t *testing.T) {
 
 func TestWebsocketHandler(t *testing.T) {
 	argumentMap := make(map[string]string)
-	argumentMap["bitcoinRPCUser"] = "user"
-	argumentMap["bitcoinRPCPassword"] = "password"
-	argumentMap["bitcoinRPCPort"] = "8332"
-	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/script.sh"

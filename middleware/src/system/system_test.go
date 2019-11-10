@@ -9,10 +9,6 @@ import (
 
 func TestSystem(t *testing.T) {
 	argumentMap := make(map[string]string)
-	argumentMap["bitcoinRPCUser"] = "user"
-	argumentMap["bitcoinRPCPassword"] = "password"
-	argumentMap["bitcoinRPCPort"] = "8332"
-	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
 	argumentMap["bbbConfigScript"] = "/home/bitcoin/config-script.sh"
@@ -25,10 +21,6 @@ func TestSystem(t *testing.T) {
 
 	environmentInstance := system.NewEnvironment(argumentMap)
 	// TODO: refactor require.Equal() to take (t, <expected>, <actual>). It's currently <actual> <expected>.
-	require.Equal(t, environmentInstance.GetBitcoinRPCPort(), "8332")
-	require.Equal(t, environmentInstance.GetBitcoinRPCUser(), "user")
-	require.Equal(t, environmentInstance.GetBitcoinRPCPassword(), "password")
-	require.Equal(t, environmentInstance.GetLightningRPCPath(), "/home/bitcoin/.lightning")
 	require.Equal(t, environmentInstance.GetBBBConfigScript(), "/home/bitcoin/config-script.sh")
 	require.Equal(t, environmentInstance.GetBBBCmdScript(), "/home/bitcoin/cmd-script.sh")
 	require.Equal(t, environmentInstance.Network, "testnet")
@@ -43,9 +35,9 @@ func TestSystem(t *testing.T) {
 	argumentMap = make(map[string]string)
 	argumentMap["lel"] = "1"
 	environmentInstance = system.NewEnvironment(argumentMap)
-	require.Equal(t, environmentInstance.GetBitcoinRPCPort(), "")
+	require.Equal(t, environmentInstance.GetBBBConfigScript(), "")
 
 	argumentMap = make(map[string]string)
 	environmentInstance = system.NewEnvironment(argumentMap)
-	require.Equal(t, environmentInstance.GetBitcoinRPCPort(), "")
+	require.Equal(t, environmentInstance.GetBBBConfigScript(), "")
 }

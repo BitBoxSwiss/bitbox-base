@@ -54,29 +54,33 @@ tools)
 
 ## Running
 
-The middleware accepts some command line arguments to connect to c-lightning
-and bitcoind. The arguments are expected to be passed in the following fashion:
+The middleware accepts some command line arguments to get some information about its environment.
+The arguments are expected to be passed in the following fashion:
 
-    ./bbbmiddleware -rpcuser rpcuser -rpcpassword rpcpassword -rpcport 18332 -lightning-rpc-path /home/bitcoin/.lightning/lightning-rpc
+    middleware -electrsport 60401
 
-Running `./bbbmiddleware -h` will print the following help:
+Running `middleware -h` will print the following help:
 
+  -bbbcmdscript string
+    Path to the bbb-cmd file that allows executing system commands (default "/opt/shift/scripts/bbb-cmd.sh")
   -bbbconfigscript string
-    	Path to the bbb-config file that allows setting system configuration (default "/opt/shift/scripts/bbb-config.sh")
+    Path to the bbb-config file that allows setting system configuration (default "/opt/shift/scripts/bbb-config.sh")
   -datadir string
-    	Directory where middleware persistent data like noise keys is stored (default ".base")
+    Directory where middleware persistent data like noise keys is stored (default ".base")
   -electrsport string
-    	Electrs rpc port (default "51002")
-  -lightning-rpc-path string
-    	Path to the lightning rpc unix socket (default "/home/bitcoin/.lightning/lightning-rpc")
+    Electrs rpc port (default "51002")
+  -middlewareport string
+    Port the middleware should listen on (default 8845) (default "8845")
   -network string
-    	Indicate wether running bitcoin on regtest, testnet or mainnet (default "testnet")
-  -rpcpassword string
-    	Bitcoin rpc password (default "rpcpassword")
-  -rpcport string
-    	Bitcoin rpc port, localhost is assumed as an address (default "18332")
-  -rpcuser string
-    	Bitcoin rpc user name (default "rpcuser")
+    Indicate wether running bitcoin on testnet or mainnet (default "testnet")
+  -prometheusurl string
+    Url of the prometheus server in the form of 'http://localhost:9090' (default "http://localhost:9090")
+  -redismock
+    Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock
+  -redisport string
+    Port of the Redis server (default "6379")
+  -updateinfourl string
+    URL to query information about updates from (defaults to https://shiftcrypto.ch/updates/base.json) (default "https://shiftcrypto.ch/updates/base.json")
 
 ## Testing
 
@@ -116,7 +120,7 @@ e.g. run from the `integration_test` directory:
 
 ## For the middleware run:
 
-    middleware -rpcport=18443 -rpcpassword=rpcpass -rpcuser=rpcuser -electrsport=60401 -lightning-rpc-path=integration_test/volumes/clightning1/lightning-rpc
+    middleware -electrsport=60401
 
 ## To connect clightning1 with clightning2:
   The two c-lightning instances allow communication between each other.

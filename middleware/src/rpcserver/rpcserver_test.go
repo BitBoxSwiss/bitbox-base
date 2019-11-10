@@ -50,10 +50,6 @@ func NewTestingRPCServer() TestingRPCServer {
 		clientReadChan:  make(chan []byte),
 	}
 	argumentMap := make(map[string]string)
-	argumentMap["bitcoinRPCUser"] = "user"
-	argumentMap["bitcoinRPCPassword"] = "password"
-	argumentMap["bitcoinRPCPort"] = "8332"
-	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
 

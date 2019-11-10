@@ -17,10 +17,6 @@ const version string = "0.0.1"
 
 func main() {
 	middlewarePort := flag.String("middlewareport", "8845", "Port the middleware should listen on (default 8845)")
-	bitcoinRPCUser := flag.String("rpcuser", "rpcuser", "Bitcoin rpc user name")
-	bitcoinRPCPassword := flag.String("rpcpassword", "rpcpassword", "Bitcoin rpc password")
-	bitcoinRPCPort := flag.String("rpcport", "18332", "Bitcoin rpc port, localhost is assumed as an address")
-	lightningRPCPath := flag.String("lightning-rpc-path", "/home/bitcoin/.lightning/lightning-rpc", "Path to the lightning rpc unix socket")
 	electrsRPCPort := flag.String("electrsport", "51002", "Electrs rpc port")
 	dataDir := flag.String("datadir", ".base", "Directory where middleware persistent data like noise keys is stored")
 	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
@@ -35,10 +31,6 @@ func main() {
 
 	argumentMap := make(map[string]string)
 	argumentMap["middlewarePort"] = *middlewarePort
-	argumentMap["bitcoinRPCUser"] = *bitcoinRPCUser
-	argumentMap["bitcoinRPCPassword"] = *bitcoinRPCPassword
-	argumentMap["bitcoinRPCPort"] = *bitcoinRPCPort
-	argumentMap["lightningRPCPath"] = *lightningRPCPath
 	argumentMap["electrsRPCPort"] = *electrsRPCPort
 	argumentMap["network"] = *network
 	argumentMap["bbbConfigScript"] = *bbbConfigScript

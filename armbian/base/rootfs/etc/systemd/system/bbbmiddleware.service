@@ -10,10 +10,6 @@ After=multi-user.target bitcoind.service
 EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
 ExecStartPre=/opt/shift/scripts/systemd-bbbmiddleware-startpre.sh
 ExecStart=/usr/local/sbin/bbbmiddleware \
-    -rpcuser=${BITCOIN_RPCUSER} \
-    -rpcpassword=${BITCOIN_RPCPASSWORD} \
-    -rpcport=${BITCOIN_RPCPORT} \
-    -lightning-rpc-path=${LIGHTNING_RPCPATH} \
     -datadir=/data/bbbmiddleware
 
 # Process management
