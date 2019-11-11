@@ -9,7 +9,7 @@ permalink: /customapps/middleware
 ---
 ## BitBoxBase Middleware
 
-The secure communication channel between BitBox App and Base needs to carry a multitude of data exchanges: system health information, node management, Bitcoin blockchain queries to the Electrum server, Lightning client management and even more applications in the future.
+The secure communication channel between BitBoxApp and Base needs to carry a multitude of data exchanges: system health information, node management, Bitcoin blockchain queries to the Electrum server, Lightning client management and even more applications in the future.
 This communication must be flexibly routable under varying circumstances and protected with end-to-end encryption.
 By channeling all communication through a single endpoint on each side, clients do not need to support all native API protocols; authentication and encryption is handled only once.
 

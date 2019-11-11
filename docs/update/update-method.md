@@ -24,11 +24,11 @@ This solution has the following features:
 * **enterprise-grade**: despite being open-source and free to use, Mender is a professional solution with its own Deployment Management server and a robust client update daemon.
 * **full disk image**: the whole operating system including all applications are updated together, resulting in a clearly defined state of the system.
 * **atomic**: the update process is atomic, as it either succeeds in full (including custom application tests), or not at all. In case of failure, a full rollback is performed.
-* **on-demand**: the BitBox App will prompt you when an update is available, but you're not forced to update.
+* **on-demand**: the BitBoxApp will prompt you when an update is available, but you're not forced to update.
 * **secure**: all updates are provided over a secure TLS communication connection and are cryptographically signed by Shift Cryptosecurity. By default, no unsigned updates are accepted by the device.
 * **efficient**: update images are compressed and are streamed directly to the device. As of today, a full update (operating system and all applications) is ~300 MB in size.
 * **minimal downtime**: the update is performed in the background, while applications continue to run. Only a single reboot is necessary to start the updated configuration.
 * **persistent data**: the eMMC contains multiple partitions, one of which is used to store persistent data like the device configuration.
-* **custom Base image**: more in the #reckless category, updating custom-built Base image can be enabled through the BitBox App.
+* **custom Base image**: more in the #reckless category, updating custom-built Base image can be enabled through the BitBoxApp.
 
 Additional information is available at <https://mender.io> and their [technical documentation](https://docs.mender.io).

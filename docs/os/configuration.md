@@ -8,7 +8,7 @@ nav_order: 200
 ## Configuration
 
 It's important to keep the BitBoxBase in a consistently configured state.
-Here we describe how to control the configuration during operations, how to store and backup the it and manage it remotely from the BitBox App.
+Here we describe how to control the configuration during operations, how to store and backup the it and manage it remotely from the BitBoxApp.
 
 ### *bbb-config.sh*: manage configuration during operations
 
@@ -16,7 +16,7 @@ System configuration is managed internally using the script [`bbb-config.sh`](ht
 Its goal is to centrally define how changes are applied to the system and reuse a single set of commands.
 This is why it is called by the build script as well as by the BitBoxBase Middleware during operations.
 Changes are applied by simple operating system commands like copying and deleting files, or replacing text values withing configuration files.
-It also takes care to write the changes into the read-only rootfs when necessary.
+It also takes care of writing the changes into the read-only rootfs when necessary.
 
 The script can also be used directly from the command line, requiring sudo privileges. Call the script `bbb-config.sh --help` to see all possible commands and arguments:
 
@@ -96,8 +96,8 @@ To keep the configuration scripts consistent, the bash function `generateConfig(
 
 If `bbbconfgen` is run from the commandline and overlay root filesystem is enabled, you need to make sure that the configuration file is not only written into the tmpfs overlay. Either disable overlayrootfs (and reboot first), or use the application within `overlayroot-chroot`.
 
-### *BitBox App*: user interface
+### *BitBoxApp*: user interface
 
-Ultimately, the configuration is managed by the user through the BitBox App, that talks to the Middleware which in turn calls either the `bbb-config.sh` or `bbb-cmd.sh` script with the necessary arguments.
+Ultimately, the configuration is managed by the user through the BitBoxApp, that talks to the Middleware which in turn calls either the `bbb-config.sh` or `bbb-cmd.sh` script with the necessary arguments.
 
 The App provides a convenient backup feature to save the whole system configuration directly to a USB stick plugged into the Base.

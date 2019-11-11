@@ -50,8 +50,8 @@ A few examples of build options you can set:
 
 * `BASE_BITCOIN_NETWORK`: set to `mainnet` or `testnet`
 * `BASE_HOSTNAME`: set it to `alice` and your BitBoxBase will be visible as `alice.local` within your network
-* `BASE_AUTOSETUP_SSD`: set to "true" to automatically initialize the SSD on first boot
-* `BASE_OVERLAYROOT`: set to 'true' to make the root filesystem read-only
+* `BASE_AUTOSETUP_SSD`: set to `true` to automatically initialize the SSD on first boot
+* `BASE_OVERLAYROOT`: set to `true` to make the root filesystem read-only
 * ...and many more.
 
 To preserve a local configuration, you can copy the file to `build-local.conf` in the same directory.

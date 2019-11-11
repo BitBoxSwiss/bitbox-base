@@ -20,7 +20,7 @@ Running a Bitcoin node makes you a direct network participant, giving you additi
 Running your own Bitcoin node in combination with a hardware wallet is still to complicated. By building the BitBoxBase, we want to achieve the following goals:
 
 * Running your own Bitcoin full node is for everyone.
-* The built-in Lightning client provides a compelling Lightning Wallet in the BitBox App.
+* The built-in Lightning client provides a compelling Lightning Wallet in the BitBoxApp.
 * Connecting to your node just works, whether in your own network or on-the-go.
 * Privacy is assured through end-to-end encryption between User Interface and BitBoxBase.
 * As a networked appliance, remote attack surface is minimized by exposing as little ports as possible.
@@ -31,6 +31,6 @@ Running your own Bitcoin node in combination with a hardware wallet is still to 
 
 ## Buy or Build
 
-We strive to build a professional Bitcoin node as part of our our Shift Cryptosecurity product portfolio, working seamlessly with the BitBox hardware wallet and BitBox App. Users will be able to buy it, and receive professional support and maintenance.
+We strive to build a professional Bitcoin node as part of our our Shift Cryptosecurity product portfolio, working seamlessly with the BitBox hardware wallet and BitBoxApp. Users will be able to buy it, and receive professional support and maintenance.
 
 The overarching goal, however, is to enable everyone to run a Bitcoin full node. This is why you can also build it yourself, with standard parts and completely open-source code.

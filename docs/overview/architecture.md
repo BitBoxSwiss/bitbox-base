@@ -6,7 +6,7 @@ nav_order: 110
 ---
 ## Architecture
 
-The BitBoxBase integrates seamlessly with the [BitBox App](https://shiftcrypto.ch/app/), which functions as control center for all node functionality, and supported hardware wallets.
+The BitBoxBase integrates seamlessly with the [BitBoxApp](https://shiftcrypto.ch/app/), which functions as control center for all node functionality, and supported hardware wallets.
 The two components discover each other within a local network without manual configuration and can then reconnect after initial pairing using different connection methods.
 
 See dedicated documentation sections on the left for additional details.
@@ -14,11 +14,11 @@ See dedicated documentation sections on the left for additional details.
 ### User interface
 
 The BitBoxBase runs as a headless appliance with a minimal status display.
-It is used and managed through the free and open-source BitBox App.
+It is used and managed through the free and open-source BitBoxApp.
 Having the user interface in a seperate application simplifies many things, allowing for automatic network discovery, a setup wizard and secure remote management.
 This apporach also reduces the attack surface significantly, as no webserver needs to be exposed and port-forwarding can be avoided completely.
 
-The BitBox App is hosted in a seperate GitHub repository:
+The BitBoxApp is hosted in a seperate GitHub repository:
 <https://github.com/digitalbitbox/bitbox-wallet-app>
 
 ### Hardware
