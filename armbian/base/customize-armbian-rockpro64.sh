@@ -476,7 +476,7 @@ redis-cli SET bitcoind:version "${BITCOIN_VERSION}"
 
 # LIGHTNING --------------------------------------------------------------------
 BIN_DEPS_TAG="v0.0.1-alpha"
-LIGHTNING_VERSION_BUILD="0.7.2.1"
+LIGHTNING_VERSION_BUILD="0.7.3"
 LIGHTNING_VERSION_BIN="0.7.0"
 
 apt install -y libsodium-dev
@@ -485,7 +485,7 @@ apt install -y libsodium-dev
 if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
   apt install -y  autoconf automake build-essential git libtool libgmp-dev \
                   libsqlite3-dev python python3 python3-mako net-tools \
-                  zlib1g-dev asciidoc-base
+                  zlib1g-dev asciidoc-base gettext
 
   rm -rf /usr/local/src/lightning
 
