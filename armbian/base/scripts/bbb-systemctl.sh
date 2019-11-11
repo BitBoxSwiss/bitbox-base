@@ -80,6 +80,7 @@ grafana:                  $(systemctl is-active grafana-server.service)
         # use custom error handling
         set +e
 
+        # start bitcoind.service, if not yet running
         if ! systemctl is-active -q bitcoind.service; then
             if ! systemctl start bitcoind.service
             then
@@ -91,26 +92,31 @@ grafana:                  $(systemctl is-active grafana-server.service)
             echo "INFO: bitcoind.service already running"
         fi
 
-        if ! systemctl is-active -q lightningd.service; then
+        # start lightningd.service, if not yet running and if bitcoind not in initial block download mode
+        if ! systemctl is-active -q lightningd.service && [[ "$(redis_get 'bitcoind:ibd')" -ne 1 ]]; then
             if ! systemctl start lightningd.service
             then
                 errorExit SYSTEMD_SERVICESTART_FAILED
+            else
+                echo "OK: lightningd.service started"
             fi
-            echo "OK: lightningd.service started"
+
         else
-            echo "INFO: lightningd.service already running"
+            echo "INFO: lightningd.service already running or bitcoind in IBD mode"
         fi
 
-        if ! systemctl is-active -q electrs.service; then
+        # start electrs.service, if not yet running and if bitcoind not in initial block download mode
+        if ! systemctl is-active -q electrs.service && [[ "$(redis_get 'bitcoind:ibd')" -ne 1 ]]; then
             if ! systemctl start electrs.service
             then
                 errorExit SYSTEMD_SERVICESTART_FAILED
             fi
             echo "OK: electrs.service started"
         else
-            echo "INFO: electrs.service already running"
+            echo "INFO: electrs.service already running or bitcoind in IBD mode"
         fi
 
+        # start prometheus-bitcoind.service, if not yet running
         if ! systemctl is-active -q prometheus-bitcoind.service; then
             if ! systemctl start prometheus-bitcoind.service
             then
