@@ -18,6 +18,10 @@ redis_set() {
 redis_get() {
     # usage: str=$(redis_get "key")
     ok=$(redis-cli -h localhost -p 6379 -n 0 GET "${1}") || true
+    if [[ -z "${ok}" ]]; then
+      # if Redis returns "nil", return -1
+      ok=-1
+    fi
     echo "${ok}"
 }
 
