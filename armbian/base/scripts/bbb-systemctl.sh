@@ -5,7 +5,25 @@ set -eu
 # BitBoxBase: batch control system units
 #
 
-# --- generic functions --------------------------------------------------------
+# MockMode checks all arguments but does not execute anything
+#
+# usage: call this script with the ENV variable MOCKMODE set to 1, e.g.
+#        $ MOCKMODE=1 ./bbb-config.sh
+#
+MOCKMODE=${MOCKMODE:-0}
+checkMockMode() {
+    if [[ $MOCKMODE -eq 1 ]]; then
+        echo "MOCK MODE enabled"
+        echo "OK: ${ACTION}"
+        exit 0
+    fi
+}
+
+# error handling
+errorExit() {
+    echo "$@" 1>&2
+    exit 1
+}
 
 # include functions redis_set() and redis_get()
 source /opt/shift/scripts/include/redis.sh.inc
@@ -17,7 +35,7 @@ source /opt/shift/scripts/include/errorExit.sh.inc
 
 function usage() {
     echo "BitBoxBase: batch control system units"
-    echo "Usage: bbb-systemctl <status|start|restart|stop|enable|disable>"
+    echo "Usage: bbb-systemctl <status|start-bitcoin-services|start|restart|stop|enable|disable>"
 }
 
 ACTION=${1:-"status"}
@@ -27,7 +45,7 @@ if [[ ${ACTION} == "-h" ]] || [[ ${ACTION} == "--help" ]]; then
     exit 0
 fi
 
-if ! [[ ${ACTION} =~ ^(status|start|restart|stop|enable|disable|verify)$ ]]; then
+if ! [[ ${ACTION} =~ ^(status|start-bitcoin-services|start|restart|stop|enable|disable|verify)$ ]]; then
     echo "bbb-systemctl.sh: unknown argument."
     echo
     usage
@@ -54,6 +72,56 @@ prometheus-base:          $(systemctl is-active prometheus-base.service)
 prometheus-bitcoind:      $(systemctl is-active prometheus-bitcoind.service)
 grafana:                  $(systemctl is-active grafana-server.service)
 " | grep --color -zP  '(failed|activating|inactive)'
+        ;;
+
+    start-bitcoin-services)
+        checkMockMode
+
+        # use custom error handling
+        set +e
+
+        if ! systemctl is-active -q bitcoind.service; then
+            if ! systemctl start bitcoind.service
+            then
+                errorExit SYSTEMD_SERVICESTART_FAILED
+            fi
+            echo "OK: bitcoind.service started"
+
+        else
+            echo "INFO: bitcoind.service already running"
+        fi
+
+        if ! systemctl is-active -q lightningd.service; then
+            if ! systemctl start lightningd.service
+            then
+                errorExit SYSTEMD_SERVICESTART_FAILED
+            fi
+            echo "OK: lightningd.service started"
+        else
+            echo "INFO: lightningd.service already running"
+        fi
+
+        if ! systemctl is-active -q electrs.service; then
+            if ! systemctl start electrs.service
+            then
+                errorExit SYSTEMD_SERVICESTART_FAILED
+            fi
+            echo "OK: electrs.service started"
+        else
+            echo "INFO: electrs.service already running"
+        fi
+
+        if ! systemctl is-active -q prometheus-bitcoind.service; then
+            if ! systemctl start prometheus-bitcoind.service
+            then
+                errorExit SYSTEMD_SERVICESTART_FAILED
+            fi
+            echo "OK: prometheus-bitcoind.service started"
+        else
+            echo "INFO: prometheus-bitcoind.service already running"
+        fi
+
+        echo "OK: bitcoin-related services started"
         ;;
 
     start|restart|stop|enable|disable)

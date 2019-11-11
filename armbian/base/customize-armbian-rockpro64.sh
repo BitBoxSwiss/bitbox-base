@@ -43,6 +43,8 @@ CONFIGURATION:
     SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
+    BITCOIN SERVICES ENABLED:
+                        ${BASE_ENABLE_BITCOIN_SERVICES}
 
 ================================================================================
 BUILD OPTIONS:
@@ -129,6 +131,7 @@ BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"mainnet"}
 BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
+BASE_ENABLE_BITCOIN_SERVICES=${BASE_ENABLE_BITCOIN_SERVICES:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
 BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
@@ -467,7 +470,6 @@ generateConfig "bitcoin.conf.template" # --> /etc/bitcoin/bitcoin.conf
 chown -R root:bitcoin /etc/bitcoin
 chmod -R u+rw,g+r,g-w,o-rwx /etc/bitcoin
 importFile "/etc/systemd/system/bitcoind.service"
-systemctl enable bitcoind.service
 
 redis-cli SET bitcoind:version "${BITCOIN_VERSION}"
 
@@ -519,7 +521,6 @@ generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
 chown -R root:bitcoin /etc/lightningd
 chmod -R u+rw,g+r,g-w,o-rwx /etc/lightningd
 importFile "/etc/systemd/system/lightningd.service"
-systemctl enable lightningd.service
 
 
 # ELECTRS ----------------------------------------------------------------------
@@ -542,7 +543,6 @@ generateConfig "electrs.conf.template" # --> /etc/electrs/electrs.conf
 chown -R root:bitcoin /etc/electrs
 chmod -R u+rw,g+r,g-w,o-rwx /etc/electrs
 importFile "/etc/systemd/system/electrs.service"
-systemctl enable electrs.service
 
 redis-cli SET electrs:version "${ELECTRS_VERSION}"
 
@@ -746,6 +746,11 @@ fi
 if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
   /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
+
+if [ "${BASE_ENABLE_BITCOIN_SERVICES}" == "true" ]; then
+  /opt/shift/scripts/bbb-config.sh enable bitcoin_services
+fi
+
 
 ## Freeze /rootfs with overlayroot (Ubuntu only)
 if [ "${BASE_OVERLAYROOT}" == "true" ]; then

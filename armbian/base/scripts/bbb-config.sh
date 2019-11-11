@@ -14,7 +14,7 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+  enable    <bitcoin_services|bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
              tor_electrum|overlayroot|sshpwlogin|rootlogin|unsigned_updates>
 
@@ -102,12 +102,35 @@ case "${COMMAND}" in
         fi
 
         case "${SETTING}" in
+            BITCOIN_SERVICES)
+                checkMockMode
+
+                if [[ ${ENABLE} -eq 1 ]]; then
+                    exec_overlayroot all-layers "systemctl enable bitcoind.service"
+                    exec_overlayroot all-layers "systemctl enable lightningd.service"
+                    exec_overlayroot all-layers "systemctl enable electrs.service"
+                    exec_overlayroot all-layers "systemctl enable prometheus-bitcoind.service"
+                else
+                    exec_overlayroot all-layers "systemctl disable bitcoind.service"
+                    exec_overlayroot all-layers "systemctl disable lightningd.service"
+                    exec_overlayroot all-layers "systemctl disable electrs.service"
+                    exec_overlayroot all-layers "systemctl disable prometheus-bitcoind.service"
+                fi
+                echo "Setting bitcoind configuration for 'active initial sync'."
+                redis_set "base:bitcoind-services:enabled" "${ENABLE}"
+                ;;
+
             BITCOIN_INCOMING)
                 checkMockMode
 
                 redis_set "bitcoind:listen" "${ENABLE}"
                 generateConfig "bitcoin.conf.template"
-                systemctl restart bitcoind.service
+
+                # only restart bitcoind if system has been configured with setup routine
+                if [[ "$(redis_get 'base:setup')" -eq 1 ]]; then
+                    echo "INFO: restarting bitcoind"
+                    systemctl restart bitcoind
+                fi
                 ;;
 
             BITCOIN_IBD)
@@ -125,9 +148,12 @@ case "${COMMAND}" in
                     echo "Setting bitcoind configuration for 'fully synced'."
                     bbb-config.sh set bitcoin_dbcache 300
                     redis_set "bitcoind:ibd" "${ENABLE}"
-                    echo "Service 'lightningd' and 'electrs' are being started..."
-                    systemctl start lightningd.service
-                    systemctl start electrs.service
+
+                    if [[ "$(redis_get 'base:setup')" -eq 1 ]]; then
+                        echo "Service 'lightningd' and 'electrs' are being started..."
+                        systemctl start lightningd.service
+                        systemctl start electrs.service
+                    fi
                 fi
                 ;;
 
@@ -145,7 +171,12 @@ case "${COMMAND}" in
                 generateConfig "iptables.rules.template"
                 generateConfig "bitcoin.conf.template"
                 systemctl start iptables-restore
-                systemctl restart bitcoind
+
+                # only restart bitcoind if system has been configured with setup routine
+                if [[ "$(redis_get 'base:setup')" -eq 1 ]]; then
+                    echo "INFO: restarting bitcoind"
+                    systemctl restart bitcoind
+                fi
                 echo "OK: bitcoind:ibd-clearnet set to ${ENABLE}"
                 ;;
 
@@ -232,8 +263,13 @@ case "${COMMAND}" in
                 echo "Restarting services..."
                 systemctl start iptables-restore
                 systemctl restart networking.service
-                systemctl restart bitcoind.service
-                systemctl restart lightningd.service || true        # allowed to fail if bitcoind is in IBD mode
+
+                # only restart bitcoind if system has been configured with setup routine
+                if [[ "$(redis_get 'base:setup')" -eq 1 ]]; then
+                    echo "INFO: restarting bitcoind"
+                    systemctl restart bitcoind.service
+                    systemctl restart lightningd.service || true        # allowed to fail if bitcoind is in IBD mode
+                fi
                 redis_set "tor:base:enabled" "${ENABLE}"
                 updateTorOnions
                 ;;
@@ -400,6 +436,11 @@ case "${COMMAND}" in
                     # check if service restart is necessary
                     if [[ "${DBCACHE_BEFORE}" == "${3}" ]]; then
                         echo "DBCACHE unchanged (${DBCACHE_BEFORE} MB to ${3} MB), no restart of bitcoind required"
+
+                    # only restart bitcoind if system has been configured with setup routine
+                    elif [[ "$(redis_get 'base:setup')" -ne 1 ]]; then
+                        echo "DBCACHE changed (${DBCACHE_BEFORE} MB to ${3} MB), bitcoind not started due to missing setup information"
+
                     else
                         echo "DBCACHE changed (${DBCACHE_BEFORE} MB to ${3} MB), restarting bitcoind"
                         systemctl restart bitcoind.service
