@@ -21,6 +21,7 @@ func TestSystem(t *testing.T) {
 	argumentMap["redisPort"] = "6379"
 	argumentMap["middlewareVersion"] = "0.0.1"
 	argumentMap["middlewarePort"] = "8085"
+	argumentMap["notificationNamedPipePath"] = "/tmp/middleware-notification.pipe"
 
 	environmentInstance := system.NewEnvironment(argumentMap)
 	// TODO: refactor require.Equal() to take (t, <expected>, <actual>). It's currently <actual> <expected>.
@@ -36,6 +37,7 @@ func TestSystem(t *testing.T) {
 	require.Equal(t, "6379", environmentInstance.GetRedisPort())
 	require.Equal(t, "0.0.1", environmentInstance.GetMiddlewareVersion())
 	require.Equal(t, "8085", environmentInstance.GetMiddlewarePort())
+	require.Equal(t, "/tmp/middleware-notification.pipe", environmentInstance.GetNotificationNamedPipePath())
 
 	//test unhappy path
 	argumentMap = make(map[string]string)

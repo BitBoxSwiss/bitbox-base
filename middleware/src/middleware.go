@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -180,7 +181,38 @@ func (middleware *Middleware) Start() <-chan []byte {
 	log.Printf("Current Base image version is %s.\n", middleware.baseVersion.String())
 
 	go middleware.updateCheckLoop()
+
+	notificationReader, err := ipcnotification.NewReader(middleware.environment.GetNotificationNamedPipePath())
+	if err != nil {
+		log.Printf("Error creating new IPC notification reader: %s", err)
+		// TODO: set base system status to ERROR
+	} else {
+		go middleware.ipcNotificationLoop(notificationReader)
+	}
+
 	return middleware.events
+}
+
+// ipcNotificationLoop waits for
+func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader) {
+	const supportedNotificationVersion int = 1
+
+	notifications := reader.Notifications()
+
+	for {
+		notification := <-notifications
+
+		if notification.Version != supportedNotificationVersion {
+			log.Printf("Dropping IPC notification with unsupported version: %s\n", notification.String())
+		}
+
+		switch notification.Topic {
+		case "sampletopic":
+			log.Printf("Received notification with sample topic: %v\n", notification.Payload)
+		default:
+			log.Printf("Dropping IPC notification with unknown topic: %s\n", notification.String())
+		}
+	}
 }
 
 // ResyncBitcoin returns a ErrorResponse struct in response to a rpcserver request

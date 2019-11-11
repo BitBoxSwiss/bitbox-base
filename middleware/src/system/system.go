@@ -3,19 +3,20 @@ package system
 
 // Environment provides some information on the system we are running on.
 type Environment struct {
-	middlewarePort     string
-	Network            string `json:"network"`
-	ElectrsRPCPort     string `json:"electrsRPCPort"`
-	bitcoinRPCUser     string
-	bitcoinRPCPassword string
-	bitcoinRPCPort     string
-	lightningRPCPath   string
-	bbbConfigScript    string
-	bbbCmdScript       string
-	prometheusURL      string
-	redisPort          string
-	middlewareVersion  string
-	imageUpdateInfoURL string
+	middlewarePort            string
+	Network                   string `json:"network"`
+	ElectrsRPCPort            string `json:"electrsRPCPort"`
+	bitcoinRPCUser            string
+	bitcoinRPCPassword        string
+	bitcoinRPCPort            string
+	lightningRPCPath          string
+	bbbConfigScript           string
+	bbbCmdScript              string
+	prometheusURL             string
+	redisPort                 string
+	middlewareVersion         string
+	imageUpdateInfoURL        string
+	notificationNamedPipePath string
 }
 
 // NewEnvironment returns a new Environment instance.
@@ -23,19 +24,20 @@ type Environment struct {
 func NewEnvironment(argumentMap map[string]string) Environment {
 	// TODO(TheCharlatan) Instead of just accepting a long list of arguments, use a map here and check if the arguments can be read from a system config.
 	environment := Environment{
-		middlewarePort:     argumentMap["middlewarePort"],
-		bitcoinRPCUser:     argumentMap["bitcoinRPCUser"],
-		bitcoinRPCPassword: argumentMap["bitcoinRPCPassword"],
-		bitcoinRPCPort:     argumentMap["bitcoinRPCPort"],
-		lightningRPCPath:   argumentMap["lightningRPCPath"],
-		ElectrsRPCPort:     argumentMap["electrsRPCPort"],
-		Network:            argumentMap["network"],
-		bbbConfigScript:    argumentMap["bbbConfigScript"],
-		bbbCmdScript:       argumentMap["bbbCmdScript"],
-		prometheusURL:      argumentMap["prometheusURL"],
-		redisPort:          argumentMap["redisPort"],
-		middlewareVersion:  argumentMap["middlewareVersion"],
-		imageUpdateInfoURL: argumentMap["imageUpdateInfoURL"],
+		middlewarePort:            argumentMap["middlewarePort"],
+		bitcoinRPCUser:            argumentMap["bitcoinRPCUser"],
+		bitcoinRPCPassword:        argumentMap["bitcoinRPCPassword"],
+		bitcoinRPCPort:            argumentMap["bitcoinRPCPort"],
+		lightningRPCPath:          argumentMap["lightningRPCPath"],
+		ElectrsRPCPort:            argumentMap["electrsRPCPort"],
+		Network:                   argumentMap["network"],
+		bbbConfigScript:           argumentMap["bbbConfigScript"],
+		bbbCmdScript:              argumentMap["bbbCmdScript"],
+		prometheusURL:             argumentMap["prometheusURL"],
+		redisPort:                 argumentMap["redisPort"],
+		middlewareVersion:         argumentMap["middlewareVersion"],
+		imageUpdateInfoURL:        argumentMap["imageUpdateInfoURL"],
+		notificationNamedPipePath: argumentMap["notificationNamedPipePath"],
 	}
 	return environment
 }
@@ -93,4 +95,9 @@ func (environment *Environment) GetMiddlewarePort() string {
 // GetImageUpdateInfoURL is a getter for the URL that specifies where the middleware queries the update info.
 func (environment *Environment) GetImageUpdateInfoURL() string {
 	return environment.imageUpdateInfoURL
+}
+
+// GetNotificationNamedPipePath is a getter for the path where the middleware creates and looks for the
+func (environment *Environment) GetNotificationNamedPipePath() string {
+	return environment.notificationNamedPipePath
 }
