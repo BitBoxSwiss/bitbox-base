@@ -7,7 +7,7 @@ After=multi-user.target bitcoind.service
 # Service execution
 ###################
 
-EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
+#EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
 ExecStartPre=/opt/shift/scripts/systemd-bbbmiddleware-startpre.sh
 ExecStart=/usr/local/sbin/bbbmiddleware \
     -datadir=/data/bbbmiddleware
