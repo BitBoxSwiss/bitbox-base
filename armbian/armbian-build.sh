@@ -65,10 +65,19 @@ case ${ACTION} in
 		;;
 
 	ondevice)
-    	# copy custom scripts to filesystem
-    	mkdir -p /opt/shift
-    	cp -aR base/* /opt/shift
-    	chmod -R +x /opt/shift/scripts
+		# copy custom scripts to filesystem
+		mkdir -p /opt/shift
+		cp -aR base/* /opt/shift
+		chmod -R +x /opt/shift/scripts
+
+		# check dependency: Go binaries
+		if [[ -f ../bin/go/bbbmiddleware ]] && [[ -f ../bin/go/bbbconfgen ]] && [[ -f ../bin/go/bbbfancontrol ]] && [[ -f ../bin/go/bbbsupervisor ]]; then
+			mkdir -p /opt/shift/bin/go
+			cp -aR ../bin/go/* /opt/shift/bin/go/
+		else
+			echo "ERR: Go tool dependencies missing, build them first by running 'make docker-build-go' in the repository root (requires Docker)"
+			exit 1
+		fi
 
 		# run customization script
 		base/customize-armbian-rockpro64.sh ondevice

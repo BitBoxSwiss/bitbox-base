@@ -29,7 +29,7 @@ redis_require
 RPCAUTH="$(redis_get 'bitcoind:rpcauth')"
 REFRESH_RPCAUTH="$(redis_get 'bitcoind:refresh-rpcauth')"
 
-if [ ${#RPCAUTH} -lt 90 ] || [ "${REFRESH_RPCAUTH}" -eq 1 ]; then
+if [ ${#RPCAUTH} -lt 90 ] || [ -z "${REFRESH_RPCAUTH}" ] || [ "${REFRESH_RPCAUTH}" -eq 1 ]; then
     echo "INFO: creating new bitcoind rpc credentials"
     echo "INFO: old bitcoind:rpcauth was ${RPCAUTH}"
     echo "INFO: bitcoind:refresh-rpcauth is ${REFRESH_RPCAUTH}"

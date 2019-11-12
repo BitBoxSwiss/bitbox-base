@@ -299,6 +299,7 @@ mkdir -p /data/redis/
 chown -R redis:redis /data/redis/
 
 ### disable standard systemd unit
+systemctl stop redis-server.service || true
 systemctl disable redis-server.service
 systemctl mask redis-server.service
 
@@ -312,6 +313,11 @@ systemctl enable redis.service
 redis-server --daemonize yes --databases 1 --dbfilename bitboxbase.rdb --dir /data/redis/
 
 ## bulk import factory settings / store build info
+if [ ! -f /opt/shift/config/redis/factorysettings.txt ]; then
+  echo "ERR: Redis factory settings not available at /opt/shift/config/redis/factorysettings.txt"
+  exit 1
+fi
+
 < /opt/shift/config/redis/factorysettings.txt sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
 redis-cli SET build:date "$(date +%Y-%m-%d)"
 redis-cli SET build:time "$(date +%H:%M)"
@@ -367,10 +373,13 @@ if [ ! -f /data/ssl/nginx-selfsigned.key ] && [[ "${BASE_BUILDMODE}" == "ondevic
 fi
 
 ## disable Armbian ramlog and limit logsize if overlayroot is enabled
-if [ "$BASE_OVERLAYROOT" == "true" ]; then
-  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
-  sed -i 's/log.hdd/log/g' /etc/logrotate.conf
-  importFile /etc/logrotate.d/rsyslog
+if [[ "$BASE_OVERLAYROOT" == "true" ]]; then
+  # allow missing files if build-ondevice (e.g. not Armbian distro)
+  if [[ -f /etc/default/armbian-ramlog ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+    sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
+    sed -i 's/log.hdd/log/g' /etc/logrotate.conf
+    importFile /etc/logrotate.d/rsyslog
+  fi
 fi
 
 ## retain less NGINX logs
@@ -393,12 +402,18 @@ ln -sfn /mnt/ssd/system/journal /var/log/journal
 importFile "/etc/mender/mender.conf"
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
-sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+if [[ -f /etc/default/armbian-zram-config ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+fi
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 
 ## startup checks
 importFile /etc/systemd/system/startup-checks.service
 systemctl enable startup-checks.service
+
+## startup checks after Redis is available
+importFile /etc/systemd/system/startup-after-redis.service
+systemctl enable startup-after-redis.service
 
 ## update checks
 importFile /etc/systemd/system/update-checks.service
@@ -715,15 +730,17 @@ importFile "/etc/systemd/system/iptables-restore.service"
 
 # FINALIZE ---------------------------------------------------------------------
 
-## Remove build-only packages
-apt -y remove git
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  ## Remove build-only packages
+  apt -y remove git
 
-## Delete unnecessary local files
-rm -rf /usr/share/doc/*
-rm -rf /var/lib/apt/lists/*
-rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
-find /var/log -maxdepth 1 -type f -delete
-locale-gen en_US.UTF-8
+  ## Delete unnecessary local files
+  rm -rf /usr/share/doc/*
+  rm -rf /var/lib/apt/lists/*
+  rm /usr/bin/test_bitcoin /usr/bin/bitcoin-qt /usr/bin/bitcoin-wallet
+  find /var/log -maxdepth 1 -type f -delete
+  locale-gen en_US.UTF-8
+fi
 
 ## Clean up
 apt install -f
@@ -751,6 +768,14 @@ if [ "${BASE_ENABLE_BITCOIN_SERVICES}" == "true" ]; then
   /opt/shift/scripts/bbb-config.sh enable bitcoin_services
 fi
 
+redis-cli save
+set +x
+
+## remove temporary symlink /data --> /data_source, unless building on the device
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
+  rm /data
+  redis-cli shutdown
+fi
 
 ## Freeze /rootfs with overlayroot (Ubuntu only)
 if [ "${BASE_OVERLAYROOT}" == "true" ]; then
@@ -761,14 +786,6 @@ if [ "${BASE_OVERLAYROOT}" == "true" ]; then
   fi
 fi
 
-## remove temporary symlink /data --> /data_source, unless building on the device
-if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
-  rm /data
-fi
-
-redis-cli shutdown save
-
-set +x
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
   echoArguments "Setup script finished. Please reboot device and login as user 'base'."
 else

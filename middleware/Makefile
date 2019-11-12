@@ -25,8 +25,8 @@ build: generate
 	go install $(REPO_ROOT)/middleware/cmd/middleware
 
 aarch64: check-go-env ci
-	GOARCH=arm64 go install $(REPO_ROOT)/middleware/cmd/middleware
-	cp ${GOPATH}/bin/linux_arm64/middleware $(REPO_ROOT)/bin/go/bbbmiddleware
+	GOARCH=arm64 go build $(REPO_ROOT)/middleware/cmd/middleware
+	cp $(REPO_ROOT)/middleware/middleware $(REPO_ROOT)/bin/go/bbbmiddleware
 
 regtest-up:
 	cd $(REPO_ROOT)/middleware/integration_test ;\
