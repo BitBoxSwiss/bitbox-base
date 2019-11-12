@@ -78,6 +78,7 @@ type Middleware interface {
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
 	SetupStatus() rpcmessages.SetupStatusResponse
+	FinalizeSetupWizard() rpcmessages.ErrorResponse
 
 	//Authentication:
 	ValidateToken(token string) error
@@ -468,6 +469,20 @@ func (server *RPCServer) IsBaseUpdateAvailable(args rpcmessages.AuthGenericReque
 
 	*reply = server.middleware.IsBaseUpdateAvailable()
 	log.Printf("IsBaseUpdateAvailable reply: %v\n", reply)
+	return nil
+}
+
+// FinalizeSetupWizard sends an ErrorResponse over RPC
+func (server *RPCServer) FinalizeSetupWizard(args rpcmessages.AuthGenericRequest, reply *rpcmessages.ErrorResponse) error {
+	err := server.middleware.ValidateToken(args.Token)
+	if err != nil {
+		errorResponse := server.formulateJWTError("FinalizeSetupWizard")
+		*reply = errorResponse
+		return nil
+	}
+
+	*reply = server.middleware.FinalizeSetupWizard()
+	log.Printf("FinalizeSetupWizard reply: %v\n", reply)
 	return nil
 }
 

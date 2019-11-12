@@ -103,6 +103,7 @@ func NewTestingRPCServer() TestingRPCServer {
 	)
 	testingRPCServer.middlewareMock.On("UserChangePassword", rpcmessages.UserChangePasswordArgs{}).Return(rpcmessages.ErrorResponse{Success: true})
 	testingRPCServer.middlewareMock.On("IsBaseUpdateAvailable").Return(rpcmessages.IsBaseUpdateAvailableResponse{ErrorResponse: &rpcmessages.ErrorResponse{Success: true}})
+	testingRPCServer.middlewareMock.On("FinalizeSetupWizard").Return(rpcmessages.ErrorResponse{Success: true})
 
 	return testingRPCServer
 }

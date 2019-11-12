@@ -26,6 +26,7 @@ func main() {
 	network := flag.String("network", "testnet", "Indicate wether running bitcoin on testnet or mainnet")
 	bbbConfigScript := flag.String("bbbconfigscript", "/opt/shift/scripts/bbb-config.sh", "Path to the bbb-config file that allows setting system configuration")
 	bbbCmdScript := flag.String("bbbcmdscript", "/opt/shift/scripts/bbb-cmd.sh", "Path to the bbb-cmd file that allows executing system commands")
+	bbbSystemctlScript := flag.String("bbbsystemctlscript", "/opt/shift/scripts/bbb-systemctl.sh", "Path to the bbb-systemctl script that allows starting and stopping services on the Base.")
 	prometheusURL := flag.String("prometheusurl", "http://localhost:9090", "Url of the prometheus server in the form of 'http://localhost:9090'")
 	redisPort := flag.String("redisport", "6379", "Port of the Redis server")
 	redisMock := flag.Bool("redismock", false, "Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock")
@@ -43,6 +44,7 @@ func main() {
 	argumentMap["network"] = *network
 	argumentMap["bbbConfigScript"] = *bbbConfigScript
 	argumentMap["bbbCmdScript"] = *bbbCmdScript
+	argumentMap["bbbSystemctlScript"] = *bbbSystemctlScript
 	argumentMap["prometheusURL"] = *prometheusURL
 	argumentMap["redisPort"] = *redisPort
 	argumentMap["imageUpdateInfoURL"] = *imageUpdateInfoURL

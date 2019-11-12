@@ -18,6 +18,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
+github.com/digitalbitbox/bitbox-base v0.0.0-20191108105913-5886febf0448 h1:SYz/63tAjnlCn6R7xLQPnh/pSPS/8OOQBjZMpHO91DU=
+github.com/digitalbitbox/bitbox-base v0.0.0-20191108135853-bfd65b1b7085 h1:OmhUA9TjUKmmgCvs6eBePhR+EYuSA9p6Ig3TjWbdpUg=
 github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191105084601-e8ae46debc00 h1:bZKI7j0CMv241ff+XKNaiizRDIOdNADPUvZNfl5kO60=
 github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191105084601-e8ae46debc00/go.mod h1:ALZSu5odFrNfKaXguw3aAC6fDFnBfj8zhZKzj2PQy5g=
 github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6 h1:u/UEqS66A5ckRmS4yNpjmVH56sVtS/RfclBAYocb4as=

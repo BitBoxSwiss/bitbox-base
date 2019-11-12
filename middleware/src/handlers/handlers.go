@@ -47,6 +47,7 @@ type Middleware interface {
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
 	SetupStatus() rpcmessages.SetupStatusResponse
+	FinalizeSetupWizard() rpcmessages.ErrorResponse
 	/* --- RPCs end --- */
 
 	ValidateToken(token string) error
