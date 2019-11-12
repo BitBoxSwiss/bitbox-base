@@ -600,7 +600,10 @@ fi
 if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
   cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
   mkdir -p /etc/bbbmiddleware/
-  generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
+
+  # currently, no configuration required, can be added again if needed
+  #generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
+
   chmod -R u+rw,g+r,g-w,o-rwx /etc/bbbmiddleware
   importFile "/etc/systemd/system/bbbmiddleware.service"
   systemctl enable bbbmiddleware.service
