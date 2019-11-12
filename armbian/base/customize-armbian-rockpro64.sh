@@ -771,12 +771,8 @@ fi
 redis-cli save
 set +x
 
-if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
-  ## execute startup-script to generate keys when building on the device
-  /opt/shift/scripts/systemd-startup-checks.sh
-
-else
-  ## remove temporary symlink /data --> /data_source, unless building on the device
+## remove temporary symlink /data --> /data_source, unless building on the device
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
   rm /data
   redis-cli shutdown
 fi
