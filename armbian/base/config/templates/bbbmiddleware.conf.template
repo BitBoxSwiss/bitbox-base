@@ -1,5 +1,0 @@
-{{ #output: /etc/bbbmiddleware/bbbmiddleware.conf }}
-BITCOIN_RPCUSER={{      bitcoind:rpcuser                #default: base }}
-BITCOIN_RPCPASSWORD={{  bitcoind:rpcpassword            #rmLine }}
-BITCOIN_RPCPORT={{      bitcoind:rpcport                #default: 8332 }}
-LIGHTNING_RPCPATH={{    lightningd:lightning-dir        #default: /mnt/ssd/bitcoin/.lightning }}/lightning-rpc

@@ -6,10 +6,6 @@ type Environment struct {
 	middlewarePort            string
 	Network                   string `json:"network"`
 	ElectrsRPCPort            string `json:"electrsRPCPort"`
-	bitcoinRPCUser            string
-	bitcoinRPCPassword        string
-	bitcoinRPCPort            string
-	lightningRPCPath          string
 	bbbConfigScript           string
 	bbbCmdScript              string
 	bbbSystemctlScript        string
@@ -21,15 +17,10 @@ type Environment struct {
 }
 
 // NewEnvironment returns a new Environment instance.
-//func NewEnvironment(bitcoinRPCUser, bitcoinRPCPassword, bitcoinRPCPort, lightningRPCPath, electrsRPCPort, network string) Environment {
 func NewEnvironment(argumentMap map[string]string) Environment {
 	// TODO(TheCharlatan) Instead of just accepting a long list of arguments, use a map here and check if the arguments can be read from a system config.
 	environment := Environment{
 		middlewarePort:            argumentMap["middlewarePort"],
-		bitcoinRPCUser:            argumentMap["bitcoinRPCUser"],
-		bitcoinRPCPassword:        argumentMap["bitcoinRPCPassword"],
-		bitcoinRPCPort:            argumentMap["bitcoinRPCPort"],
-		lightningRPCPath:          argumentMap["lightningRPCPath"],
 		ElectrsRPCPort:            argumentMap["electrsRPCPort"],
 		Network:                   argumentMap["network"],
 		bbbConfigScript:           argumentMap["bbbConfigScript"],
@@ -42,26 +33,6 @@ func NewEnvironment(argumentMap map[string]string) Environment {
 		notificationNamedPipePath: argumentMap["notificationNamedPipePath"],
 	}
 	return environment
-}
-
-// GetBitcoinRPCUser is a getter for bitcoinRPCUser
-func (environment *Environment) GetBitcoinRPCUser() string {
-	return environment.bitcoinRPCUser
-}
-
-// GetBitcoinRPCPassword is a getter for the bitcoinRPCPassword
-func (environment *Environment) GetBitcoinRPCPassword() string {
-	return environment.bitcoinRPCPassword
-}
-
-// GetBitcoinRPCPort is a getter for the bitcoinRPCPort
-func (environment *Environment) GetBitcoinRPCPort() string {
-	return environment.bitcoinRPCPort
-}
-
-// GetLightningRPCPath is a getter for the lightningRPCPath
-func (environment *Environment) GetLightningRPCPath() string {
-	return environment.lightningRPCPath
 }
 
 // GetBBBConfigScript is a getter for the location of the bbb config script

@@ -15,10 +15,6 @@ func getToggleSettingArgs(enabled bool) rpcmessages.ToggleSettingArgs {
 // setupTestMiddleware middleware returns a middleware setup with testing arguments
 func setupTestMiddleware(t *testing.T) *middleware.Middleware {
 	argumentMap := make(map[string]string)
-	argumentMap["bitcoinRPCUser"] = "user"
-	argumentMap["bitcoinRPCPassword"] = "password"
-	argumentMap["bitcoinRPCPort"] = "8332"
-	argumentMap["lightningRPCPath"] = "/home/bitcoin/.lightning"
 	argumentMap["electrsRPCPort"] = "18442"
 	argumentMap["network"] = "testnet"
 
