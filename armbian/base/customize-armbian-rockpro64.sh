@@ -189,13 +189,19 @@ addgroup --system bitcoin
 addgroup --system system
 
 # Set root password (either from configuration or random) and lock account
-BASE_LOGINPW=${BASE_LOGINPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
-echo "root:${BASE_LOGINPW}" | chpasswd
+BASE_LOGINPW_FINAL=${BASE_LOGINPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
+echo "root:${BASE_LOGINPW_FINAL}" | chpasswd
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
 adduser --ingroup system --disabled-password --gecos "" base || true
 usermod -a -G sudo,bitcoin base
-echo "base:${BASE_LOGINPW}" | chpasswd
+echo "base:${BASE_LOGINPW_FINAL}" | chpasswd
+
+# lock user 'root', and user 'base' if no BASE_LOGINPW is provided
+passwd -l root
+if [[ -z "${BASE_LOGINPW}" ]]; then
+  passwd -l base
+fi
 
 # Add trusted SSH keys for login
 mkdir -p /home/base/.ssh/

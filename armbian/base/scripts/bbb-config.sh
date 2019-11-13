@@ -319,6 +319,7 @@ case "${COMMAND}" in
                 fi
                 generateConfig "sshd_config.template"
                 systemctl restart sshd.service
+                exec_overlayroot all-layers "passwd -u root"
                 ;;
 
             SSHPWLOGIN)
@@ -474,6 +475,7 @@ case "${COMMAND}" in
 
                 exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"
                 exec_overlayroot all-layers "echo 'base:${3}' | chpasswd"
+                exec_overlayroot all-layers "passwd -u base"
                 ;;
 
             WIFI_SSID)
