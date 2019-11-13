@@ -1044,6 +1044,12 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
+	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
 	totalDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseTotalDiskspace)
 	if err != nil {
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
@@ -1078,19 +1084,20 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		ErrorResponse: &rpcmessages.ErrorResponse{
 			Success: true,
 		},
-		Status:              "-PLACEHOLDER-", // FIXME: This is a placeholder.
-		Hostname:            hostname,
-		MiddlewareLocalIP:   middlewareIP,
-		MiddlewarePort:      middlewarePort,
-		MiddlewareTorOnion:  middlewareTorOnion,
-		IsTorEnabled:        isTorEnabled,
-		IsBitcoindListening: isBitcoindListening,
-		FreeDiskspace:       freeDiskspace,
-		TotalDiskspace:      totalDiskspace,
-		BaseVersion:         baseVersion,
-		BitcoindVersion:     bitcoindVersion,
-		LightningdVersion:   lightningdVersion,
-		ElectrsVersion:      electrsVersion,
+		Status:                  "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		Hostname:                hostname,
+		MiddlewareLocalIP:       middlewareIP,
+		MiddlewarePort:          middlewarePort,
+		MiddlewareTorOnion:      middlewareTorOnion,
+		IsTorEnabled:            isTorEnabled,
+		IsBitcoindListening:     isBitcoindListening,
+		LightningActiveChannels: lightningActiveChannels,
+		FreeDiskspace:           freeDiskspace,
+		TotalDiskspace:          totalDiskspace,
+		BaseVersion:             baseVersion,
+		BitcoindVersion:         bitcoindVersion,
+		LightningdVersion:       lightningdVersion,
+		ElectrsVersion:          electrsVersion,
 	}
 }
 
