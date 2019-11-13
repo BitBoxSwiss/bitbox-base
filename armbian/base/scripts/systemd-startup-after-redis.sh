@@ -90,7 +90,6 @@ fi
 # update onion addresses in Redis
 updateTorOnions
 
-
 # check if rpcauth credentials exist, or create new ones
 RPCAUTH="$(redis_get 'bitcoind:rpcauth')"
 REFRESH_RPCAUTH="$(redis_get 'bitcoind:refresh-rpcauth')"
@@ -102,4 +101,11 @@ if [ ${#RPCAUTH} -lt 90 ] || [ "${REFRESH_RPCAUTH}" -eq 1 ] || [ "${REFRESH_RPCA
     /opt/shift/scripts/bbb-cmd.sh bitcoind refresh_rpcauth
 else
     echo "INFO: found bitcoind rpc credentials, no action taken"
+fi
+
+# make sure Bitcoin-related services are enabled and started if setup is finished
+if [[ $(redis_get "base:setup") -eq 1 ]] && ! systemctl is-enabled bitcoind.service; then
+    echo "WARN: setup is completed, but Bitcoin-related services are not enabled. Enabling and starting them now..."
+    /opt/shift/scripts/bbb-config.sh enable bitcoin_services
+    /opt/shift/scripts/bbb-systemctl.sh start-bitcoin-services
 fi

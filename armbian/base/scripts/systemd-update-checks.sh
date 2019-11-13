@@ -91,6 +91,10 @@ else
     if [[ $(redis_get "base:updating") -eq 20 ]]; then
         for run in {1..100}; do
             if  /opt/shift/scripts/bbb-systemctl.sh verify; then
+
+                # after running services are verified, enable them
+                /opt/shift/scripts/bbb-config.sh enable bitcoin_services
+
                 redis_set "base:updating" 30
                 break
             fi
