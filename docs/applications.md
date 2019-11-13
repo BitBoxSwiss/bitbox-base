@@ -6,3 +6,5 @@ has_children: true
 permalink: /applications
 ---
 # BitBoxBase: Applications
+
+This section outlines the use and configuration of third-party applications running on the BitBoxBase.

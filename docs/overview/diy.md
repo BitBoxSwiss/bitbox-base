@@ -58,7 +58,7 @@ We assume that running Docker requires `sudo`, therefore `sudo make` is needed. 
   sudo make update
   ```
 
-See [Building the Armbian base image](/os/armbian-build.md) and related pages for more details.
+See [Building the Armbian base image](../os/armbian-build.md) and related pages for more details.
 
 **Create Mender.io update artefacts**
 

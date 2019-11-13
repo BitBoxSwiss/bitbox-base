@@ -59,8 +59,8 @@ Some notes about this specific configuration:
 
 * **Network options**
   * `mainnet`/`testnet`: the build script defaults to building a mainnet node, but can be reconfigured by:
-    * specifying the corresponding build parameter in [`build.conf`](../../armbian/base/build/build.conf)
-    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBoxBase (see [Operating System/Helper Scripts](../os/helper-scripts.md)).
+    * specifying the corresponding build parameter in [`build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf)
+    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBoxBase (see [Operating System/Helper Scripts](../customapps/helper-scripts.md)).
 
 * **Server options**
   * `server`: enables the RPC interface
@@ -90,7 +90,7 @@ Some notes about this specific configuration:
 
 ### Service management
 
-The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `bitcoind.service` shown below. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `bitcoind.service` shown below. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```console
 [Unit]

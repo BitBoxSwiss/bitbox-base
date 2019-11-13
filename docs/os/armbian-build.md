@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Build Armbian
-parent: Operating System
-nav_order: 120
+parent: Operating system
+nav_order: 100
 ---
 ## Building the Armbian base image
 
@@ -41,11 +41,20 @@ In the following instructions, Windows users just replace `make` with `sh .\buil
   cd bitbox-base/armbian
   ```
 
-### Configure build options
+### Initial configuration on build
 
-The build itself and the initial configuration of the Base image (e.g. hostname, Bitcoin network) can be configured within the configuration file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/build.conf).
+The initial system configuration is set on build and can be altered by setting build options in the file [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
 
-To preserve a local configuration, you can copy the file to `build-local.conf`.
+Available options are described directly in the file and are set to default values.
+A few examples of build options you can set:
+
+* `BASE_BITCOIN_NETWORK`: set to `mainnet` or `testnet`
+* `BASE_HOSTNAME`: set it to `alice` and your BitBoxBase will be visible as `alice.local` within your network
+* `BASE_AUTOSETUP_SSD`: set to `true` to automatically initialize the SSD on first boot
+* `BASE_OVERLAYROOT`: set to `true` to make the root filesystem read-only
+* ...and many more.
+
+To preserve a local configuration, you can copy the file to `build-local.conf` in the same directory.
 This file is excluded from Git source control and overwrites options from `build.conf`.
 
 ### Include SSH keys

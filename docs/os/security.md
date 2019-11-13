@@ -1,14 +1,14 @@
 ---
 layout: default
 title: Security considerations
-parent: Operating System
-nav_order: 130
+parent: Operating system
+nav_order: 800
 ---
 ## Security considerations
 
-As a networked device, reachable from any network, the attack surface of the BitBoxBase needs to be minimized as much as possible. This is why we use our open-source [BitBox App](https://github.com/digitalbitbox/bitbox-wallet-app/) as the dedicated user interface for node management. By default, only one port is exposed on the Base to communicate over an end-to-end encrypted channel with the App, providing all functionality.
+As a networked device, reachable from any network, the attack surface of the BitBoxBase needs to be minimized as much as possible. This is why we use our open-source [BitBoxApp](https://github.com/digitalbitbox/bitbox-wallet-app/) as the dedicated user interface for node management. By default, only one port is exposed on the Base to communicate over an end-to-end encrypted channel with the App, providing all functionality.
 
-### Pairing Base with BitBox App
+### Pairing Base with BitBoxApp
 
 The first step is to safely pair the BitBoxBase and App. To achieve this, the Base announces itself on the local network using mDNS and the Middlware exposes provides an API endpoint to initiate a secure connection. The Base is automatically detected by the App and announced within the user interface.
 
@@ -36,7 +36,7 @@ The following components help harden the Base against networking attacks:
 
 A network appliance like the BitBoxBase, built on readily available components, can never be assumed to be safe against an attacker that has physical access to the device. Nonetheless, the device should be safe against casual tampering.
 
-* **Disabled users**: both `root` and `base` users are locked by default, and can only be unlocked using the BitBox App over the secure API after setting a new password.
+* **Disabled users**: both `root` and `base` users are locked by default, and can only be unlocked using the BitBoxApp over the secure API after setting a new password.
 
 * **Disabled USB**: to prevent tampering with a USB keyboard, the USB ports are configured to ignore USB-HID by default.
 

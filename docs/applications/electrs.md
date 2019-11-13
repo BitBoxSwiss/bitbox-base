@@ -7,7 +7,7 @@ nav_order: 120
 ## electrs
 
 electrs is an Electrum Server implementation in Rust, with the project information and source code available on GitHub ([romanz/electrs](https://github.com/romanz/electrs)).
-It uses Bitcoin Core as a data source and builds its own set of indexes to server Bitcoin transaction data to Electrum clients, like our BitBox App.
+It uses Bitcoin Core as a data source and builds its own set of indexes to server Bitcoin transaction data to Electrum clients, like our BitBoxApp.
 
 ### Building from source or pre-compiled binary
 
