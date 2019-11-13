@@ -379,6 +379,12 @@ func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, rep
 // The boolean argument passed is used to for enabling and disabling.
 // It sends the middleware's ErrorResponse over rpc.
 func (server *RPCServer) EnableSSHPasswordLogin(args rpcmessages.ToggleSettingArgs, reply *rpcmessages.ErrorResponse) error {
+	err := server.middleware.ValidateToken(args.Token)
+	if err != nil {
+		*reply = server.formulateJWTError("EnableSSHPasswordLogin")
+		return nil
+	}
+
 	*reply = server.middleware.EnableSSHPasswordLogin(args)
 	log.Printf("sent reply %v: ", reply)
 	return nil
