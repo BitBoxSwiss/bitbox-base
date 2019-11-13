@@ -60,7 +60,7 @@ This file is excluded from Git source control and overwrites options from `build
 ### Include SSH keys
 
 It is recommended to use SSH keys to access the Base image.
-You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/authorized_keys).
+You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/config/ssh/authorized_keys).
 Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/creating-ssh-keys-776639788.html) on how to create your own set of new keys.
 
 ### Compile Armbian from source

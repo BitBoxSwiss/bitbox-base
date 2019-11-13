@@ -72,7 +72,7 @@ providers:
     path: /opt/shift/config/grafana/dashboard
 ```
 
-The dashboard is defined in the JSON file [`grafana_bitbox_base.json`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/config/grafana/dashboard/grafana_bitbox_base.json) in the directory `/opt/shift/config/grafana/dashboard`.
+The dashboard is defined in the JSON file [`grafana_bitbox_base.json`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/rootfs/etc/grafana/dashboards/grafana_bitbox_base.json) in the directory `/opt/shift/config/grafana/dashboard`.
 
 ### Service management
 

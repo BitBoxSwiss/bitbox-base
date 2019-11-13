@@ -60,7 +60,7 @@ Some notes about this specific configuration:
 * **Network options**
   * `mainnet`/`testnet`: the build script defaults to building a mainnet node, but can be reconfigured by:
     * specifying the corresponding build parameter in [`build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf)
-    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBoxBase (see [Operating System/Helper Scripts](../customapps/helper-scripts.md)).
+    * or running the command `bbb-config.sh set bitcoin_network testnet` manually on the BitBoxBase (see [Operating System/Helper Scripts](../customapps/additional-scripts.md)).
 
 * **Server options**
   * `server`: enables the RPC interface

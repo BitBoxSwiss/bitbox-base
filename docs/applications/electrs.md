@@ -17,7 +17,7 @@ This is a temporary solution and we'd like to address that and contribute to a s
 
 ### Configuration
 
-The application configuration is specified in the local `/etc/electrs/electrs.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+The application configuration is specified in the local `/etc/electrs/electrs.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
 NETWORK=testnet
@@ -84,7 +84,7 @@ OPTIONS:
 ### Service management
 
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `electrs.service` shown below.
-Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
 [Unit]
@@ -129,7 +129,7 @@ Some notes about this specific configuration:
 
 ## Starting electrs
 
-The systemd unit executes electrs with the shell script [`systemd-start-electrs.sh`](../../armbian/base/scripts/systemd-start-electrs.sh). This allows the execution of additional commands for preparation and post-processing.
+The systemd unit executes electrs with the shell script [`systemd-electrs-startpre.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-electrs-startpre.sh). This allows the execution of additional commands for preparation and post-processing.
 
 For additional details, please check the inline comments directly in the script.
 

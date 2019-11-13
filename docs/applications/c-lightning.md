@@ -13,11 +13,11 @@ c-lightning is a Lightning Network client / server implementation in C by Blocks
 The c-lightning project does provide official binary releases, but not for the Arm64 platform.
 For production releases, we therefore compile it during the Armbian build directly from source by default.
 As this takes a while, we also provide a [precompiled .deb package](https://github.com/digitalbitbox/bitbox-base-deps) that can be used by the Armbian build process, but this is recommended for development images only.
-Usage of the precompiled image can be enabled in [`build.conf`](../../armbian/base/build/build.conf).
+Usage of the precompiled image can be enabled in [`build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
 
 ### Configuration
 
-The application configuration is specified in the local `/etc/lightningd/lightningd.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+The application configuration is specified in the local `/etc/lightningd/lightningd.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
 bitcoin-cli=/usr/bin/bitcoin-cli
@@ -45,7 +45,7 @@ Additional information can be found in the reference [lightningd.config](https:/
 ### Service management
 
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `lightningd.service` shown below.
-Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](../../armbian/base/build/customize-armbian-rockpro64.sh).
+Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
 [Unit]
@@ -88,7 +88,7 @@ Some notes about this specific configuration:
 
 ## Starting c-lightning
 
-The systemd unit executes c-lightning with the shell script [`systemd-start-lightningd.sh`](../../armbian/base/scripts/systemd-start-lightningd.sh). This allows the execution of additional commands for preparation and post-processing.
+The systemd unit executes c-lightning with the shell script [`systemd-lightningd-startpre.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-lightningd-startpre.sh). This allows the execution of additional commands for preparation and post-processing.
 
 For additional details, please check the inline comments directly in the script.
 
