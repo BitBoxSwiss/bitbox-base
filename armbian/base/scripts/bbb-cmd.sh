@@ -233,6 +233,12 @@ case "${MODULE}" in
                 # ensure mountpoint is available
                 mkdir -p /mnt/backup
 
+                # detect flashdrive if no device is provided
+                if [[ -z "${ARG}" ]]; then
+                    ARG="$(/opt/shift/scripts/bbb-cmd.sh flashdrive check)"
+                    echo "INFO: autodetected device ${ARG}"
+                fi
+
                 # check if ARG is valid flashdrive
                 if ! lsblk "${ARG}" > /dev/null 2>&1; then
                     echo "FLASHDRIVE MOUNT: device ${ARG} not found."
@@ -241,9 +247,6 @@ case "${MODULE}" in
                 elif [ "$(lsblk -o NAME,SIZE,FSTYPE -abrnp -I 8 "${ARG}" | wc -l)" -ne 1 ]; then
                     echo "FLASHDRIVE MOUNT: device ${ARG} is not unique and/or has partitions."
                     errorExit FLASHDRIVE_MOUNT_NOT_UNIQUE
-
-                elif mountpoint /mnt/backup -q; then
-                    echo "FLASHDRIVE MOUNT: mountpoint /mnt/backup is already in use. Assuming prior mount, no error."
 
                 else
                     if mountpoint /mnt/backup -q; then
