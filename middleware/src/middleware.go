@@ -1017,16 +1017,19 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 
 	middlewarePort := middleware.environment.GetMiddlewarePort()
 
-	middlewareTorOnion, err := middleware.redisClient.GetString(redis.MiddlewareOnion)
+	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
 	if err != nil {
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
-	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
-	if err != nil {
-		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	var middlewareTorOnion string
+	if isTorEnabled {
+		middlewareTorOnion, err = middleware.redisClient.GetString(redis.MiddlewareOnion)
+		if err != nil {
+			errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+			return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+		}
 	}
 
 	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
