@@ -1078,9 +1078,8 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		Status:              "-PLACEHOLDER-", // FIXME: This is a placeholder.
 		Hostname:            hostname,
 		MiddlewareLocalIP:   middlewareIP,
-		MiddlewareLocalPort: middlewarePort,
+		MiddlewarePort:      middlewarePort,
 		MiddlewareTorOnion:  middlewareTorOnion,
-		MiddlewareTorPort:   "-PLACEHOLDER-", // FIXME: This is a placeholder.
 		IsTorEnabled:        isTorEnabled,
 		IsBitcoindListening: isBitcoindListening,
 		FreeDiskspace:       freeDiskspace,

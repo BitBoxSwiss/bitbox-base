@@ -133,9 +133,8 @@ type GetBaseInfoResponse struct {
 	Status              string `json:"status"`
 	Hostname            string `json:"hostname"`
 	MiddlewareLocalIP   string `json:"middlewareLocalIP"`
-	MiddlewareLocalPort string `json:"middlewareLocalPort"`
+	MiddlewarePort      string `json:"middlewarePort"`
 	MiddlewareTorOnion  string `json:"middlewareTorOnion"`
-	MiddlewareTorPort   string `json:"middlewareTorPort"`
 	IsTorEnabled        bool   `json:"isTorEnabled"`
 	IsBitcoindListening bool   `json:"isBitcoindListening"`
 	FreeDiskspace       int64  `json:"freeDiskspace"`  // in Byte
