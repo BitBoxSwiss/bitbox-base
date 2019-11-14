@@ -80,8 +80,8 @@ MODULE="${1:-}"
 COMMAND="${2:-}"
 ARG="${3:-}"
 
-MODULE="${MODULE^^}"
-COMMAND="${COMMAND^^}"
+MODULE="$(tr '[:lower:]' '[:upper:]' <<< "${MODULE}")"
+COMMAND="$(tr '[:lower:]' '[:upper:]' <<< "${COMMAND}")"
 
 case "${MODULE}" in
     SETUP)
@@ -474,7 +474,8 @@ case "${MODULE}" in
                 errorExit CMD_SCRIPT_INVALID_ARG
         fi
 
-        if [[ "${ARG^^}" != "--ASSUME-YES" ]]; then
+        ARG="$(tr '[:lower:]' '[:upper:]' <<< "${ARG}")"
+        if [[ "${ARG}" != "--ASSUME-YES" ]]; then
             printf "\nThis will reset the BitBoxBase with command '%s'. Continue?\nType: YES or abort with Ctrl-C\n> " "${COMMAND}"
             read -r ask_confirmation
 

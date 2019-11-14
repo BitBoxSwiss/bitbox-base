@@ -89,8 +89,9 @@ if [[ $MOCKMODE -ne 1 ]] && [[ ${UID} -ne 0 ]]; then
     errorExit SCRIPT_NOT_RUN_AS_SUPERUSER
 fi
 
-COMMAND="${1}"
-SETTING="${2^^}"
+COMMAND="${1:-}"
+SETTING="${2:-}"
+SETTING="$(tr '[:lower:]' '[:upper:]' <<< "${SETTING}")"
 
 # parse COMMAND: enable, disable, get, set
 case "${COMMAND}" in
