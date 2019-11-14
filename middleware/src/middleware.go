@@ -1032,6 +1032,14 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		}
 	}
 
+	var isSSHPasswordLoginEnabled bool
+	isSSHPasswordLoginEnabledSetting, err := middleware.redisClient.GetString(redis.BaseSSHDPasswordLogin)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+	isSSHPasswordLoginEnabled = isSSHPasswordLoginEnabledSetting == "yes"
+
 	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
 	if err != nil {
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
@@ -1084,20 +1092,21 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		ErrorResponse: &rpcmessages.ErrorResponse{
 			Success: true,
 		},
-		Status:                  "-PLACEHOLDER-", // FIXME: This is a placeholder.
-		Hostname:                hostname,
-		MiddlewareLocalIP:       middlewareIP,
-		MiddlewarePort:          middlewarePort,
-		MiddlewareTorOnion:      middlewareTorOnion,
-		IsTorEnabled:            isTorEnabled,
-		IsBitcoindListening:     isBitcoindListening,
-		LightningActiveChannels: lightningActiveChannels,
-		FreeDiskspace:           freeDiskspace,
-		TotalDiskspace:          totalDiskspace,
-		BaseVersion:             baseVersion,
-		BitcoindVersion:         bitcoindVersion,
-		LightningdVersion:       lightningdVersion,
-		ElectrsVersion:          electrsVersion,
+		Status:                    "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		Hostname:                  hostname,
+		MiddlewareLocalIP:         middlewareIP,
+		MiddlewarePort:            middlewarePort,
+		MiddlewareTorOnion:        middlewareTorOnion,
+		IsTorEnabled:              isTorEnabled,
+		IsBitcoindListening:       isBitcoindListening,
+		LightningActiveChannels:   lightningActiveChannels,
+		IsSSHPasswordLoginEnabled: isSSHPasswordLoginEnabled,
+		FreeDiskspace:             freeDiskspace,
+		TotalDiskspace:            totalDiskspace,
+		BaseVersion:               baseVersion,
+		BitcoindVersion:           bitcoindVersion,
+		LightningdVersion:         lightningdVersion,
+		ElectrsVersion:            electrsVersion,
 	}
 }
 
