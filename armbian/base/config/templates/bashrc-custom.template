@@ -12,9 +12,9 @@ alias lcli='lightning-cli --lightning-dir={{ lightningd:lightning-dir }}'
 alias llog='sudo journalctl -f -u lightningd'
 
 # Logs
-alias j='sudo journalctl -n 100 -f'
-alias elog='sudo journalctl -n 100 -f -u electrs'
-alias slog='sudo journalctl -n 100 -f -u bbbsupervisor'
-alias mlog='sudo journalctl -n 100 -f -u bbbmiddleware'
+alias j='sudo journalctl -b -n 100 -f'
+alias elog='sudo journalctl -b -n 100 -f -u electrs'
+alias slog='sudo journalctl -b -n 100 -f -u bbbsupervisor'
+alias mlog='sudo journalctl -b -n 100 -f -u bbbmiddleware'
 
 export PATH=$PATH:/sbin:/usr/local/sbin
