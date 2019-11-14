@@ -399,7 +399,8 @@ rm -rf /var/log/journal
 ln -sfn /mnt/ssd/system/journal /var/log/journal
 
 ## configure mender artifact verification key
-importFile "/etc/mender/mender.conf"
+mkdir -p /etc/mender
+generateConfig mender.conf.template # -->  /etc/mender/mender.conf
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 if [[ -f /etc/default/armbian-zram-config ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then

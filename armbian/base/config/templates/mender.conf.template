@@ -1,6 +1,6 @@
 {{ #output: /etc/mender/mender.conf }}
 {
-  "ArtifactVerifyKey": "/opt/shift/config/signatures/artifact-verify-key-DEV.pem",    {{ base:update:allow-unsigned #rmLineTrue }}
+  "ArtifactVerifyKey": "/opt/shift/config/signatures/artifact-verify-key-20191114.pem",    {{ base:update:allow-unsigned #rmLineTrue }}
   "RootfsPartA": "/dev/mmcblk1p2",
   "RootfsPartB": "/dev/mmcblk1p3"
 }
