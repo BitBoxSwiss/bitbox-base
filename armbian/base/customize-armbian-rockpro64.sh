@@ -756,29 +756,29 @@ systemctl enable systemd-timesyncd.service
 systemctl enable iptables-restore.service
 
 ## Set to testnet if configured
-if [ "${BASE_BITCOIN_NETWORK}" == "testnet" ]; then
+if [[ "${BASE_BITCOIN_NETWORK}" == "testnet" ]]; then
   /opt/shift/scripts/bbb-config.sh set bitcoin_network testnet
 fi
 
-if [ "${BASE_AUTOSETUP_SSD}" == "true" ]; then
+if [[ "${BASE_AUTOSETUP_SSD}" == "true" ]]; then
   /opt/shift/scripts/bbb-config.sh enable autosetup_ssd
 fi
 
-if [ "${BASE_ENABLE_BITCOIN_SERVICES}" == "true" ]; then
+if [[ "${BASE_ENABLE_BITCOIN_SERVICES}" == "true" ]]; then
   /opt/shift/scripts/bbb-config.sh enable bitcoin_services
 fi
 
 redis-cli save
 set +x
 
-## remove temporary symlink /data --> /data_source, unless building on the device
-if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
-  rm /data
+## remove temporary symlink /data --> /data_source, unless building on the device without overlayroot
+if [[ "${BASE_BUILDMODE}" != "ondevice" ]] || [[ "${BASE_OVERLAYROOT}" == "true" ]]; then
   redis-cli shutdown
+  rm /data
 fi
 
 ## Freeze /rootfs with overlayroot (Ubuntu only)
-if [ "${BASE_OVERLAYROOT}" == "true" ]; then
+if [[ "${BASE_OVERLAYROOT}" == "true" ]]; then
   if [ "${BASE_DISTRIBUTION}" == "bionic" ]; then
     echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
   else
