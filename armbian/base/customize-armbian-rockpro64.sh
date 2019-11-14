@@ -134,6 +134,7 @@ BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_ENABLE_BITCOIN_SERVICES=${BASE_ENABLE_BITCOIN_SERVICES:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
+BASE_ADD_SSH_KEYS=${BASE_ADD_SSH_KEYS:-"false"}
 BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
@@ -205,10 +206,10 @@ fi
 
 # Add trusted SSH keys for login
 mkdir -p /home/base/.ssh/
-if [ -f /opt/shift/config/ssh/authorized_keys ]; then
+if [[ "${BASE_ADD_SSH_KEYS}" == "true" ]] && [ -f /opt/shift/config/ssh/authorized_keys ]; then
   cp /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
 else
-  echo "No SSH keys file found (base/authorized_keys), password login only."
+  echo "Option BASE_ADD_SSH_KEYS not set to 'true' or no SSH keys file found (base/authorized_keys): password login only."
 fi
 chown -R base:bitcoin /home/base/
 chmod -R u+rw,g-rwx,o-rwx /home/base/.ssh

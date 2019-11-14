@@ -314,12 +314,13 @@ case "${COMMAND}" in
 
                 if [[ ${ENABLE} -eq 1 ]]; then
                     redis_set "base:sshd:rootlogin" "yes"
+                    exec_overlayroot all-layers "passwd -u root"
                 else
                     redis_set "base:sshd:rootlogin" "no"
+                    exec_overlayroot all-layers "passwd -l root"
                 fi
                 generateConfig "sshd_config.template"
                 systemctl restart sshd.service
-                exec_overlayroot all-layers "passwd -u root"
                 ;;
 
             SSHPWLOGIN)
