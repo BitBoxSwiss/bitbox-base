@@ -17,4 +17,5 @@ const (
 	BaseTotalDiskspace          BasePrometheusQuery = "node_filesystem_size_bytes{fstype=\"ext4\", mountpoint=\"/mnt/ssd\"}"
 	LightningBlocks             BasePrometheusQuery = "lightning_node_blockheight"
 	ElectrsBlocks               BasePrometheusQuery = "electrs_index_height"
+	LightningActiveChannels     BasePrometheusQuery = "sum(lightning_peer_channels) or vector(0)"
 )

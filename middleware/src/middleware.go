@@ -1017,17 +1017,28 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 
 	middlewarePort := middleware.environment.GetMiddlewarePort()
 
-	middlewareTorOnion, err := middleware.redisClient.GetString(redis.MiddlewareOnion)
-	if err != nil {
-		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
-	}
-
 	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
 	if err != nil {
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
+
+	var middlewareTorOnion string
+	if isTorEnabled {
+		middlewareTorOnion, err = middleware.redisClient.GetString(redis.MiddlewareOnion)
+		if err != nil {
+			errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+			return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+		}
+	}
+
+	var isSSHPasswordLoginEnabled bool
+	isSSHPasswordLoginEnabledSetting, err := middleware.redisClient.GetString(redis.BaseSSHDPasswordLogin)
+	if err != nil {
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+	isSSHPasswordLoginEnabled = isSSHPasswordLoginEnabledSetting == "yes"
 
 	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
 	if err != nil {
@@ -1036,6 +1047,12 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 	}
 
 	freeDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseFreeDiskspace)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
+	}
+
+	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
 	if err != nil {
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
@@ -1075,20 +1092,21 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		ErrorResponse: &rpcmessages.ErrorResponse{
 			Success: true,
 		},
-		Status:              "-PLACEHOLDER-", // FIXME: This is a placeholder.
-		Hostname:            hostname,
-		MiddlewareLocalIP:   middlewareIP,
-		MiddlewareLocalPort: middlewarePort,
-		MiddlewareTorOnion:  middlewareTorOnion,
-		MiddlewareTorPort:   "-PLACEHOLDER-", // FIXME: This is a placeholder.
-		IsTorEnabled:        isTorEnabled,
-		IsBitcoindListening: isBitcoindListening,
-		FreeDiskspace:       freeDiskspace,
-		TotalDiskspace:      totalDiskspace,
-		BaseVersion:         baseVersion,
-		BitcoindVersion:     bitcoindVersion,
-		LightningdVersion:   lightningdVersion,
-		ElectrsVersion:      electrsVersion,
+		Status:                    "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		Hostname:                  hostname,
+		MiddlewareLocalIP:         middlewareIP,
+		MiddlewarePort:            middlewarePort,
+		MiddlewareTorOnion:        middlewareTorOnion,
+		IsTorEnabled:              isTorEnabled,
+		IsBitcoindListening:       isBitcoindListening,
+		LightningActiveChannels:   lightningActiveChannels,
+		IsSSHPasswordLoginEnabled: isSSHPasswordLoginEnabled,
+		FreeDiskspace:             freeDiskspace,
+		TotalDiskspace:            totalDiskspace,
+		BaseVersion:               baseVersion,
+		BitcoindVersion:           bitcoindVersion,
+		LightningdVersion:         lightningdVersion,
+		ElectrsVersion:            electrsVersion,
 	}
 }
 

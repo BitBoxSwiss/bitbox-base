@@ -18,4 +18,5 @@ const (
 	MiddlewarePasswordSet BaseRedisKey = "middleware:passwordSetup"
 	MiddlewareAuth        BaseRedisKey = "middleware:auth"
 	BaseSetupDone         BaseRedisKey = "base:setup"
+	BaseSSHDPasswordLogin BaseRedisKey = "base:sshd:passwordlogin"
 )
