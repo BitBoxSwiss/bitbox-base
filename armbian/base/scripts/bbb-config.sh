@@ -118,7 +118,8 @@ case "${COMMAND}" in
                     exec_overlayroot all-layers "systemctl disable prometheus-bitcoind.service"
                 fi
                 echo "Setting bitcoind configuration for 'active initial sync'."
-                redis_set "base:bitcoind-services:enabled" "${ENABLE}"
+                redis_set "base:setup" "${ENABLE}"
+
                 ;;
 
             BITCOIN_INCOMING)
