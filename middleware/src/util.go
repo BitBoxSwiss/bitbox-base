@@ -206,14 +206,12 @@ func (middleware *Middleware) didServiceInfoChange() (changed bool) {
 func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoResponse {
 	bitcoindBlocks, err := middleware.prometheusClient.GetInt(prometheus.BitcoinBlockCount)
 	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+		bitcoindBlocks = 0
 	}
 
 	bitcoindHeaders, err := middleware.prometheusClient.GetInt(prometheus.BitcoinHeaderCount)
 	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+		bitcoindHeaders = 0
 	}
 
 	bitcoindVerificationProgress, err := middleware.prometheusClient.GetFloat(prometheus.BitcoinVerificationProgress)
@@ -237,20 +235,17 @@ func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoRespons
 
 	lightningdBlocks, err := middleware.prometheusClient.GetInt(prometheus.LightningBlocks)
 	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+		lightningdBlocks = 0
 	}
 
 	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
 	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+		lightningActiveChannels = 0
 	}
 
 	electrsBlocks, err := middleware.prometheusClient.GetInt(prometheus.ElectrsBlocks)
 	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+		electrsBlocks = 0
 	}
 
 	return rpcmessages.GetServiceInfoResponse{
