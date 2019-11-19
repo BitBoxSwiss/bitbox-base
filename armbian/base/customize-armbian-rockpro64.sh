@@ -134,6 +134,7 @@ BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
 BASE_ENABLE_BITCOIN_SERVICES=${BASE_ENABLE_BITCOIN_SERVICES:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
+BASE_ADD_SSH_KEYS=${BASE_ADD_SSH_KEYS:-"false"}
 BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
@@ -189,20 +190,26 @@ addgroup --system bitcoin
 addgroup --system system
 
 # Set root password (either from configuration or random) and lock account
-BASE_LOGINPW=${BASE_LOGINPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
-echo "root:${BASE_LOGINPW}" | chpasswd
+BASE_LOGINPW_FINAL=${BASE_LOGINPW:-$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)}
+echo "root:${BASE_LOGINPW_FINAL}" | chpasswd
 
 # create user 'base' (--gecos "" is used to prevent interactive prompting for user information)
 adduser --ingroup system --disabled-password --gecos "" base || true
 usermod -a -G sudo,bitcoin base
-echo "base:${BASE_LOGINPW}" | chpasswd
+echo "base:${BASE_LOGINPW_FINAL}" | chpasswd
+
+# lock user 'root', and user 'base' if no BASE_LOGINPW is provided
+passwd -l root
+if [[ -z "${BASE_LOGINPW}" ]]; then
+  passwd -l base
+fi
 
 # Add trusted SSH keys for login
 mkdir -p /home/base/.ssh/
-if [ -f /opt/shift/config/ssh/authorized_keys ]; then
+if [[ "${BASE_ADD_SSH_KEYS}" == "true" ]] && [ -f /opt/shift/config/ssh/authorized_keys ]; then
   cp /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
 else
-  echo "No SSH keys file found (base/authorized_keys), password login only."
+  echo "Option BASE_ADD_SSH_KEYS not set to 'true' or no SSH keys file found (base/authorized_keys): password login only."
 fi
 chown -R base:bitcoin /home/base/
 chmod -R u+rw,g-rwx,o-rwx /home/base/.ssh

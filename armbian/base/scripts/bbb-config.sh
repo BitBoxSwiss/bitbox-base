@@ -316,8 +316,10 @@ case "${COMMAND}" in
 
                 if [[ ${ENABLE} -eq 1 ]]; then
                     redis_set "base:sshd:rootlogin" "yes"
+                    exec_overlayroot all-layers "passwd -u root"
                 else
                     redis_set "base:sshd:rootlogin" "no"
+                    exec_overlayroot all-layers "passwd -l root"
                 fi
                 generateConfig "sshd_config.template"
                 systemctl restart sshd.service
@@ -476,6 +478,7 @@ case "${COMMAND}" in
 
                 exec_overlayroot all-layers "echo 'root:${3}' | chpasswd"
                 exec_overlayroot all-layers "echo 'base:${3}' | chpasswd"
+                exec_overlayroot all-layers "passwd -u base"
                 ;;
 
             WIFI_SSID)
