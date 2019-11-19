@@ -75,8 +75,7 @@ case ${ACTION} in
 			mkdir -p /opt/shift/bin/go
 			cp -aR ../bin/go/* /opt/shift/bin/go/
 		else
-			echo "ERR: Go tool dependencies missing, build them first by running 'make docker-build-go' in the repository root (requires Docker)"
-			exit 1
+			echo "INFO: binary Go dependencies missing, either build them first, otherwise they are downloading from GitHub"
 		fi
 
 		# run customization script

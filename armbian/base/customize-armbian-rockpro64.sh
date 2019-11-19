@@ -28,10 +28,37 @@
 
 set -e
 
+# ------------------------------------------------------------------------------
+# CONFIG
+# ------------------------------------------------------------------------------
+
+BITCOIN_VERSION="0.18.1"
+LIGHTNING_VERSION="0.7.3"
+ELECTRS_VERSION="0.7.0"
+BIN_DEPS_TAG='0.0.5'
+
+PROMETHEUS_VERSION="2.11.1"
+PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
+NODE_EXPORTER_VERSION="0.18.1"
+NODE_EXPORTER_CHKSUM="d5a28c46e74f45b9f2158f793a6064fd9fe8fd8da6e0d1e548835ceb7beb1982"
+GRAFANA_VERSION="6.1.4"
+
+# ------------------------------------------------------------------------------
+
 echoArguments() {
   echo "
 ================================================================================
 ==> $1
+================================================================================
+VERSIONS:
+    BASE IMAGE          ${BASE_VERSION}
+    BINARY DEPS         ${BIN_DEPS_TAG}
+    BITCOIN             ${BITCOIN_VERSION}
+    LIGHTNING           ${LIGHTNING_VERSION}
+    ELECTRS             ${ELECTRS_VERSION}
+    PROMETHEUS          ${PROMETHEUS_VERSION}
+    GRAFANA             ${GRAFANA_VERSION}
+
 ================================================================================
 CONFIGURATION:
     USER / PASSWORD:    base / ${BASE_LOGINPW}
@@ -52,7 +79,6 @@ BUILD OPTIONS:
     LINUX DISTRIBUTION: ${BASE_DISTRIBUTION}
     MINIMAL IMAGE:      ${BASE_MINIMAL}
     OVERLAYROOT:        ${BASE_OVERLAYROOT}
-    BUILD LIGHTNINGD:   ${BASE_BUILD_LIGHTNINGD}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
 ================================================================================
 "
@@ -124,7 +150,7 @@ BASE_DISTRIBUTION=${VERSION_CODENAME}
 source /opt/shift/build.conf || true
 # shellcheck disable=SC1091
 source /opt/shift/build-local.conf || true
-
+BASE_VERSION=$(head -n1 /opt/shift/config/version)
 BASE_BUILDMODE=${1:-"armbian-build"}
 BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 BASE_MINIMAL=${BASE_MINIMAL:-"true"}
@@ -139,7 +165,6 @@ BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
 BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
 BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
 BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"false"}
-BASE_BUILD_LIGHTNINGD=${BASE_BUILD_LIGHTNINGD:-"true"}
 BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
 
 # HDMI dashboard only enabled if image is built to support it
@@ -151,13 +176,6 @@ BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
-  exit 1
-fi
-
-# configuration checks
-if [[ "${BASE_DISTRIBUTION}" =~ ^(bionic|buster)$ ]] && [[ "${BASE_BUILD_LIGHTNINGD}" != "true" ]]; then
-  echo "ERR: precomplied binaries for c-lightning are not compatible with Debian Buster or Ubuntu Bionic at the moment,"
-  echo "     please use the option BASE_BUILD_LIGHTNINGD='true' in build.conf"
   exit 1
 fi
 
@@ -288,6 +306,14 @@ if [[ "${BASE_DISTRIBUTION}" == "bionic" ]]; then
     apt install -y --no-install-recommends overlayroot
 fi
 
+# binariy Go dependencies, if not already present
+if [[ ! -d /opt/shift/bin/go ]]; then
+  mkdir -p /opt/shift/bin/go
+  cd /opt/shift/bin/go
+  curl --retry 5 -SLO "https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/bbb-binaries.tar.gz"
+  #TODO(Stadicus): add PGP signed checksum check
+  tar -xzf bbb-binaries.tar.gz
+fi
 
 # REDIS & CONFIGURATION MGMT ---------------------------------------------------
 
@@ -326,6 +352,7 @@ if [ ! -f /opt/shift/config/redis/factorysettings.txt ]; then
 fi
 
 < /opt/shift/config/redis/factorysettings.txt sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
+redis-cli SET base:version "${BASE_VERSION}"
 redis-cli SET build:date "$(date +%Y-%m-%d)"
 redis-cli SET build:time "$(date +%H:%M)"
 redis-cli SET build:commit "$(cat /opt/shift/config/latest_commit)"
@@ -333,20 +360,7 @@ redis-cli KEYS "*"
 
 ## bbbconfgen
 ## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbconfgen
-if [ -f /opt/shift/bin/go/bbbconfgen ]; then
-  cp /opt/shift/bin/go/bbbconfgen /usr/local/sbin/
-else
-  echo "INFO: bbbconfgen not found, executable is downloaded from GitHub."
-  mkdir -p /usr/local/src/bbbconfgen && cd "$_"
-  curl --retry 5 -SLO "https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/bbbconfgen.tar.gz"
-  #TODO(Stadicus): add checksum once releases are stable
-  # if ! echo "xxxxx  bbbconfgen.tar.gz" | sha256sum -c -; then
-  #   echo "sha256sum for precompiled 'bbbconfgen' failed" >&2
-  #   exit 1
-  # fi
-  tar -xzf bbbconfgen.tar.gz
-  cp ./bbbconfgen /usr/local/sbin/
-fi
+cp /opt/shift/bin/go/bbbconfgen /usr/local/sbin/
 
 
 # SYSTEM CONFIGURATION ---------------------------------------------------------
@@ -474,8 +488,6 @@ usermod -a -G debian-tor bitcoin
 
 
 # BITCOIN ----------------------------------------------------------------------
-BITCOIN_VERSION="0.18.1"
-
 mkdir -p /usr/local/src/bitcoin
 cd /usr/local/src/bitcoin/
 curl --retry 5 -SLO "https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc"
@@ -498,46 +510,21 @@ redis-cli SET bitcoind:version "${BITCOIN_VERSION}"
 
 
 # LIGHTNING --------------------------------------------------------------------
-BIN_DEPS_TAG="v0.0.1-alpha"
-LIGHTNING_VERSION_BUILD="0.7.3"
-LIGHTNING_VERSION_BIN="0.7.0"
+apt install -y  libsodium-dev autoconf automake build-essential git libtool libgmp-dev \
+                libsqlite3-dev python python3 python3-mako net-tools \
+                zlib1g-dev asciidoc-base gettext
 
-apt install -y libsodium-dev
+rm -rf /usr/local/src/lightning
 
-## either compile c-lightning from source (default), or use prebuilt binary
-if [ "${BASE_BUILD_LIGHTNINGD}" == "true" ]; then
-  apt install -y  autoconf automake build-essential git libtool libgmp-dev \
-                  libsqlite3-dev python python3 python3-mako net-tools \
-                  zlib1g-dev asciidoc-base gettext
+cd /usr/local/src/
+git clone https://github.com/ElementsProject/lightning.git
+cd lightning
+git checkout v${LIGHTNING_VERSION}
+./configure
+make -j 4
+make install
 
-  rm -rf /usr/local/src/lightning
-
-  cd /usr/local/src/
-  git clone https://github.com/ElementsProject/lightning.git
-  cd lightning
-  git checkout v${LIGHTNING_VERSION_BUILD}
-  ./configure
-  make -j 4
-  make install
-
-  redis-cli SET lightningd:version "${LIGHTNING_VERSION_BUILD}"
-
-else
-  cd /usr/local/src/
-  ## temporary storage of 'lightningd' until official arm64 binaries work with stable Armbian release
-  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/lightningd_${LIGHTNING_VERSION_BIN}-1_arm64.deb
-  if ! echo "52be094f8162749acb207bf9ad08125d25288a9d03eb25690f364ba42fcff3c4  lightningd_0.7.0-1_arm64.deb" | sha256sum -c -; then
-    echo "sha256sum for precompiled 'lightningd' failed" >&2
-    exit 1
-  fi
-  dpkg -i lightningd_${LIGHTNING_VERSION_BIN}-1_arm64.deb
-
-  ## symlink is needed, as the direct compilation (default) installs into /usr/local/bin, while this package uses '/usr/bin'
-  ln -sf /usr/bin/lightningd /usr/local/bin/lightningd
-
-  redis-cli SET lightningd:version "${LIGHTNING_VERSION_BIN}"
-
-fi
+redis-cli SET lightningd:version "${LIGHTNING_VERSION}"
 
 mkdir -p /etc/lightningd/
 generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
@@ -547,9 +534,6 @@ importFile "/etc/systemd/system/lightningd.service"
 
 
 # ELECTRS ----------------------------------------------------------------------
-BIN_DEPS_TAG="v0.0.2-alpha"
-ELECTRS_VERSION="0.7.0"
-
 mkdir -p /usr/local/src/electrs/
 cd /usr/local/src/electrs/
 ## temporary storage of 'electrs' until official binary releases are available
@@ -571,56 +555,30 @@ redis-cli SET electrs:version "${ELECTRS_VERSION}"
 
 
 # TOOLS & MIDDLEWARE -------------------------------------------------------------------
-BIN_DEPS_TAG="v0.0.2-alpha"
 
 ## bbbfancontrol
 ## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbfancontrol
-if [ -f /opt/shift/bin/go/bbbfancontrol ]; then
-  cp /opt/shift/bin/go/bbbfancontrol /usr/local/sbin/
-else
-  echo "INFO: bbbfancontrol not found, executable is downloaded from GitHub."
-  mkdir -p /usr/local/src/bbbfancontrol && cd "$_"
-  curl --retry 5 -SLO https://github.com/digitalbitbox/bitbox-base-deps/releases/download/${BIN_DEPS_TAG}/bbbfancontrol.tar.gz
-  #TODO(Stadicus): add checksum once releases are stable
-  # if ! echo "xxxxx  bbbfancontrol.tar.gz" | sha256sum -c -; then
-  #   echo "sha256sum for precompiled 'bbbfancontrol' failed" >&2
-  #   exit 1
-  # fi
-  tar -xzf bbbfancontrol.tar.gz
-  cp ./bbbfancontrol /usr/local/sbin/
-fi
+cp /opt/shift/bin/go/bbbfancontrol /usr/local/sbin/
 importFile "/etc/systemd/system/bbbfancontrol.service"
 systemctl enable bbbfancontrol.service
 
 ## bbbsupervisor
 ## see https://github.com/digitalbitbox/bitbox-base/tree/master/tools/bbbsupervisor
-if [ -f /opt/shift/bin/go/bbbsupervisor ]; then
-  cp /opt/shift/bin/go/bbbsupervisor /usr/local/sbin/
-  importFile "/etc/systemd/system/bbbsupervisor.service"
-  systemctl enable bbbsupervisor.service
-else
-  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
-  echo "WARN: bbbsupervisor not found."
-fi
+cp /opt/shift/bin/go/bbbsupervisor /usr/local/sbin/
+importFile "/etc/systemd/system/bbbsupervisor.service"
+systemctl enable bbbsupervisor.service
 
 ## bbbmiddleware
 ## see https://github.com/digitalbitbox/bitbox-base/tree/master/middleware
-if [ -f /opt/shift/bin/go/bbbmiddleware ]; then
-  cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
-  mkdir -p /etc/bbbmiddleware/
-  generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
-  chmod -R u+rw,g+r,g-w,o-rwx /etc/bbbmiddleware
-  importFile "/etc/systemd/system/bbbmiddleware.service"
-  systemctl enable bbbmiddleware.service
-else
-  #TODO(Stadicus): for ondevice build, retrieve binary from GitHub release
-  echo "WARN: bbbmiddleware not found."
-fi
+cp /opt/shift/bin/go/bbbmiddleware /usr/local/sbin/
+mkdir -p /etc/bbbmiddleware/
+generateConfig "bbbmiddleware.conf.template" # --> /etc/bbbmiddleware/bbbmiddleware.conf
+chmod -R u+rw,g+r,g-w,o-rwx /etc/bbbmiddleware
+importFile "/etc/systemd/system/bbbmiddleware.service"
+systemctl enable bbbmiddleware.service
 
 
 # PROMETHEUS -------------------------------------------------------------------
-PROMETHEUS_VERSION="2.11.1"
-PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
 
 ## Prometheus
 mkdir -p /usr/local/src/prometheus && cd "$_"
@@ -638,9 +596,6 @@ importFile "/etc/systemd/system/prometheus.service"
 systemctl enable prometheus.service
 
 ## Prometheus Node Exporter
-NODE_EXPORTER_VERSION="0.18.1"
-NODE_EXPORTER_CHKSUM="d5a28c46e74f45b9f2158f793a6064fd9fe8fd8da6e0d1e548835ceb7beb1982"
-
 curl --retry 5 -SLO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
 if ! echo "${NODE_EXPORTER_CHKSUM}  node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz" | sha256sum -c -; then exit 1; fi
 tar --strip-components 1 -xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-arm64.tar.gz
@@ -665,8 +620,6 @@ chmod +x prometheus-lightningd.py
 
 
 # GRAFANA ----------------------------------------------------------------------
-GRAFANA_VERSION="6.1.4"
-
 mkdir -p /usr/local/src/grafana && cd "$_"
 curl --retry 5 -SLO https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_arm64.deb
 if ! echo "47ffae49ee6412b4b04e2b1ac155cab3467c3c0fd437000b1c8948ed7046d331  grafana_6.1.4_arm64.deb" | sha256sum -c -; then exit 1; fi
