@@ -28,7 +28,7 @@ usage: bbb-config.sh [--version] [--help]
 assumes Redis database running to be used with 'redis-cli'
 
 possible commands:
-  enable    <bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
+  enable    <bitcoin_services|bitcoin_incoming|bitcoin_ibd|bitcoin_ibd_clearnet|dashboard_hdmi|
              dashboard_web|wifi|autosetup_ssd|tor|tor_bbbmiddleware|tor_ssh|
              tor_electrum|overlayroot|sshpwlogin|rootlogin|unsigned_updates>
 
@@ -50,11 +50,11 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 
 possible commands:
   setup         <datadir>
-  base          <restart|shutdown>
   bitcoind      <reindex|resync|refresh_rpcauth>
   flashdrive    <check|mount|umount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
+  reset         <auth|config|image|ssd>
   mender-update <install|commit>
 ```
 
@@ -101,3 +101,5 @@ If `bbbconfgen` is run from the commandline and overlay root filesystem is enabl
 Ultimately, the configuration is managed by the user through the BitBoxApp, that talks to the Middleware which in turn calls either the `bbb-config.sh` or `bbb-cmd.sh` script with the necessary arguments.
 
 The App provides a convenient backup feature to save the whole system configuration directly to a USB stick plugged into the Base.
+
+See the section [User Interface](../ui) for more details.

@@ -6,23 +6,30 @@ nav_order: 160
 ---
 ## Releases
 
-The BitBoxBase releases are tagged frequently on GitHub so that specific versions can be built from source. They are also released as binary files on the [GitHub Releases](https://github.com/digitalbitbox/bitbox-base/releases/) page.
+The BitBoxBase releases are tagged frequently on GitHub so that specific versions can be built from source.
+They are also released as binary files on the [GitHub Releases](https://github.com/digitalbitbox/bitbox-base/releases/) page.
 
 ### Image types
 
-Releases come in two flaviours:
+Releases come in two flavors:
 
-* Over-the-air (OTA) update: the BitBoxApp will notify you if a new update is available. If you choose to install it, the BitBoxBase automatically downloads a signed update artefact (`.base`) and applies the update as explained in [Updates / Process](../update/update-process.md). This update artefact can also be applied manually from the command line.
+* Over-the-air (OTA) update: the BitBoxApp will notify you if a new update is available.
+  If you choose to install it, the BitBoxBase automatically downloads a signed update artefact (`.base`) and applies the update as explained in [Updates / Process](../update/update-process.md).
+  This update artefact can also be applied manually from the command line.
 
 * Full disk image: the `.tar.gz` archive contains a disk image with all necessary partitions that can be written directly to an eMMC chip.
+
+Releases usually also contain the archive `bbb-binaries.tar.gz` with all custom application binaries.
+These are used when you run the customization script directly on the device (using `make build-ondevice`) without compiling the custom Go applications from source beforehand.
 
 ### Verifying the release binaries
 
 The OTA artefacts are signed by the Shift BitBoxBase release key, which is checked against the verification key that is already present in the BitBoxBase.
 
-When updating manually, either allowing unsigned OTA artefacts or flashing the full disk image, you need to verify the release binaries yourself to avoid using an inofficial and potentially malicious image. You can verify the checksums of all released binaries against the file SHA256SUMS.asc that is signed by Stadicus.
+When updating manually, either allowing unsigned OTA artefacts or flashing the full disk image, you need to verify the release binaries yourself to avoid using an inofficial and potentially malicious image.
+You can verify the checksums of all released binaries against the file SHA256SUMS.asc that is signed by Stadicus.
 
-1. Get Stadicus' public PGP key:
+1. Get Stadicus' public PGP key (yo):
 
 ```sh
 gpg --keyserver hkp://keyserver.ubuntu.com --receive-keys 82AB582358C37100221A0FA8CF4D0ACF957AF4AD
@@ -44,7 +51,7 @@ Primary key fingerprint: 82AB 5823 58C3 7100 221A  0FA8 CF4D 0ACF 957A F4AD
 
 ```sh
 $ sha256sum --check SHA256SUMS.asc --ignore-missing
-
+bbb-binaries.tar.gz: OK
 BitBoxBase-v0.X.X-RockPro64.base: OK
 BitBoxBase-v0.X.X-RockPro64.tar.gz: OK
 sha256sum: WARNING: 19 lines are improperly formatted

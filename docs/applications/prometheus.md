@@ -32,15 +32,13 @@ Where to get this information how often is specified in `/etc/prometheus/prometh
 
 ```yaml
 global:
-  scrape_interval:     5m
-  evaluation_interval: 5m
+  scrape_interval:     1m
+  evaluation_interval: 1m
 scrape_configs:
   - job_name: node
-    scrape_interval: 1m
     static_configs:
       - targets: ['127.0.0.1:9100']
   - job_name: base
-    scrape_interval: 1m
     static_configs:
       - targets: ['127.0.0.1:8400']
   - job_name: bitcoind
@@ -84,7 +82,7 @@ The following metrics are collected both from the system and from specific appli
 The Prometheus service itself is managed by systemd.
 Relevant parameters are specified in the unit file `/etc/systemd/system/prometheus.service` shown below.
 
-```systemd
+```
 [Unit]
 Description=Prometheus
 After=network-online.target
@@ -109,4 +107,3 @@ WantedBy=multi-user.target
 ### Data storage
 
 The database is stored on the SSD in the `/mnt/ssd/prometheus/` directory.
-Following standard configuration, metrics are kept for 15 days, amounting to a total storage need of ~300 MB.

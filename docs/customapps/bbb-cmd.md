@@ -29,17 +29,23 @@ The following commands are available:
     * read/write disk, without Mender (likely a development image)
       the `/data` directory can be created directly, copying the initial content from the source directory `/data_source`
     * read-only disk, without Mender (e.g. a DIY image)
-      image is build using `OVERLAYROOT` option, so all changes written to the root filesystem are volatile due to the tmpfs overlay. To preserve changes in `/data`, the directory is created as a symbolic link to `/mnt/ssd/data` on the SSD
+      image is build using `OVERLAYROOT` option, so all changes written to the root filesystem are volatile due to the tmpfs overlay.
+      To preserve changes in `/data`, the directory is created as a symbolic link to `/mnt/ssd/data` on the SSD.
     * read-only disk, with Mender (BitBoxBase production image)
-      the `/data` directory is mounted from a separate, persistent partition that is not overwritten on update. Initial content is copied once from `/data_src` into that partition.
+      the `/data` directory is mounted from a separate, persistent partition that is not overwritten on update.
+      Initial content is copied once from `/data_src` into that partition.
 
 * **bitcoind**
-  * **reindex**: deletes the Bitcoin Core chainstate (UTXO set) and the Electrs indices, but not the raw blockchain data. Bitcoin Core is restarted to reindex the whole existing blockchain, thus building up a new UTXO set and validating the whole blockchain from Genesis.
-  * **resync**: in addition to *reindex*, this command also deletes the raw blockchain data. After restarting Bitcoin Core, the whole blockchain data (~250 GB) are downloaded before a full validation is conducted.
-  * **refresh_rpcauth**: authentication to Bitcoin Core JSON API uses the `rpcauth` method, with clients using static `rpcuser` and `rpcpassword` values. This command automatically creates new authentication keys and recreates related application configuration files.
+  * **reindex**: deletes the Bitcoin Core chainstate (UTXO set) and the Electrs indices, but not the raw blockchain data.
+    Bitcoin Core is restarted to reindex the whole existing blockchain, thus building up a new UTXO set and validating the whole blockchain from Genesis.
+  * **resync**: in addition to *reindex*, this command also deletes the raw blockchain data.
+    After restarting Bitcoin Core, the whole blockchain data (~250 GB) are downloaded before a full validation is conducted.
+  * **refresh_rpcauth**: authentication to Bitcoin Core JSON API uses the `rpcauth` method, with clients using static `rpcuser` and `rpcpassword` values.
+    This command automatically creates new authentication keys and recreates related application configuration files.
 
 * **flashdrive**: controls a USB flashdrive plugged directly in to the device
-  * **check**: checks if a USB flashdrive suitable for a backup is plugged in, and returns its device path (e.g. `/dev/sdb1`). Exactly one flashdrive must be present that is not larger than 64 GiB, so exteral USB drives in DIY builds are not confused with flashdrives.
+  * **check**: checks if a USB flashdrive suitable for a backup is plugged in, and returns its device path (e.g. `/dev/sdb1`).
+    Exactly one flashdrive must be present that is not larger than 64 GiB, so exteral USB drives in DIY builds are not confused with flashdrives.
   * **mount**: expects the device path as an argument and mounts the flashdrive to `/mnt/backup` with a restrictive usage policy if it is suited for backup
   * **unmount**: unmounts the flashdrive
 
@@ -52,5 +58,8 @@ The following commands are available:
   * **hsm_secret**: saves the c-lightning on-chain seed from Redis into `/mnt/ssd/bitcoin/.lightning/hsm_secret`
 
 * **mender-update**
-  * **install**: expects a Base image version and downloads/verifies/installs the Mender update artefact into the inactive partition. A reboot is required to boot into the updated system. This command requireds either a version number (in the format of `x.x.x`) to fetch the release from GitHub, or `flashdrive` to load the update from a mounted usb flashdrive (update image must be available as `/mnt/backup/update.base`)
-  * **commit**: commits an update to become persistent. If it is not committed, the device falls back to the previous Base image on reboot.
+  * **install**: expects a Base image version and downloads/verifies/installs the Mender update artefact into the inactive partition.
+    A reboot is required to boot into the updated system.
+    This command requireds either a version number (in the format of `x.x.x`) to fetch the release from GitHub, or `flashdrive` to load the update from a mounted usb flashdrive (update image must be available as `/mnt/backup/update.base`)
+  * **commit**: commits an update to become persistent.
+    If it is not committed, the device falls back to the previous Base image on reboot.
