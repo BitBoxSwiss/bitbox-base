@@ -241,6 +241,12 @@ func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoRespons
 		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
 	}
 
+	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
+	if err != nil {
+		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
+	}
+
 	electrsBlocks, err := middleware.prometheusClient.GetInt(prometheus.ElectrsBlocks)
 	if err != nil {
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
@@ -257,6 +263,7 @@ func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoRespons
 		BitcoindPeers:                bitcoindPeers,
 		BitcoindIBD:                  bitcoindIBD,
 		LightningdBlocks:             lightningdBlocks,
+		LightningActiveChannels:      lightningActiveChannels,
 		ElectrsBlocks:                electrsBlocks,
 	}
 }
