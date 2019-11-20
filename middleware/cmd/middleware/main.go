@@ -9,6 +9,7 @@ import (
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/hsm"
 )
 
 // version defines the middleware version
@@ -28,7 +29,13 @@ func main() {
 	redisMock := flag.Bool("redismock", false, "Mock redis for development instead of connecting to a redis server, default is 'false', use 'true' as an argument to mock")
 	imageUpdateInfoURL := flag.String("updateinfourl", "https://shiftcrypto.ch/updates/base.json", "URL to query information about updates from (defaults to https://shiftcrypto.ch/updates/base.json)")
 	notificationNamedPipePath := flag.String("notificationNamedPipePath", "/tmp/middleware-notification.pipe", "notificationNamedPipe specifies the path where the Middleware creates a named pipe to receive notifications from other processes on the BitBoxBase (defaults to /tmp/middleware-notification.pipe)")
+	hsmSerialPort := flag.String("hsmserialport", "/dev/ttyS0", "The serial port to communicate with the HSM.")
 	flag.Parse()
+
+	hsm := hsm.NewHSM(*hsmSerialPort)
+	if err := hsm.CheckSerialPort(); err != nil {
+		log.Printf("HSM serial port not available: %v. Continuing without HSM.", err)
+	}
 
 	argumentMap := make(map[string]string)
 	argumentMap["middlewarePort"] = *middlewarePort
