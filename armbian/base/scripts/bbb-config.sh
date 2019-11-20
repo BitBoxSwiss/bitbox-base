@@ -235,7 +235,7 @@ case "${COMMAND}" in
                 checkMockMode
 
                 if [[ ${ENABLE} -eq 1 ]]; then
-                    touch /opt/shift/config/.autosetup-ssd
+                    exec_overlayroot all-layers "touch /opt/shift/config/.autosetup-ssd"
                 else
                     exec_overlayroot all-layers "rm /opt/shift/config/.autosetup-ssd"
                 fi
