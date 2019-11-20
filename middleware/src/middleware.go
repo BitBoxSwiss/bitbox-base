@@ -1052,12 +1052,6 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
-	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
-	if err != nil {
-		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
-	}
-
 	totalDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseTotalDiskspace)
 	if err != nil {
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
@@ -1099,7 +1093,6 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		MiddlewareTorOnion:        middlewareTorOnion,
 		IsTorEnabled:              isTorEnabled,
 		IsBitcoindListening:       isBitcoindListening,
-		LightningActiveChannels:   lightningActiveChannels,
 		IsSSHPasswordLoginEnabled: isSSHPasswordLoginEnabled,
 		FreeDiskspace:             freeDiskspace,
 		TotalDiskspace:            totalDiskspace,
