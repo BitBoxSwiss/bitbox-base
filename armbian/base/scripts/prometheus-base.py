@@ -35,8 +35,11 @@ r = redis.Redis(
 
 def readFile(filepath):
     args = [filepath]
-    with open(filepath) as f:
-        value = f.readline()
+    try:
+        with open(filepath) as f:
+            value = f.readline()
+    except:
+            value = "err"
 
     return value
 
@@ -81,15 +84,23 @@ def main():
     # Start up the server to expose the metrics.
     start_http_server(8400)
     while True:
-        BASE_SYSTEM_INFO.info(getSystemInfo())
-        BASE_CPU_TEMP.set(readFile("/sys/class/thermal/thermal_zone0/temp"))
-        BASE_FAN_SPEED.set(readFile("/sys/class/hwmon/hwmon0/pwm1"))
 
+        BASE_SYSTEM_INFO.info(getSystemInfo())
         BASE_SYSTEMD_BITCOIND.set(int(getSystemdStatus("bitcoind")))
         BASE_SYSTEMD_ELECTRS.set(int(getSystemdStatus("electrs")))
         BASE_SYSTEMD_LIGHTNINGD.set(int(getSystemdStatus("lightningd")))
         BASE_SYSTEMD_PROMETHEUS.set(int(getSystemdStatus("prometheus")))
         BASE_SYSTEMD_GRAFANA.set(int(getSystemdStatus("grafana-server")))
+
+        try:
+            BASE_CPU_TEMP.set(readFile("/sys/class/thermal/thermal_zone0/temp"))
+        except:
+            BASE_CPU_TEMP.set(0)
+
+        try:
+            BASE_FAN_SPEED.set(readFile("/sys/class/hwmon/hwmon0/pwm1"))
+        except:
+            BASE_FAN_SPEED.set(0)
 
         time.sleep(10)
 
