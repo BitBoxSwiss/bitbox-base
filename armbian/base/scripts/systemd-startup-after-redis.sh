@@ -87,8 +87,18 @@ else
 fi
 
 
+# Base image updates
+# ------------------------------------------------------------------------------
+# initialize mender configuration
+if [[ -f /etc/mender/mender.conf ]] && ! grep -q '/shift/' /etc/mender/mender.conf ; then
+    exec_overlayroot all-layers 'rm -f /etc/mender/mender.* /etc/mender/server.crt || true'
+    generateConfig mender.conf.template # -->  /etc/mender/mender.conf
+fi
+
+
 # update onion addresses in Redis
 updateTorOnions
+
 
 # check if rpcauth credentials exist, or create new ones
 RPCAUTH="$(redis_get 'bitcoind:rpcauth')"
