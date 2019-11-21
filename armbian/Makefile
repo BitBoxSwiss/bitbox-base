@@ -16,7 +16,7 @@ mender-artefacts:
 # update Armbian image and create new Mender.io artefacts in one go
 update-mender: update mender-artefacts
 
-# execute configuration script directly on the device, starting 
+# execute configuration script directly on the device, starting
 # with a stock Armbian image
 build-ondevice:
 	bash $(MAKE_PATH)/armbian-build.sh ondevice
