@@ -95,33 +95,33 @@ func NewMiddleware(
 	err := middleware.checkMiddlewareSetup()
 	if err != nil {
 		log.Println("failed to update the middleware password set flag")
-		return &Middleware{}, err
+		return nil, err
 	}
 	if !middleware.isMiddlewarePasswordSet {
 		usersMap := make(map[string]UserAuthStruct)
 		bcryptedPassword, err := bcrypt.GenerateFromPassword([]byte(initialAdminPassword), 12)
 		if err != nil {
 			log.Println("Failed to generate new standard password")
-			return &Middleware{}, err
+			return nil, err
 		}
 		usersMap["admin"] = UserAuthStruct{BCryptedPassword: string(bcryptedPassword), Role: "admin"}
 
 		authStructureString, err := json.Marshal(&usersMap)
 		if err != nil {
 			log.Println("Unable to marshal auth structure map")
-			return &Middleware{}, err
+			return nil, err
 		}
 		err = middleware.redisClient.SetString(redis.MiddlewareAuth, string(authStructureString))
 		if err != nil {
 			log.Println("Unable to initialize auth data structure")
-			return &Middleware{}, err
+			return nil, err
 		}
 	}
 
 	middleware.jwtAuth, err = authentication.NewJwtAuth()
 	// return if there is an error, this should not really happen though on our device and in our dev environments, low entropy is usually common in embedded environments
 	if err != nil {
-		return &Middleware{}, err
+		return nil, err
 	}
 
 	return middleware, nil
