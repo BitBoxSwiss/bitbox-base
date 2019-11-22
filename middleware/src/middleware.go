@@ -18,6 +18,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
+	"github.com/digitalbitbox/bitbox02-api-go/api/firmware"
 	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -46,6 +47,8 @@ type Middleware struct {
 	// Saves state for the setup process
 	isMiddlewarePasswordSet bool
 	isBaseSetupDone         bool
+
+	hsmFirmware *firmware.Device
 }
 
 // GetMiddlewareVersion returns the Middleware Version for the `GET /version` endpoint.
@@ -55,7 +58,14 @@ func (middleware *Middleware) GetMiddlewareVersion() string {
 
 // NewMiddleware returns a new instance of the middleware.
 // For testing a mock boolean can be passed, which mocks e.g. redis.
-func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error) {
+//
+// hsmFirmware let's you talk to the HSM. NOTE: it the HSM could not be connected, this is nil. The
+// middleware must be able to run and serve RPC calls without the HSM present.
+func NewMiddleware(
+	argumentMap map[string]string,
+	mock bool,
+	hsmFirmware *firmware.Device,
+) (*Middleware, error) {
 	middleware := &Middleware{
 		environment: system.NewEnvironment(argumentMap),
 		//TODO(TheCharlatan) find a better way to increase the channel size
@@ -73,6 +83,7 @@ func NewMiddleware(argumentMap map[string]string, mock bool) (*Middleware, error
 			UpdateAvailable: false,
 		},
 		baseVersion: semver.NewSemVer(0, 0, 0),
+		hsmFirmware: hsmFirmware,
 	}
 	middleware.prometheusClient = prometheus.NewClient(middleware.environment.GetPrometheusURL())
 
@@ -1107,4 +1118,22 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 func (middleware *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
 	log.Println("Returning the lastest Service info", middleware.serviceInfo)
 	return middleware.serviceInfo
+}
+
+// VerifyAppMiddlewarePairing is a blocking call to confirm the noise pairing
+// (BitBoxApp<->Middleware) with the user. The pairing is shown on the screen via the HSM.
+func (middleware *Middleware) VerifyAppMiddlewarePairing(channelHash []byte) (bool, error) {
+	if middleware.hsmFirmware == nil {
+		// HSM not connected, auto-confirm pairing. TODO: revisit how to handle pairing without the
+		// HSM.
+		return true, nil
+	}
+	err := middleware.hsmFirmware.BitBoxBaseConfirmPairing(channelHash)
+	if firmware.IsErrorAbort(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

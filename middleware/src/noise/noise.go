@@ -4,15 +4,12 @@ package noisemanager
 import (
 	"bytes"
 	"crypto/rand"
-	"encoding/base32"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/flynn/noise"
 	"github.com/gorilla/websocket"
@@ -21,6 +18,7 @@ import (
 const (
 	opICanHasHandShaek          = "h"
 	responseSuccess             = "\x00"
+	responseFailure             = "\x01"
 	responseNeedsPairing        = "\x01"
 	opICanHasPairinVerificashun = byte('v')
 )
@@ -28,18 +26,21 @@ const (
 // NoiseConfig holds the configuration options required to successfully pair through a noise handshake and subsequently encrypt traffic.
 type NoiseConfig struct {
 	clientStaticPubkey          []byte
-	channelHash                 string
+	channelHash                 []byte
 	sendCipher, receiveCipher   *noise.CipherState
 	pairingVerificationRequired bool
 	initialized                 bool
 	dataDir                     string
+
+	verifyPairing func(channelHash []byte) (bool, error)
 }
 
 //NewNoiseConfig takes a directory path string as an argument and returns a NoiseConfig struct.
-func NewNoiseConfig(dataDir string) *NoiseConfig {
+func NewNoiseConfig(dataDir string, verifyPairing func([]byte) (bool, error)) *NoiseConfig {
 	noise := &NoiseConfig{
-		dataDir:     dataDir,
-		initialized: false,
+		dataDir:       dataDir,
+		initialized:   false,
+		verifyPairing: verifyPairing,
 	}
 	return noise
 }
@@ -133,13 +134,7 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 			return errors.New("websocket failed to write second noise handshake message")
 		}
 	}
-	channelHashBase32 := base32.StdEncoding.EncodeToString(handshake.ChannelBinding())
-	noiseConfig.channelHash = fmt.Sprintf(
-		"%s %s\n%s %s",
-		channelHashBase32[:5],
-		channelHashBase32[5:10],
-		channelHashBase32[10:15],
-		channelHashBase32[15:20])
+	noiseConfig.channelHash = handshake.ChannelBinding()
 	noiseConfig.initialized = true
 
 	_, responseBytes, err = ws.ReadMessage()
@@ -148,7 +143,10 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 	}
 	if responseBytes[0] == opICanHasPairinVerificashun {
 		log.Println("Need to verify pairing hash")
-		msg = noiseConfig.CheckVerification()
+		msg, err := noiseConfig.CheckVerification()
+		if err != nil {
+			return err
+		}
 		err = ws.WriteMessage(websocket.BinaryMessage, msg)
 		if err != nil {
 			log.Println("Error, websocket failed to write channel hash verification message")
@@ -159,17 +157,21 @@ func (noiseConfig *NoiseConfig) InitializeNoise(ws *websocket.Conn) error {
 	return nil
 }
 
-//CheckVerification displays the channel hash and returns the success or fail response byte array.
-func (noiseConfig *NoiseConfig) CheckVerification() []byte {
-	// TODO(TheCharlatan) At this point, the channel Hash should be displayed on the screen, with a blocking call.
-	// For now, just add a dummy timer, since we do not have a screen yet, and make every verification a success.
-	time.Sleep(5 * time.Second)
-	err := noiseConfig.addClientStaticPubkey(noiseConfig.clientStaticPubkey)
+// CheckVerification displays the channel hash and returns the success or fail response byte array.
+func (noiseConfig *NoiseConfig) CheckVerification() ([]byte, error) {
+	accepted, err := noiseConfig.verifyPairing(noiseConfig.channelHash)
 	if err != nil {
-		log.Println("Pairing Successful, but unable to write baseNoiseStaticPubkey to file")
+		return nil, err
 	}
-	noiseConfig.pairingVerificationRequired = false
-	return []byte(responseSuccess)
+	if accepted {
+		err = noiseConfig.addClientStaticPubkey(noiseConfig.clientStaticPubkey)
+		if err != nil {
+			log.Println("Pairing Successful, but unable to write baseNoiseStaticPubkey to file")
+		}
+		noiseConfig.pairingVerificationRequired = false
+		return []byte(responseSuccess), nil
+	}
+	return []byte(responseFailure), nil
 }
 
 // Encrypt takes a (plaintext) byte array message as arguments and returns a noise encrypted byte array per the configuration in NoiseConfig
