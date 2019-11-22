@@ -14,6 +14,9 @@ set -eu
 # include function: exec_overlayroot()
 source /opt/shift/scripts/include/exec_overlayroot.sh.inc
 
+# include errorExit() function
+source /opt/shift/scripts/include/errorExit.sh.inc
+
 # ------------------------------------------------------------------------------
 
 # SSD configuration

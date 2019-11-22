@@ -22,6 +22,11 @@ if ! [[ "${ACTION}" =~ ^(build|update|ondevice)$ ]]; then
 	exit 1
 fi
 
+# cleanup loop devices if trigger file present
+if [ -f .cleanup-loop-devices ]; then
+	../contrib/cleanup-loop-devices.sh
+fi
+
 case ${ACTION} in
 	build|update)
 		if ! command -v git >/dev/null 2>&1 || ! command -v docker >/dev/null 2>&1; then
@@ -36,6 +41,9 @@ case ${ACTION} in
 
 		if [ ! -d "armbian-build" ]; then
 			git clone https://github.com/armbian/build armbian-build
+
+			# prevent Armbian scripts to revert to master, allows usage of custom tags/releases
+			touch armbian-build/.ignore_changes
 		fi
 
 		mkdir -p armbian-build/output/
@@ -44,8 +52,10 @@ case ${ACTION} in
 		cp -aR base/* armbian-build/userpatches/overlay/					# copy scripts and configuration items to overlay
 		cp -aR ../bin/go/* armbian-build/userpatches/overlay/bin/go			# copy additional software binaries to overlay
 
+		# TODO(Stadicus): pin specific tag
+
 		BOARD=${BOARD:-rockpro64}
-		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=default WIREGUARD=no PROGRESS_LOG_TO_FILE=yes"
+		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=legacy WIREGUARD=no PROGRESS_LOG_TO_FILE=yes"
 		if [ "${ACTION}" == "update" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache"
 		fi
@@ -65,6 +75,9 @@ case ${ACTION} in
 		;;
 
 	ondevice)
+		# prompt for config
+		nano base/build.conf
+
 		# copy custom scripts to filesystem
 		mkdir -p /opt/shift
 		cp -aR base/* /opt/shift

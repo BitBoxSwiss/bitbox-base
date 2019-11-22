@@ -156,7 +156,7 @@ BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 BASE_MINIMAL=${BASE_MINIMAL:-"true"}
 BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
 BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"mainnet"}
-BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"false"}
+BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"true"}
 BASE_ENABLE_BITCOIN_SERVICES=${BASE_ENABLE_BITCOIN_SERVICES:-"false"}
 BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
 BASE_WIFI_PW=${BASE_WIFI_PW:-""}
@@ -288,7 +288,7 @@ fi
 
 ## install required software packages
 apt install -y --no-install-recommends \
-  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-discover avahi-utils fail2ban acl rsync smartmontools curl
+  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-utils fail2ban acl rsync smartmontools curl libfontconfig
 apt install -y --no-install-recommends ifmetric
 apt install -y iptables-persistent
 
@@ -730,7 +730,6 @@ if [[ "${BASE_ENABLE_BITCOIN_SERVICES}" == "true" ]]; then
 fi
 
 redis-cli save
-set +x
 
 ## remove temporary symlink /data --> /data_source, unless building on the device without overlayroot
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]] || [[ "${BASE_OVERLAYROOT}" == "true" ]]; then
@@ -746,6 +745,8 @@ if [[ "${BASE_OVERLAYROOT}" == "true" ]]; then
     echo "ERR: overlayroot is only supported in Ubuntu Bionic."
   fi
 fi
+
+set +x
 
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
   echoArguments "Setup script finished. Please reboot device and login as user 'base'."

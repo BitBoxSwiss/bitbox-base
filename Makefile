@@ -35,12 +35,14 @@ docker-build-go: dockerinit
 build-all: docker-build-go
 	@echo "Building Armbian.."
 	$(MAKE) -C armbian
+	$(MAKE) mender-artefacts -C armbian
 
 # build Armbian disk image, use cached binaries and update customization only
 # see configuration: armbian/base/build/build.conf
-update: docker-build-go
+update-all: docker-build-go
 	@echo "Updating Armbian build.."
 	$(MAKE) update -C armbian
+	$(MAKE) mender-artefacts -C armbian
 
 # create a Mender-enabled disk image out of an Armbian image
 mender-artefacts:
