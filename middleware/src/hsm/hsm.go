@@ -40,9 +40,10 @@ func NewHSM(serialPort string) *HSM {
 
 // openSerial opens the serial port. This operation is cheap (file descriptor open/close), so it can
 // be done before every use. readTimeout is the timeout when waiting for a response of the HSM (this
-// function does not block on this!). If nil, defaults to 5 seconds.
+// function does not block on this!). If nil, defaults to 20 minutes, which is large enough so
+// blocking operations like verifying the pairing will hopefully not timeout.
 func (hsm *HSM) openSerial(readTimeout *time.Duration) (*serial.Port, error) {
-	readTimeoutOrDefault := 5 * time.Second
+	readTimeoutOrDefault := 20 * time.Minute
 	if readTimeout != nil {
 		readTimeoutOrDefault = *readTimeout
 	}
