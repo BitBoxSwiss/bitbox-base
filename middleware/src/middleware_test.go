@@ -28,7 +28,7 @@ func setupTestMiddleware(t *testing.T) *middleware.Middleware {
 	argumentMap["bbbCmdScript"] = echoBinaryPath
 	argumentMap["bbbSystemctlScript"] = echoBinaryPath
 
-	testMiddleware, err := middleware.NewMiddleware(argumentMap, true)
+	testMiddleware, err := middleware.NewMiddleware(argumentMap, true, nil)
 	require.NoError(t, err)
 	return testMiddleware
 }

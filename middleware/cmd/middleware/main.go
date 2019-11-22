@@ -33,8 +33,11 @@ func main() {
 	flag.Parse()
 
 	hsm := hsm.NewHSM(*hsmSerialPort)
-	if err := hsm.CheckSerialPort(); err != nil {
-		log.Printf("HSM serial port not available: %v. Continuing without HSM.", err)
+	hsmFirmware, err := hsm.WaitForFirmware()
+	if err != nil {
+		log.Printf("Failed to connect to the HSM firmware: %v. Continuing without HSM.", err)
+	} else {
+		log.Printf("HSM serial port connected.")
 	}
 
 	argumentMap := make(map[string]string)
@@ -60,7 +63,7 @@ func main() {
 	}
 	defer logBeforeExit()
 
-	middleware, err := middleware.NewMiddleware(argumentMap, *redisMock)
+	middleware, err := middleware.NewMiddleware(argumentMap, *redisMock, hsmFirmware)
 	if err != nil {
 		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
 	}

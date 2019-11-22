@@ -57,17 +57,6 @@ func (hsm *HSM) openSerial(readTimeout *time.Duration) (*serial.Port, error) {
 	return conn, nil
 }
 
-// CheckSerialPort checks if the configured serial port can be opened. It is a quick check, it does
-// not try to communicate anything or see if the HSM is connected to the serial port from the other
-// end.
-func (hsm *HSM) CheckSerialPort() error {
-	conn, err := hsm.openSerial(nil)
-	if err != nil {
-		return err
-	}
-	return conn.Close()
-}
-
 // getFirmware returns a firmware API instance, with the pairing/handshake already
 // processed. Returns an error if the serial port could not be opened or io.EOF if the
 // firmware/bootloader behind it is not responding.
@@ -169,9 +158,10 @@ func (hsm *HSM) waitForBootloader() (*bb02bootloader.Device, error) {
 	return nil, errp.New("waiting for bootloader timed out")
 }
 
-// wiatForFirmware returns a firmware to use. If the HSM is booted into the bootloader, we try to
-// rebot into the firmware fist. After a certain timeout, an error is returned.
-func (hsm *HSM) waitForFirmware() (*bb02firmware.Device, error) {
+// WaitForFirmware returns a firmware to use. If the HSM is booted into the bootloader, we try to
+// rebot into the firmware fist. After a certain timeout, an error is returned. In case of error,
+// the returned device instance is `nil`.
+func (hsm *HSM) WaitForFirmware() (*bb02firmware.Device, error) {
 	for second := 0; second < bootTimeoutSeconds; second++ {
 		isFirmware, err := hsm.isFirmware()
 		if errp.Cause(err) == io.EOF {
@@ -205,19 +195,6 @@ func (hsm *HSM) waitForFirmware() (*bb02firmware.Device, error) {
 // if necessary. Returns an error if we fail to connect to it.
 func (hsm *HSM) InteractWithBootloader(f func(*bb02bootloader.Device)) error {
 	device, err := hsm.waitForBootloader()
-	if err != nil {
-		return err
-	}
-	defer device.Close()
-
-	f(device)
-	return nil
-}
-
-// InteractWithFirmware lets you talk to the firmware, rebooting into it from the bootloader first
-// if necessary. Returns an error if we fail to connect to it.
-func (hsm *HSM) InteractWithFirmware(f func(*bb02firmware.Device)) error {
-	device, err := hsm.waitForFirmware()
 	if err != nil {
 		return err
 	}

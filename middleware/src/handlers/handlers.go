@@ -52,6 +52,7 @@ type Middleware interface {
 
 	ValidateToken(token string) error
 	GetMiddlewareVersion() string
+	VerifyAppMiddlewarePairing(channelHash []byte) (bool, error)
 }
 
 // Handlers provides a web api
@@ -81,13 +82,14 @@ func NewHandlers(middlewareInstance Middleware, dataDir string) *Handlers {
 	router := mux.NewRouter()
 
 	handlers := &Handlers{
-		middleware:  middlewareInstance,
-		Router:      router,
-		upgrader:    websocket.Upgrader{},
-		noiseConfig: noisemanager.NewNoiseConfig(dataDir),
-		nClients:    0,
-		clientsMap:  make(map[int]chan<- []byte),
-		eventQueue:  make([]Event, 0),
+		middleware: middlewareInstance,
+		Router:     router,
+		upgrader:   websocket.Upgrader{},
+		noiseConfig: noisemanager.NewNoiseConfig(
+			dataDir, middlewareInstance.VerifyAppMiddlewarePairing),
+		nClients:   0,
+		clientsMap: make(map[int]chan<- []byte),
+		eventQueue: make([]Event, 0),
 	}
 
 	handlers.Router.HandleFunc("/", handlers.rootHandler).Methods("GET")
