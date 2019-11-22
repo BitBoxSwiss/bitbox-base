@@ -664,7 +664,6 @@ func (middleware *Middleware) EnableClearnetIBD(toggleAction rpcmessages.ToggleS
 	if err != nil {
 		errorCode := handleBBBScriptErrorCode(out, err, []rpcmessages.ErrorCode{
 			rpcmessages.ErrorSetNeedsTwoArguments,
-			rpcmessages.ErrorEnableClearnetIBDTorAlreadyDisabled,
 		})
 
 		return rpcmessages.ErrorResponse{

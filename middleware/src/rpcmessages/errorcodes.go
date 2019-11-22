@@ -108,12 +108,6 @@ const (
 	// Not to be confused with ErrorCmdScriptInvalidArg for the bbb-cmd script.
 	ErrorConfigScriptInvalidArg ErrorCode = "CONFIG_SCRIPT_INVALID_ARG"
 
-	/* bbb-config.sh enable bitcoin_ibd_clearnet
-	--------------------------------------------*/
-
-	// ErrorEnableClearnetIBDTorAlreadyDisabled is thrown if the tor service is already disabled for the whole system, cannot enable IBD over clearnet.
-	ErrorEnableClearnetIBDTorAlreadyDisabled ErrorCode = "ENABLE_CLEARNETIBD_TOR_ALREADY_DISABLED"
-
 	/* bbb-config.sh set <key> <value>
 	-----------------------------------*/
 

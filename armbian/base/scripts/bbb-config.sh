@@ -162,10 +162,9 @@ case "${COMMAND}" in
             BITCOIN_IBD_CLEARNET)
                 checkMockMode
 
-                # don't set option if Tor is disabled globally
+                # enable Tor first if it is disabled globally
                 if [[ ${ENABLE} -eq 1 ]] && [ "$(redis_get 'tor:base:enabled')" -eq 0 ]; then
-                    echo "ERR: Tor service is already disabled for the whole system, cannot enable BITCOIN_IBD_CLEARNET"
-                    errorExit ENABLE_CLEARNETIBD_TOR_ALREADY_DISABLED
+                    bbb-config.sh enable tor
                 fi
 
                 # configure bitcoind to run over IPv4 while in IBD mode
