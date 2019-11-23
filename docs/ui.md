@@ -19,4 +19,4 @@ This allows us to provide:
 * reliable connectivity between App and Base over multiple networking channels
 * a reduced attack surface of the BitBoxBase by not running a web server
 
-The BitBoxApp is maintained in its own GitHub repository: [https://github.com/digitalbitbox/bitbox-wallet-app](digitalbitbox/bitbox-wallet-app)
+The BitBoxApp is maintained in its own GitHub repository: [digitalbitbox/bitbox-wallet-app](https://github.com/digitalbitbox/bitbox-wallet-app)
