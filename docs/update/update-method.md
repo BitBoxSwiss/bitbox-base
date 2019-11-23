@@ -10,9 +10,13 @@ In terms of upgrading a system, there are several approaches:
 
 * **script-based, no modularization**: upgrading the system with scripts, without modularization of individual components, is a lost cause as differences and issues accumulate over time.
 
-* **modular updates**: a more reliable approach is to encapsulate components in individual modules, e.g. using Docker. Every module can be updated to a defined state. Issues can arise when different versions of modules are not working well together, or when the base operating system needs updating.
+* **modular updates**: a more reliable approach is to encapsulate components in individual modules, e.g. using Docker.
+  Every module can be updated to a defined state.
+  Issues can arise when different versions of modules are not working well together, or when the base operating system needs updating.
 
-* **disk image update**: updates overwrite the whole disk partition, usually containing the operating system and applications. This results in a very reliable, cleanly defined state. The whole system can be tested in-depth beforehand, but this low-level method adds complexity to the update process.
+* **disk image update**: updates overwrite the whole disk partition, usually containing the operating system and applications.
+  This results in a very reliable, cleanly defined state.
+  The whole system can be tested in-depth beforehand, but this low-level method adds complexity to the update process.
 
 ### Our approach: atomic disk image updates
 

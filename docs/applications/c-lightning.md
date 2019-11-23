@@ -20,20 +20,22 @@ Usage of the precompiled image can be enabled in [`build.conf`](https://github.c
 The application configuration is specified in the local `/etc/lightningd/lightningd.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
+mainnet
 bitcoin-cli=/usr/bin/bitcoin-cli
+bitcoin-rpcuser=base
+bitcoin-rpcpassword=xxxxxxxxxxxxxxx
 bitcoin-rpcconnect=127.0.0.1
 bitcoin-rpcport=8332
-network=testnet
-lightning-dir=/mnt/ssd/bitcoin/.lightning-testnet
+lightning-dir=/mnt/ssd/bitcoin/.lightning
 bind-addr=127.0.0.1:9735
 proxy=127.0.0.1:9050
 log-level=debug
-daemon
 plugin=/opt/shift/scripts/prometheus-lightningd.py
 ```
 
 Some notes about this specific configuration:
 
+* `bitcoin-rpcuser` / `bitcoin-rpcpassword`: bitcoind RPC credentials, as generated randomly by [`bitcoind-rpcauth.py`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/bitcoind-rpcauth.py)
 * `bitcoin-rpcconnect` / `bitcoin-rpcport`: ip address and port to connect to the bitcoind RPC
 * `lightning-dir`: to allow switching between independent mainnet / testnet c-lightning instances, a seperate directory for testnet is used
 * `bind`: only listen to local connections (e.g. through Tor or the middleware)
@@ -47,37 +49,74 @@ Additional information can be found in the reference [lightningd.config](https:/
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `lightningd.service` shown below.
 Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
-```
+```bash
 [Unit]
 Description=c-lightning daemon
-Wants=bitcoind.service
-After=bitcoind.service
+After=multi-user.target bitcoind.service
 
 [Service]
-ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/opt/shift/scripts/systemd-start-lightningd.sh
-RuntimeDirectory=lightningd
+
+# Service execution
+###################
+
+ExecStartPre=/opt/shift/scripts/systemd-lightningd-startpre.sh
+ExecStart=/usr/local/bin/lightningd \
+    --conf=/etc/lightningd/lightningd.conf
+ExecStartPost=/opt/shift/scripts/systemd-lightningd-startpost.sh
+
+# Process management
+####################
+
+Type=simple
+Restart=always
+RestartSec=30
+TimeoutSec=240
+
+# Directory creation and permissions
+####################################
+
+# Run as bitcoin:bitcoin
 User=bitcoin
 Group=bitcoin
-Type=forking
-Restart=always
-RestartSec=10
-TimeoutSec=240
+
+# /run/lightningd
+RuntimeDirectory=lightningd
+RuntimeDirectoryMode=0710
+
+
+# Hardening measures
+####################
+
+# Provide a private /tmp and /var/tmp.
 PrivateTmp=true
+
+# Mount /usr, /boot/ and /etc read-only for the process.
 ProtectSystem=full
+
+# Deny access to /home, /root and /run/user
+ProtectHome=true
+
+# Disallow the process and all of its children to gain
+# new privileges through execve().
 NoNewPrivileges=true
+
+# Use a new /dev namespace only populated with API pseudo devices
+# such as /dev/null, /dev/zero and /dev/random.
 PrivateDevices=true
+
+# Deny the creation of writable and executable memory mappings.
 MemoryDenyWriteExecute=true
 
+
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target
 ```
 
 Some notes about this specific configuration:
 
 * `After`: started after bitcoind
-* `ExecStartPre`: checks if systemd is running and fails if that's not the case
-* `ExecStart`: instead of starting lightningd directly, it is called with a shell script to allow for additional commands (see next paragraph)
+* `ExecStartPre`: runs [`systemd-lightningd-startpre.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-lightningd-startpre.sh) to check dependencies
+* `ExecStartPost`: runs [`systemd-lightningd-startpost.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-lightningd-startpost.sh) to set permissions after starting
 * `User`: runs as service user "bitcoin"
 * `Restart`: always restarted, unless manually stopped
 * `PrivateTmp`: using a private tmp directory
@@ -85,12 +124,6 @@ Some notes about this specific configuration:
 * `NoNewPrivileges`: disallow the process and all of its children to gain new privileges through execve()
 * `PrivateDevices`: use a new /dev namespace only populated with API pseudo devices such as /dev/null, /dev/zero and /dev/random
 * `MemoryDenyWriteExecute`: deny the creation of writable and executable memory mappings
-
-## Starting c-lightning
-
-The systemd unit executes c-lightning with the shell script [`systemd-lightningd-startpre.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-lightningd-startpre.sh). This allows the execution of additional commands for preparation and post-processing.
-
-For additional details, please check the inline comments directly in the script.
 
 ## Data storage
 

@@ -6,11 +6,14 @@ nav_order: 145
 ---
 ## Redis: key/value data store
 
-The Redis key/value datastore is used to store all configuration data. It can be queried from all software components, be it from the command line, Bash, Python or Go with minimal overhead. See the [Operating System / Configuration](../os/configuration.md) section for additional details.
+The Redis key/value datastore is used to store all configuration data.
+It can be queried from all software components, be it from the command line, Bash, Python or Go with minimal overhead.
+See the [Operating System / Configuration](../os/configuration.md) section for additional details.
 
 ### Installation
 
-Redis is installed using the standard Armbian package. The default systemd unit is disabled in favor of a custom one optimized for this project.
+Redis is installed using the standard Armbian package.
+The default systemd unit is disabled in favor of a custom one optimized for this project.
 
 ```bash
 ## install Redis
@@ -84,7 +87,8 @@ SET bitcoind:testnet 0
 
 ### Service management
 
-The Redis service is managed by systemd. Relevant parameters are specified in the unit file [`redis.service`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/rootfs/etc/systemd/system/redis.service) shown below.
+The Redis service is managed by systemd.
+Relevant parameters are specified in the unit file [`redis.service`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/rootfs/etc/systemd/system/redis.service) shown below.
 
 ```bash
 [Unit]
@@ -121,4 +125,5 @@ WantedBy=bitboxbase.target
 
 ## Data storage
 
-Redis is an in-memory datastore. The data is dumped frequently (every 60 seconds on changes) and on demand to `/data/redis/bitboxbase.rdb`, from where it can be backed up or restored.
+Redis is an in-memory datastore.
+The data is dumped frequently (every 60 seconds on changes) and on demand to `/data/redis/bitboxbase.rdb`, from where it can be backed up or restored.

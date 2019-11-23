@@ -32,14 +32,20 @@ To set up and run the build environment in the virtual machine, the following so
 All sources and build scripts are contained in this repository, which needs to be cloned locally.
 The following commands are executed in the command line, either the Linux terminal or Windows PowerShell.
 
-In Linux you can directly run `make`, while in Windows PowerShell you need to run the build script directly with `sh`.
-In the following instructions, Windows users just replace `make` with `sh .\build.sh`.
+*Note*: you might need use `sudo` for all `make` commands, depending on your Docker configuration.
 
 * Clone the BitBoxBase repository to a local directory.
   ```bash
   git clone https://github.com/digitalbitbox/bitbox-base.git
-  cd bitbox-base/armbian
+  cd bitbox-base
   ```
+
+* Compile custom Go applications
+  ```bash
+  make docker-build-go
+  ```
+
+  (see ["Custom applications / Building Go binaries"](../customapps/go-build.md) for additional information)
 
 ### Initial configuration on build
 
@@ -61,23 +67,28 @@ This file is excluded from Git source control and overwrites options from `build
 
 It is recommended to use SSH keys to access the Base image.
 You can include your own keys in the file [authorized_keys](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/config/ssh/authorized_keys).
+To include them on build, set `BASE_ADD_SSH_KEYS="true"` in [`armbian/base/build.conf`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
 Please refer to [this article](https://confluence.atlassian.com/bitbucketserver/creating-ssh-keys-776639788.html) on how to create your own set of new keys.
 
 ### Compile Armbian from source
 
 Now the operating system image can be built. The whole BitBoxBase configuration is contained in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh) and executed in a `chroot` environment at the end of the build process.
 
-*Note*: you might need use `sudo` for all `make` commands, depending on your Docker configuration.
+In Linux you can directly run `make`, while in Windows PowerShell you need to run the build script directly with `sh`.
+In the following instructions, Windows users just replace `make` with `sh .\build.sh`.
 
 * Start the initial build process.
   ```bash
+  cd armbian
   make
   ```
 
-* The resulting image is available in `bin/img-armbian` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/). On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`). Check it carefully, all data on this device will be lost!
+* The resulting image is available in a version subdirectory of `bin/img-armbian/` and can be written to eMMC or SD card using a program like [Etcher](https://www.balena.io/etcher/).
+  On the Linux command line you can use `dd`: once the target medium is connected to your computer, get the device name (e.g. `/dev/sdb`).
+  Check it carefully, all data on this device will be lost!
   ```bash
   lsblk
-  sudo dd if=bin/img-armbian/Armbian_5.77_Rockpro64_Debian_stretch_default_4.4.176.img of=/dev/sdb bs=64K conv=sync status=progress
+  sudo dd if=bin/img-armbian/0.1.0/BitBoxBase-v0.1.0-RockPro64.img of=/dev/sdb bs=64K conv=sync status=progress
   sync
   ```
 

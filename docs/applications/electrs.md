@@ -20,14 +20,16 @@ This is a temporary solution and we'd like to address that and contribute to a s
 The application configuration is specified in the local `/etc/electrs/electrs.conf` file. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```
-NETWORK=testnet
+NETWORK=mainnet
 RPCCONNECT=127.0.0.1
-RPCPORT=18332
+RPCPORT=8332
 DB_DIR=/mnt/ssd/electrs/db
 DAEMON_DIR=/mnt/ssd/bitcoin/.bitcoin
 MONITORING_ADDR=127.0.0.1:4224
 VERBOSITY=vvvv
 RUST_BACKTRACE=1
+RPCUSER=base
+RPCPASSWORD=HnRzxTcTKhVfMqKv0qk4h-WeaJLSKJkAFOr9Szr2F4s=
 ```
 
 Contrary to other applications, this config file defines environment variables that are passed to electrs as commandline arguments.
@@ -35,7 +37,7 @@ Contrary to other applications, this config file defines environment variables t
 Additional information about commandline arguments can be found by running `electrs --help`:
 
 ```
-Electrum Rust Server 0.6.1
+Electrum Rust Server 0.7.0
 
 USAGE:
     electrs [FLAGS] [OPTIONS]
@@ -71,7 +73,7 @@ OPTIONS:
             testnet and 127.0.0.1:24224 for regtest)
         --network <network>                          Select Bitcoin network type ('mainnet', 'testnet' or 'regtest')
         --server-banner <server_banner>
-            The banner to be shown in the Electrum console [default: Welcome to electrs (Electrum Rust Server)!]
+            The banner to be shown in the Electrum console [default: Welcome to electrs 0.7.0 (Electrum Rust Server)!]
 
         --tx-cache-size <tx_cache_size>
             Number of transactions to keep in for query LRU cache [default: 10000]
@@ -86,38 +88,78 @@ OPTIONS:
 The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `electrs.service` shown below.
 Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
-```
+```bash
 [Unit]
 Description=Electrs server daemon
-Wants=bitcoind.service
-After=bitcoind.service
+After=multi-user.target bitcoind.service
 
 [Service]
-ExecStartPre=/bin/systemctl is-active bitcoind.service
-ExecStart=/opt/shift/scripts/systemd-start-electrs.sh
-RuntimeDirectory=electrs
-User=electrs
-Group=bitcoin
+
+# Service execution
+###################
+
+EnvironmentFile=/etc/electrs/electrs.conf
+ExecStartPre=+/opt/shift/scripts/systemd-electrs-startpre.sh
+ExecStart=/usr/bin/electrs \
+    --network ${NETWORK} \
+    --db-dir ${DB_DIR} \
+    --daemon-dir ${DAEMON_DIR} \
+    --cookie "${RPCUSER}:${RPCPASSWORD}" \
+    --monitoring-addr ${MONITORING_ADDR} \
+    -${VERBOSITY}
+
+# Process management
+####################
+
 Type=simple
-KillMode=process
 Restart=always
 TimeoutSec=120
 RestartSec=30
+KillMode=process
+
+
+# Directory creation and permissions
+####################################
+
+# Run as electrs:bitcoin
+User=electrs
+Group=bitcoin
+
+# /run/electrs
+RuntimeDirectory=electrs
+RuntimeDirectoryMode=0710
+
+# Hardening measures
+####################
+
+# Provide a private /tmp and /var/tmp.
 PrivateTmp=true
+
+# Mount /usr, /boot/ and /etc read-only for the process.
 ProtectSystem=full
+
+# Deny access to /home, /root and /run/user
+ProtectHome=true
+
+# Disallow the process and all of its children to gain
+# new privileges through execve().
 NoNewPrivileges=true
+
+# Use a new /dev namespace only populated with API pseudo devices
+# such as /dev/null, /dev/zero and /dev/random.
 PrivateDevices=true
+
+# Deny the creation of writable and executable memory mappings.
 MemoryDenyWriteExecute=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=bitboxbase.target
 ```
 
 Some notes about this specific configuration:
 
 * `After`: started after bitcoind
-* `ExecStartPre`: checks if systemd is running and fails if that's not the case
-* `ExecStart`: instead of starting electrs directly, it is called with a shell script to allow for additional commands (see next paragraph)
+* `ExecStartPre`: runs [`systemd-electrs-startpre.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/scripts/systemd-electrs-startpre.sh) to check dependencies
 * `User`: runs as service user "electrs"
 * `Group`: use group "bitcoin" to have access to the relevant bitcoind directories
 * `Restart`: always restarted, unless manually stopped

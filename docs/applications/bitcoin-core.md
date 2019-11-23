@@ -6,19 +6,27 @@ nav_order: 100
 ---
 ## Bitcoin Core
 
-Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>. The BitBoxBase uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks. All data is regarded as untrusted until it is locally verified to match the consensus rules of Bitcoin Core.
+Bitcoin Core the most popular software implementation of Bitcoin, openly developed on GitHub (<https://github.com/bitcoin/bitcoin>) and publishing releases on <https://bitcoincore.org>.
+The BitBoxBase uses the latest stable binary release to communicate with the Bitcoin peer-to-peer network, for example to learn about current transactions and receive newly mined blocks.
+All data is regarded as untrusted until it is locally verified to match the consensus rules of Bitcoin Core.
 
 ### Using binary releases
 
-While the `master` branch on GitHub reflects the current development process, a new stable release is tagged and tested every few months. This release is built from the source code in a reproducible way for various platforms by many contributors, verifying that they get the exact same binary executables by comparing the sha256 hash. These hash values for all images are provided in the `SHA256SUM.asc` file, which is signed by a Bitcoin Core maintainer, currently [laanwj](https://github.com/laanwj).
+While the `master` branch on GitHub reflects the current development process, a new stable release is tagged and tested every few months.
+This release is built from the source code in a reproducible way for various platforms by many contributors, verifying that they get the exact same binary executables by comparing the sha256 hash.
+These hash values for all images are provided in the `SHA256SUM.asc` file, which is signed by a Bitcoin Core maintainer, currently [laanwj](https://github.com/laanwj).
 
 Instead of compiling Bitcoin Core from source when building the Armbian image, or poviding our own binaries, we believe that following the official binary releases is a good way to minimize trusting any single entity and keep the build process performant.
 
-To ensure that the official binary is used, we store the verified signing key `01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values. If this verification does not succeed (a single bit difference would be enough) the build script aborts with an error.
+To ensure that the official binary is used, we store the verified signing key `01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964` independently from the Bitcoin Core release site and validate the downloaded binary against the signed hash values.
+If this verification does not succeed (a single bit difference would be enough) the build script aborts with an error.
 
 ### Configuration
 
-The application configuration is specified in the local `/etc/bitcoin/bitcoin.conf` file. The `bitcoin.conf` file is generated from a template during the build process of the Armbian image. It can updated during regular operations. These are the initial settings:
+The application configuration is specified in the local `/etc/bitcoin/bitcoin.conf` file.
+The `bitcoin.conf` file is generated from a template during the build process of the Armbian image.
+It can updated during regular operations.
+These are the initial settings:
 
 ```console
 # network
@@ -90,7 +98,9 @@ Some notes about this specific configuration:
 
 ### Service management
 
-The bitcoind service is managed by systemd. Relevant parameters are specified in the unit file `bitcoind.service` shown below. Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
+The bitcoind service is managed by systemd.
+Relevant parameters are specified in the unit file `bitcoind.service` shown below.
+Please check the most current initial configuration in [`customize-armbian-rockpro64.sh`](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/customize-armbian-rockpro64.sh).
 
 ```console
 [Unit]
@@ -109,7 +119,6 @@ ExecStartPre=+/opt/shift/scripts/systemd-bitcoind-startpre.sh
 ExecStart=/usr/bin/bitcoind \
     -conf=/etc/bitcoin/bitcoin.conf \
     -pid=/run/bitcoind/bitcoind.pid
-ExecStartPost=/opt/shift/scripts/systemd-bitcoind-startpost.sh
 
 # Process management
 ####################

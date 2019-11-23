@@ -7,7 +7,9 @@ permalink: /ui
 ---
 # BitBoxBase: User interface
 
-Our goal is to create a seamless experience with no technical setup. We are using the free and open-source BitBoxApp to manage the Base. This allows us to provide:
+Our goal is to create a seamless experience with no technical setup.
+We are using the free and open-source BitBoxApp to manage the Base.
+This allows us to provide:
 
 * automatic discovery of the BitBoxBase
 * secure pairing and fully encrypted communication
