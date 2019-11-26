@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/hsm"
 )
@@ -40,18 +41,11 @@ func main() {
 		log.Printf("HSM serial port connected.")
 	}
 
-	argumentMap := make(map[string]string)
-	argumentMap["middlewarePort"] = *middlewarePort
-	argumentMap["electrsRPCPort"] = *electrsRPCPort
-	argumentMap["network"] = *network
-	argumentMap["bbbConfigScript"] = *bbbConfigScript
-	argumentMap["bbbCmdScript"] = *bbbCmdScript
-	argumentMap["bbbSystemctlScript"] = *bbbSystemctlScript
-	argumentMap["prometheusURL"] = *prometheusURL
-	argumentMap["redisPort"] = *redisPort
-	argumentMap["imageUpdateInfoURL"] = *imageUpdateInfoURL
-	argumentMap["notificationNamedPipePath"] = *notificationNamedPipePath
-	argumentMap["middlewareVersion"] = version
+	config := configuration.NewConfiguration(
+		*bbbCmdScript, *bbbConfigScript, *bbbSystemctlScript, *electrsRPCPort,
+		*middlewarePort, *imageUpdateInfoURL, version, *network,
+		*notificationNamedPipePath, *prometheusURL, *redisMock, *redisPort,
+	)
 
 	logBeforeExit := func() {
 		// Recover from all panics and log error before panicking again.
@@ -63,7 +57,7 @@ func main() {
 	}
 	defer logBeforeExit()
 
-	middleware, err := middleware.NewMiddleware(argumentMap, *redisMock, hsmFirmware)
+	middleware, err := middleware.NewMiddleware(config, hsmFirmware)
 	if err != nil {
 		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
 	}

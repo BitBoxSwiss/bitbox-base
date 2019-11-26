@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
-	"github.com/digitalbitbox/bitbox-base/middleware/src/system"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware"
 	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 	"golang.org/x/crypto/bcrypt"
@@ -34,7 +34,7 @@ const initialAdminPassword = "ICanHasPasword?"
 
 // Middleware connects to services on the base with provided parameters and emits events for the handler.
 type Middleware struct {
-	environment         system.Environment
+	config              configuration.Configuration
 	events              chan handlers.Event
 	prometheusClient    prometheus.Client
 	redisClient         redis.Redis
@@ -43,7 +43,6 @@ type Middleware struct {
 	baseUpdateProgress  rpcmessages.GetBaseUpdateProgressResponse
 	baseUpdateAvailable rpcmessages.IsBaseUpdateAvailableResponse
 	baseVersion         *semver.SemVer
-	isMockmode          bool
 	// Saves state for the setup process
 	isMiddlewarePasswordSet bool
 	isBaseSetupDone         bool
@@ -53,21 +52,16 @@ type Middleware struct {
 
 // GetMiddlewareVersion returns the Middleware Version for the `GET /version` endpoint.
 func (middleware *Middleware) GetMiddlewareVersion() string {
-	return middleware.environment.GetMiddlewareVersion()
+	return middleware.config.GetMiddlewareVersion()
 }
 
 // NewMiddleware returns a new instance of the middleware.
-// For testing a mock boolean can be passed, which mocks e.g. redis.
 //
 // hsmFirmware let's you talk to the HSM. NOTE: it the HSM could not be connected, this is nil. The
 // middleware must be able to run and serve RPC calls without the HSM present.
-func NewMiddleware(
-	argumentMap map[string]string,
-	mock bool,
-	hsmFirmware *firmware.Device,
-) (*Middleware, error) {
+func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Device) (*Middleware, error) {
 	middleware := &Middleware{
-		environment: system.NewEnvironment(argumentMap),
+		config: config,
 		//TODO(TheCharlatan) find a better way to increase the channel size
 		events:      make(chan handlers.Event), //the channel size needs to be increased every time we had an extra endpoint
 		serviceInfo: rpcmessages.GetServiceInfoResponse{},
@@ -76,7 +70,6 @@ func NewMiddleware(
 			ProgressPercentage:    0,
 			ProgressDownloadedKiB: 0,
 		},
-		isMockmode:              mock,
 		isMiddlewarePasswordSet: false,
 		baseUpdateAvailable: rpcmessages.IsBaseUpdateAvailableResponse{
 			ErrorResponse:   &rpcmessages.ErrorResponse{Success: true},
@@ -85,13 +78,15 @@ func NewMiddleware(
 		baseVersion: semver.NewSemVer(0, 0, 0),
 		hsmFirmware: hsmFirmware,
 	}
-	middleware.prometheusClient = prometheus.NewClient(middleware.environment.GetPrometheusURL())
 
-	if !mock {
-		middleware.redisClient = redis.NewClient(middleware.environment.GetRedisPort())
-	} else if mock {
+	middleware.prometheusClient = prometheus.NewClient(middleware.config.GetPrometheusURL())
+
+	if !middleware.config.IsRedisMock() {
+		middleware.redisClient = redis.NewClient(middleware.config.GetRedisPort())
+	} else {
 		middleware.redisClient = redis.NewMockClient("")
 	}
+
 	err := middleware.checkMiddlewareSetup()
 	if err != nil {
 		log.Println("failed to update the middleware password set flag")
@@ -153,7 +148,7 @@ func (middleware *Middleware) updateCheckLoop() {
 	const timeBetweenUpdateChecks time.Duration = 30 * time.Minute
 
 	for {
-		updateInfo, err := getBaseUpdateInfo(middleware.environment.GetImageUpdateInfoURL())
+		updateInfo, err := getBaseUpdateInfo(middleware.config.GetImageUpdateInfoURL())
 		if err != nil {
 			log.Printf("Could not GET update info: %s\n", err)
 			time.Sleep(timeBetweenUpdateChecks)
@@ -200,7 +195,7 @@ func (middleware *Middleware) Start() <-chan handlers.Event {
 
 	go middleware.updateCheckLoop()
 
-	notificationReader, err := ipcnotification.NewReader(middleware.environment.GetNotificationNamedPipePath())
+	notificationReader, err := ipcnotification.NewReader(middleware.config.GetNotificationNamedPipePath())
 	if err != nil {
 		log.Printf("Error creating new IPC notification reader: %s", err)
 		// TODO: set base system status to ERROR
@@ -284,7 +279,7 @@ func (middleware *Middleware) ReindexBitcoin() rpcmessages.ErrorResponse {
 
 // SystemEnv returns a new GetEnvResponse struct with the values as read from the environment
 func (middleware *Middleware) SystemEnv() rpcmessages.GetEnvResponse {
-	response := rpcmessages.GetEnvResponse{Network: middleware.environment.Network, ElectrsRPCPort: middleware.environment.ElectrsRPCPort}
+	response := rpcmessages.GetEnvResponse{Network: middleware.config.GetNetwork(), ElectrsRPCPort: middleware.config.GetElectrsRPCPort()}
 	return response
 }
 
@@ -684,7 +679,7 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	const shutdownDelay time.Duration = 5 * time.Second
 	log.Printf("Shutting down the Base in %s\n", shutdownDelay)
 
-	if middleware.isMockmode {
+	if middleware.config.IsRedisMock() {
 		return rpcmessages.ErrorResponse{Success: true}
 	}
 
@@ -718,7 +713,7 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	const rebootDelay time.Duration = 5 * time.Second
 	log.Printf("Rebooting the Base in %s\n", rebootDelay)
 
-	if middleware.isMockmode {
+	if middleware.config.IsRedisMock() {
 		return rpcmessages.ErrorResponse{Success: true}
 	}
 
@@ -768,7 +763,7 @@ func (middleware *Middleware) UpdateBase(args rpcmessages.UpdateBaseArgs) rpcmes
 		}
 	}
 
-	cmd := exec.Command(middleware.environment.GetBBBCmdScript(), "mender-update", "install", args.Version)
+	cmd := exec.Command(middleware.config.GetBBBCmdScript(), "mender-update", "install", args.Version)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -1025,7 +1020,7 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
-	middlewarePort := middleware.environment.GetMiddlewarePort()
+	middlewarePort := middleware.config.GetMiddlewarePort()
 
 	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
 	if err != nil {
