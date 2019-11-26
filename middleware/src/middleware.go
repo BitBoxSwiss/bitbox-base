@@ -19,6 +19,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware"
+	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -176,8 +177,27 @@ func (middleware *Middleware) updateCheckLoop() {
 	}
 }
 
+// hsmHeartbeatLoop
+func (middleware *Middleware) hsmHeartbeatLoop() {
+	for {
+		// TODO(@0xB10C) fetch the `stateCode` and `descriptionCode` from redis keys set byt the supervisor
+		err := middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_IDLE, messages.BitBoxBaseHeartbeatRequest_EMPTY)
+		if err != nil {
+			log.Printf("Received an error from the HSM: %s\n", err)
+			time.Sleep(time.Second)
+			continue
+		}
+		// Send a heartbeat every 5 seconds. The HSM watchdog's timeout is 60 seconds
+		time.Sleep(5 * time.Second)
+	}
+}
+
 // Start gives a trigger for the handler to start the rpc event loop
 func (middleware *Middleware) Start() <-chan handlers.Event {
+	if middleware.hsmFirmware != nil {
+		go middleware.hsmHeartbeatLoop()
+	}
+
 	go middleware.rpcLoop()
 
 	// before the updateCheckLoop is started the Middleware needes the Base version
