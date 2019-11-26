@@ -20,6 +20,8 @@ This post-processing creates Mender update artifacts for over-the-air (OTA) upda
 
 The disk image has the Mender client built in. It is executed on demand by the Middleware to update the device.
 
+![Mender update process](update_mender_process.png)
+
 On the BitBoxBase, only one root filesystem - running the operating system and applications - is active at any given time, e.g. "root filesystem A".
 When the update process is started, the new disk image is streamed directly to the non-active root filesystem, e.g. "root filesystem B".
 After successful verification of the update signature and completion of the download, the bootloader is configured to boot from the updated "root filesystem B" once.
@@ -31,6 +33,10 @@ If everything works as expected, the updated "root filesystem B" is commited to 
 If the device is unable to boot, or if application-level checks fail after the update, the system automatically falls back to booting to the previous "root filesystem A", which was working before the update.
 This process makes it very unlikely that a device will end up in a state that can't be fixed using further OTA update.
 
-![Mender update process](update_mender_process.png)
-
 See additional information on <https://mender.io/overview/solution>
+
+## RPC communication
+
+The update process involves the BitBoxApp communicating with the Base Middlware over RPCs.
+
+![Update RPC communication diagram](base-update-progress-via-rpc_sequencediagram-org.svg)

@@ -1,0 +1,33 @@
+
+title Streaming ServiceInfo changes to the Frontend
+
+participant Frontend
+participant App
+participant Middleware
+participant Prometheus
+participant Prometheus Scraper
+
+
+Middleware->Prometheus: query last scrape timestamp
+Middleware<-Prometheus: timestamp: 2
+
+note over Middleware: compare with saved timestamp\n\nequal:\ndo nothing
+note over Middleware: wait 5 seconds
+
+Prometheus <<-- Prometheus Scraper: write new data\ntimestamp: 3
+Middleware->Prometheus: query last scrape timestamp
+Middleware<-Prometheus: timestamp: 3
+note over Middleware: compare with saved timestamp\n\nnot equal:\n1. safe timestamp = 3\n2. check if ServiceInfo changed
+Middleware->Prometheus: query ServiceInfo data\n(multiple querys)
+Middleware<-Prometheus: data ServiceInfo
+note over Middleware: check if ServiceInfo data changed\n\n- not changed: skip\n- changed: fire event
+App<<--Middleware:notify ServiceInfo changed
+note over Middleware:wait 5 seconds
+Frontend<<--App:notify ServiceInfo changed
+
+Frontend->App: GET /service-info
+Prometheus <<-- Prometheus Scraper: write new data\ntimestamp: 4
+App->Middleware:GetServiceInfo RPC
+App<-Middleware:Return cached\nGetServiceInfoResponse
+Frontend<-App:GetServiceInfoResponse
+note over Frontend:Redraw

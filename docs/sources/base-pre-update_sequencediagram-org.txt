@@ -1,0 +1,15 @@
+title pre-update
+
+participant app
+
+middleware->shiftcrypto.ch/updates/base.json: HTTP GET
+middleware<-shiftcrypto.ch/updates/base.json: response
+box over middleware: parse JSON
+box over middleware: compare base\nversion with \nbase.json version
+
+
+box over middleware: if newer
+middleware -->> app: notify app about newer version avaliable
+
+middleware <- app: GetUpdateVersion 
+middleware -> app: {\nupdateAvaliable: bool, \nversion: string, \ndescription: string, \nseverity: int\n}

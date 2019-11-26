@@ -32,6 +32,7 @@ tools/bbbconfgen/test/test-output.conf
 /_site
 /docs/.sass-cache
 /docs/_site
+docs/.jekyll-cache/*
 
 # Ignore the binary build outputs (except READMEs)
 /bin/go/*
