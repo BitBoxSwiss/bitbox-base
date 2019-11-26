@@ -206,28 +206,33 @@ func (middleware *Middleware) didServiceInfoChange() (changed bool) {
 func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoResponse {
 	bitcoindBlocks, err := middleware.prometheusClient.GetInt(prometheus.BitcoinBlockCount)
 	if err != nil {
+		log.Printf("Error scraping bitcoindBlocks information. Error: %s", err.Error())
 		bitcoindBlocks = 0
 	}
 
 	bitcoindHeaders, err := middleware.prometheusClient.GetInt(prometheus.BitcoinHeaderCount)
 	if err != nil {
+		log.Printf("Error scraping bitcoindHeaders information. Error: %s", err.Error())
 		bitcoindHeaders = 0
 	}
 
 	bitcoindVerificationProgress, err := middleware.prometheusClient.GetFloat(prometheus.BitcoinVerificationProgress)
 	if err != nil {
+		log.Printf("Error scraping bitcoindVerificationProgress information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	bitcoindPeers, err := middleware.prometheusClient.GetInt(prometheus.BitcoinPeers)
 	if err != nil {
+		log.Printf("Error scraping bitcoindPeers information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	bitcoindIBDAsInt, err := middleware.prometheusClient.GetInt(prometheus.BitcoinIBD)
 	if err != nil {
+		log.Printf("Error scraping bitcoindIBDAsInt information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetServiceInfoResponse{ErrorResponse: &errResponse}
 	}
@@ -235,16 +240,19 @@ func (middleware *Middleware) getServiceInfo() rpcmessages.GetServiceInfoRespons
 
 	lightningdBlocks, err := middleware.prometheusClient.GetInt(prometheus.LightningBlocks)
 	if err != nil {
+		log.Printf("Error scraping lightningdBlocks information. Error: %s", err.Error())
 		lightningdBlocks = 0
 	}
 
 	lightningActiveChannels, err := middleware.prometheusClient.GetInt(prometheus.LightningActiveChannels)
 	if err != nil {
+		log.Printf("Error scraping lightningActiveChannels information. Error: %s", err.Error())
 		lightningActiveChannels = 0
 	}
 
 	electrsBlocks, err := middleware.prometheusClient.GetInt(prometheus.ElectrsBlocks)
 	if err != nil {
+		log.Printf("Error scraping electrsBlocks information. Error: %s", err.Error())
 		electrsBlocks = 0
 	}
 
