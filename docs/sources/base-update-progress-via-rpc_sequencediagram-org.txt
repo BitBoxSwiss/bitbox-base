@@ -1,0 +1,39 @@
+title Base Update Process via RPC
+
+note over front-end: user wants to update 
+front-end->App: POST /update-base <version>
+App->Middleware: UpdateBase RPC <version>
+Middleware->bbb-cmd.sh: mender-update install <version>
+
+activate bbb-cmd.sh
+
+bbb-cmd.sh -->> Middleware: read from stdin: progress 1%
+Middleware -->> App: Event: UpdateProgresChanged
+App -->> front-end: Event: UpdateProgressChanged
+note over front-end:Am I ready to query new\nupdate progress info?\n\nNo (do nothing).
+
+bbb-cmd.sh -->> Middleware: read from stdin: progress 2%
+Middleware -->> App: Event: UpdateProgresChanged
+App -->> front-end: Event: UpdateProgressChanged
+note over front-end:Am I ready to query new\nupdate progress info?\n\nYes.
+
+
+front-end->App: GET /base-update-progress
+bbb-cmd.sh -->> Middleware: read from stdin: progress 3%
+
+App->Middleware:GetBaseUpdateProgress
+Middleware->App: 3%
+App->front-end: 3%
+
+
+==when update finished==
+
+bbb-cmd.sh -> Middleware: (no error)
+deactivate bbb-cmd.sh
+
+note over Middleware: set redis keys and restart base 
+
+Middleware -> App: ErrorResponse{Success: true}
+
+App ->front-end: {success: true}
+
