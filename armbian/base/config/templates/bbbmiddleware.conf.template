@@ -1,1 +1,3 @@
 {{ #output: /etc/bbbmiddleware/bbbmiddleware.conf }}
+DATADIR={{ middleware:datadir #default: /data/bbbmiddleware }}
+HSMSERIALPORT={{ middleware:hsmserialport #default: /dev/ttyS2 }}

@@ -15,6 +15,8 @@ SET base:updating 0
 SET base:setup 0
 
 SET middleware:passwordSetup 0
+SET middleware:datadir /data/bbbmiddleware
+SET middleware:hsmserialport /dev/ttyS2
 
 SET tor:base:enabled 1
 SET tor:ssh:enabled 0
