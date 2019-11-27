@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	middleware "github.com/digitalbitbox/bitbox-base/middleware/src"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/stretchr/testify/require"
 )
@@ -14,21 +15,35 @@ func getToggleSettingArgs(enabled bool) rpcmessages.ToggleSettingArgs {
 
 // setupTestMiddleware middleware returns a middleware setup with testing arguments
 func setupTestMiddleware(t *testing.T) *middleware.Middleware {
-	argumentMap := make(map[string]string)
-	argumentMap["electrsRPCPort"] = "18442"
-	argumentMap["network"] = "testnet"
-
 	/* The config and cmd script are mocked with /bin/echo which just returns
 	the passed arguments. The real scripts can't be used here, because
 	- the absolute location of those is different on each host this is run on
 	- the relative location is different depending here the tests are run from
 	*/
 	const echoBinaryPath string = "/bin/echo"
-	argumentMap["bbbConfigScript"] = echoBinaryPath
-	argumentMap["bbbCmdScript"] = echoBinaryPath
-	argumentMap["bbbSystemctlScript"] = echoBinaryPath
+	const (
+		bbbCmdScript              string = echoBinaryPath
+		bbbConfigScript           string = echoBinaryPath
+		bbbSystemctlScript        string = echoBinaryPath
+		electrsRPCPort            string = "18442"
+		imageUpdateInfoURL        string = "https://shiftcrypto.ch/updates/base.json"
+		middlewarePort            string = "8085"
+		middlewareVersion         string = "0.0.1"
+		network                   string = "testnet"
+		notificationNamedPipePath string = "/tmp/middleware-notification.pipe"
+		prometheusURL             string = "http://localhost:9090"
+		// Important: mock redis in the unit tests
+		redisMock bool   = true
+		redisPort string = "6379"
+	)
 
-	testMiddleware, err := middleware.NewMiddleware(argumentMap, true, nil)
+	config := configuration.NewConfiguration(
+		bbbCmdScript, bbbConfigScript, bbbSystemctlScript, electrsRPCPort,
+		imageUpdateInfoURL, middlewarePort, middlewareVersion, network,
+		notificationNamedPipePath, prometheusURL, redisMock, redisPort,
+	)
+
+	testMiddleware, err := middleware.NewMiddleware(config, nil)
 	require.NoError(t, err)
 	return testMiddleware
 }
