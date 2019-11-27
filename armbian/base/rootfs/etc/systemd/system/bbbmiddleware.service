@@ -10,7 +10,8 @@ After=multi-user.target bitcoind.service
 EnvironmentFile=/etc/bbbmiddleware/bbbmiddleware.conf
 ExecStartPre=/opt/shift/scripts/systemd-bbbmiddleware-startpre.sh
 ExecStart=/usr/local/sbin/bbbmiddleware \
-    -datadir=/data/bbbmiddleware
+    -datadir=${DATADIR} \
+    -hsmserialport=${HSMSERIALPORT}
 
 # Process management
 ####################
