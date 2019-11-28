@@ -20,9 +20,9 @@ BITCOIN_NETWORK=$(redis_get "bitcoind:network")
 sleep 10
 
 # make available lightningd socket to group "bitcoin"
-if [[ "${BITCOIN_NETWORK}" == "mainnet" ]]; then
+if [[ "${BITCOIN_NETWORK}" == "mainnet" ]] && [ -f /mnt/ssd/bitcoin/.lightning/lightning-rpc ]; then
     chmod g+rwx /mnt/ssd/bitcoin/.lightning/lightning-rpc
-elif [ -d /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc ]; then
+elif [ -f /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc ]; then
     chmod g+rwx /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 else
     echo "Failed to set permissions to lightning-rpc socket."
