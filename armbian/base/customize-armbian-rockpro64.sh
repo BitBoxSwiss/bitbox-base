@@ -348,6 +348,9 @@ mkdir -p /data_source/
 ln -sfn /data_source /data
 touch /data/.datadir_set_up
 
+# import presync authorization token, will be deleted after presync or on initial setup
+cp /opt/shift/config/signatures/maintenance-token-hashes /data_source
+
 ## install Redis
 apt-get install -y --no-install-recommends redis
 mkdir -p /data/redis/

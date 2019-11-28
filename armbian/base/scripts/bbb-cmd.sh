@@ -320,18 +320,20 @@ case "${MODULE}" in
                 fi
                 echo "OK: backup created as /mnt/backup/bbb-backup.rdb"
 
-                # add Factory Reset token
-                RESET_TOKEN="$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)"
-                RESET_TOKEN_HASH=$(echo -n "${RESET_TOKEN}" | sha256sum | tr -d "[:space:]-")
+                # add maintenance token
+                MAINTENANCE_TOKEN="$(< /dev/urandom tr -dc A-Za-z0-9 | head -c64)"
+                MAINTENANCE_TOKEN_HASH=$(echo -n "${MAINTENANCE_TOKEN}" | sha256sum | tr -d "[:space:]-")
 
-                # write reset token to usb drive, no linebreak allowed
-                printf "%s" "${RESET_TOKEN}" > /mnt/backup/.reset-token
+                # write maintenance token to usb drive, no linebreak allowed
+                printf "%s" "${MAINTENANCE_TOKEN}" > /mnt/backup/.maintenance-token
 
                 # append reset token hash for permission check locally
-                echo "${RESET_TOKEN_HASH}" >> /data/reset-token-hashes
-                chmod 600 /data/reset-token-hashes
-                echo "OK: reset token created on flashdrive"
+                echo "${MAINTENANCE_TOKEN_HASH}" >> /data/maintenance-token-hashes
+                chmod 600 /data/maintenance-token-hashes
+                echo "OK: maintenance token created on flashdrive"
 
+                # make sure the Shift factory token is removed on first backup
+                sed -i '/factory token/d' /data/maintenance-token-hashes
                 ;;
 
             # backup c-lightning on-chain keys in 'hsm_secret' into Redis database

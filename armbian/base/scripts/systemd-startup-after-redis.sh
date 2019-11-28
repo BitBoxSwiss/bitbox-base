@@ -45,12 +45,12 @@ if FLASHDRIVE="$(/opt/shift/scripts/bbb-cmd.sh flashdrive check)"; then
         echo "RESET: flashdrive mounted"
 
         # are all necessary files for a reset present?
-        if [[ -f /mnt/backup/.reset-token ]] && [[ -f /data/reset-token-hashes ]]; then
-            FLASHDRIVE_TOKEN_HASH="$(sha256sum /mnt/backup/.reset-token | cut -f 1 -d " ")"
-            echo "RESET: reset token present on flashdrive, hashed value: ${FLASHDRIVE_TOKEN_HASH}"
+        if [[ -f /mnt/backup/.maintenance-token ]] && [[ -f /data/maintenance-token-hashes ]]; then
+            MAINTENANCE_TOKEN_HASH="$(sha256sum /mnt/backup/.maintenance-token | cut -f 1 -d " ")"
+            echo "RESET: reset token present on flashdrive, hashed value: ${MAINTENANCE_TOKEN_HASH}"
 
             # is hashed reset token present on Base?
-            if grep -q "${FLASHDRIVE_TOKEN_HASH}" /data/reset-token-hashes; then
+            if grep -q "${MAINTENANCE_TOKEN_HASH}" /data/maintenance-token-hashes; then
                 echo "RESET: valid reset token found"
 
                 if [[ -f /mnt/backup/reset-base-auth ]]; then
@@ -74,7 +74,7 @@ if FLASHDRIVE="$(/opt/shift/scripts/bbb-cmd.sh flashdrive check)"; then
                     mv /mnt/backup/reset-base-image /mnt/backup/reset-base-image.done
                 fi
             else
-                echo "RESET: reset token on flashdrive does not match authorized tokens on the Base"
+                echo "RESET: maintenance token on flashdrive does not match authorized tokens on the BitBoxBase"
             fi
         else
             echo "RESET: not all files for a reset present, doing nothing."
