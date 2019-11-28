@@ -291,11 +291,11 @@ apt-get -y --fix-broken install
 ## remove unnecessary packages (only when building image, not ondevice)
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]]; then
   pkgToRemove="git libllvmkk build-essential libtool autotools-dev automake pkg-config gcc gcc-6 libgcc-6-dev
-  alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found* console-setup*
-  console-setup-linux* crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dialog* dirmngr*
+  alsa-utils* autoconf* bc* bison* bridge-utils* btrfs-tools* bwm-ng* cmake* command-not-found*
+  crda* dconf-gsettings-backend* dconf-service* debconf-utils* device-tree-compiler* dirmngr*
   dnsutils* dosfstools* ethtool* evtest* f2fs-tools* f3* fancontrol* figlet* fio* flex* fping* glib-networking* glib-networking-services*
   gnome-icon-theme* gnupg2* gsettings-desktop-schemas* gtk-update-icon-cache* haveged* hdparm* hostapd* html2text* ifenslave* iotop*
-  iperf3* iputils-arping* iw* kbd* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev*
+  iperf3* iputils-arping* iw* libatk1.0-0* libcroco3* libcups2* libdbus-glib-1-2* libgdk-pixbuf2.0-0* libglade2-0* libnl-3-dev*
   libpango-1.0-0* libpolkit-agent-1-0* libpolkit-backend-1-0* libpolkit-gobject-1-0* libpython-stdlib* libpython2.7-stdlib* libssl-dev*
   man-db* ncurses-term* psmisc* pv* python-avahi* python-pip* python2.7-minimal screen* shared-mime-info*
   unattended-upgrades* unicode-data* unzip* vim* wireless-regdb* wireless-tools* wpasupplicant* "
@@ -449,6 +449,8 @@ ln -sfn /mnt/ssd/system/journal /var/log/journal
 mkdir -p /etc/mender
 generateConfig mender.conf.template # -->  /etc/mender/mender.conf
 
+
+
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 if [[ -f /etc/default/armbian-zram-config ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
   sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
@@ -466,6 +468,10 @@ systemctl enable startup-after-redis.service
 ## update checks
 importFile /etc/systemd/system/update-checks.service
 systemctl enable update-checks.service
+
+## maintenance menu
+importFile /etc/systemd/system/startup-maintenance.service
+systemctl enable startup-maintenance.service
 
 ## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd

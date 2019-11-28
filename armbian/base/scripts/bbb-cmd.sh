@@ -18,6 +18,7 @@ possible commands:
   restore       <sysconfig|hsm_secret>
   reset         <auth|config|image|ssd>
   mender-update <install|commit>
+  presync       <create|restore>
 
 "
 }
@@ -79,6 +80,7 @@ fi
 MODULE="${1:-}"
 COMMAND="${2:-}"
 ARG="${3:-}"
+ARG2="${4:-}"
 
 MODULE="$(tr '[:lower:]' '[:upper:]' <<< "${MODULE}")"
 COMMAND="$(tr '[:lower:]' '[:upper:]' <<< "${COMMAND}")"
@@ -110,14 +112,14 @@ case "${MODULE}" in
                             ln -sfn /mnt/ssd/data /
                             echo "OK: (DATADIR) symlink /data --> /mnt/ssd/data created in OVERLAYROOTFS"
 
-                            if [ ! -f /data/.datadir_set_up ]; then
-                                cp -r /data_source/* /data
-                                echo "OK: (DATADIR) /data_source/ copied to /data/"
-                            fi
-
                         else
-                            ln -sfn /data_source /data
-                            echo "OK: (DATADIR) symlink /data/ --> /data_source/ created"
+                            mkdir -p /data
+                            echo "OK: (DATADIR) directory /data/ created"
+                        fi
+
+                        if [ ! -f /data/.datadir_set_up ]; then
+                            cp -r /data_source/* /data
+                            echo "OK: (DATADIR) /data_source/ copied to /data/"
                         fi
                     fi
                 else
@@ -506,11 +508,119 @@ case "${MODULE}" in
                 echo "OK: middleware authentication reset, setup wizard can be run again."
                 ;;
 
+            CONFIG)
+                # stop services
+                if redis-cli save; then
+                systemctl stop redis.service
+                fi
+
+                # delete old data
+                rm -rf /data/bbbmiddleware
+                rm -rf /data/redis
+                rm -rf /data/ssh
+                rm -rf /data/ssl
+                rm /data/.datadir_set_up
+
+                # re-initialize data dir
+                /opt/shift/scripts/bbb-cmd.sh setup datadir
+
+                # start services
+                systemctl start redis.service
+
+                # recreate directories and certificates (like on first boot)
+                /opt/shift/scripts/systemd-startup-checks.sh
+                ;;
+
             *)
                 echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
                 errorExit CMD_SCRIPT_INVALID_ARG
         esac
         ;;
+
+    PRESYNC)
+        # check and mount external drive
+        if ! lsblk -o NAME,TYPE -abrnp -e 1,7,31,179,252 | grep part | grep -q "${ARG} " || [ -z "${ARG}" ]; then
+            echo "ERR: external drive partition not found (specify e.g. '/dev/sda1')"
+            errorExit PRESYNC_EXTERNAL_DRIVE_NOT_FOUND
+        fi
+
+        mkdir -p /mnt/ext
+        if mountpoint /mnt/ext -q; then
+            umount /mnt/ext
+        fi
+        mount "${ARG}" /mnt/ext
+
+        # stop bitcoin services
+        systemctl stop bitcoind
+        systemctl stop lightningd
+        systemctl stop electrs
+
+        case "${COMMAND}" in
+            # create snapshot of blockchain data
+            # bbb-cmd.sh presync create /dev/sdb1
+            CREATE)
+                checkMockMode
+
+                if [ ! -d /mnt/ssd/bitcoin/.bitcoin ] || [ ! -d /mnt/ssd/electrs/db/mainnet ]; then
+                    echo "ERR: required directories not found (run with --help for additional details)" >&2
+                    sleep 5
+                    errorExit PRESYNC_DIRECTORIES_NOT_FOUND
+                fi
+
+                # freespace=$(df -k /mnt/ssd  | awk '/[0-9]%/{print $(NF-2)}')
+                # if [[ ${freespace} -lt 400000000 ]]; then
+                #     echo "ERR: not enough disk space, should at least have 400 GB" >&2
+                #     errorExit PRESYNC_NOT_ENOUGH_DISKSPACE
+                # fi
+
+                tar cvfW /mnt/ext/bbb-presync-ssd-"$(date '+%Y%m%d-%H%M')".tar \
+                    -C /mnt/ssd/ \
+                    bitcoin/.bitcoin/chainstate \
+                    bitcoin/.bitcoin/blocks \
+                    bitcoin/.bitcoin/chainstate \
+                    --exclude='IDENTITY' \
+                    --exclude='LOG*' \
+                    --exclude='*.log' \
+                    electrs/db/mainnet
+
+                echo
+                echo "OK: Presync archive created."
+                ls -lh /mnt/ssd/bbb-presync*
+                ;;
+
+            # restore snapshot of blockchain data
+            # bbb-cmd.sh presync restore /dev/sdb1 /mnt/ext/bbb-presync-ssd-20191126-2248.tar
+            RESTORE)
+                checkMockMode
+
+                echo "${ARG2}"
+                ls -la "${ARG2}"
+
+                if [[ ! -f ${ARG2} ]]; then
+                    echo "ERR: file ${ARG2} not found"
+                    errorExit PRESYNC_RESTORE_ARCHIVE_NOT_FOUND
+                fi
+
+                # TODO(Stadicus)
+                # rm -rf /mnt/ssd/bitcoin/.bitcoin/blocks/*
+                # rm -rf /mnt/ssd/bitcoin/.bitcoin/chainstate/*
+                # rm -rf /mnt/ssd/electrs/db/mainnet
+
+                tar xvf "${ARG2}" -C /mnt/ssd
+
+                echo
+                echo "OK: Presync archive restored."
+                ;;
+
+            *)
+                echo "Invalid argument for module ${MODULE}: command ${COMMAND} unknown."
+                errorExit CMD_SCRIPT_INVALID_ARG
+
+            umount /mnt/ext
+
+        esac
+        ;;
+
 
     *)
         echo "Invalid argument: module ${MODULE} unknown."

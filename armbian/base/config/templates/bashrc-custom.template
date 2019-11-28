@@ -1,7 +1,7 @@
 {{ #output: /home/base/.bashrc-custom }}
 export LS_OPTIONS='--color=auto'
-alias l='ls $LS_OPTIONS -l'
-alias ll='ls $LS_OPTIONS -la'
+alias l='ls $LS_OPTIONS -lh'
+alias ll='ls $LS_OPTIONS -lah'
 
 # Bitcoin
 alias bcli='bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf -rpcuser=base -rpcpassword={{ bitcoind:rpcpassword }}'
