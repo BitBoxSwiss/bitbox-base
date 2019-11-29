@@ -12,15 +12,15 @@ import (
 const (
 	helpText = `
 	Watches systemd logs (via journalctl) and queries Prometheus to detect potential issues and take action.
-	
-	Command-line arguments: 
+
+	Command-line arguments:
 	--help
 	--redis-port   			redis port (default 6379)
 	--prometheus-port   prometheus port (default 9090)
   --version
 	`
 
-	versionNum = "0.2"
+	versionNum = "1.0"
 )
 
 // Command line arguments

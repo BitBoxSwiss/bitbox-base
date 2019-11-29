@@ -287,7 +287,7 @@ func parseTemplate(redisConn redis.Conn, templateFile *os.File, outputFile *os.F
 
 func main() {
 	var (
-		versionNum = 0.2
+		versionNum = 1.0
 		redisConn  redis.Conn
 		err        error
 	)

@@ -45,7 +45,7 @@ func writeValueFile(filepath string, value string) (err error) {
 
 func main() {
 
-	versionNum := 0.1
+	versionNum := 1.0
 
 	// parse command line arguments
 	tempFile := flag.String("temp", "/sys/class/thermal/thermal_zone0/temp", "filepath to temperature value file")
