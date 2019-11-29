@@ -19,4 +19,5 @@ const (
 	MiddlewareAuth        BaseRedisKey = "middleware:auth"
 	BaseSetupDone         BaseRedisKey = "base:setup"
 	BaseSSHDPasswordLogin BaseRedisKey = "base:sshd:passwordlogin"
+	BitcoindIDB           BaseRedisKey = "bitcoind:ibd"
 )
