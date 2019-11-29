@@ -5,13 +5,15 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 )
 
 // unsetClearnetIDB unsets (0 - download blocks over Tor) the ibdClearnetRedisKey if set.
 // The key can only be set back to 1 (download blocks over clearnet) via RPC.
 func (s *Supervisor) unsetClearnetIDB() (err error) {
 	const ibdClearnetRedisKey string = "bitcoind:ibd-clearnet"
-	isIBDClearnet, err := s.redis.GetInt(ibdClearnetRedisKey)
+	isIBDClearnet, err := s.redis.GetInt(redis.BitcoindIDB)
 	if err != nil {
 		return fmt.Errorf("getting redis key %s failed: %v", ibdClearnetRedisKey, err)
 	}

@@ -48,8 +48,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/prometheus"
-	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/redis"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/watcher"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/watcher/logwatcher"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/watcher/prometheuswatcher"
