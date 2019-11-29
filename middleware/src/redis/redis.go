@@ -1,3 +1,5 @@
+// Package redis implements a communication interface with the redis server
+// running on the BitBoxBase.
 package redis
 
 import (
@@ -15,6 +17,9 @@ type Redis interface {
 	GetInt(BaseRedisKey) (int, error)
 	GetString(BaseRedisKey) (string, error)
 	SetString(BaseRedisKey, string) error
+	AddToSortedSet(BaseRedisKey, int, string) error
+	RemoveFromSortedSet(BaseRedisKey, string) error
+	GetTopFromSortedSet(BaseRedisKey) (string, error)
 }
 
 // Client is a redis client
@@ -109,6 +114,42 @@ func (c Client) SetString(key BaseRedisKey, value string) error {
 		return fmt.Errorf("could not set key %s: %s", key, err.Error())
 	}
 	return nil
+}
+
+// AddToSortedSet adds a element to a redis sorted set. The interger score
+// defines the position in the sorted set.
+//
+// Note: Redis supports double precision for scores, but that's not implemented
+// here yet. Additionally Redis supports multiple insertions in one call. That's
+// not implemented here either.
+func (c Client) AddToSortedSet(key BaseRedisKey, score int, element string) error {
+	conn := c.getConnection()
+	_, err := conn.Do("ZADD", key, score, element)
+	if err != nil {
+		return fmt.Errorf("could not ZADD key %s: %w", key, err)
+	}
+	return nil
+}
+
+// RemoveFromSortedSet removes an element from a Redis sorted set if present.
+func (c Client) RemoveFromSortedSet(key BaseRedisKey, element string) error {
+	conn := c.getConnection()
+	_, err := conn.Do("ZREM", key, element)
+	if err != nil {
+		return fmt.Errorf("could not ZREM key %s element %s: %w", key, element, err)
+	}
+	return nil
+}
+
+// GetTopFromSortedSet gets the element with the hightest score from a Redis
+// sorted set.
+func (c Client) GetTopFromSortedSet(key BaseRedisKey) (string, error) {
+	conn := c.getConnection()
+	element, err := redis.String(conn.Do("ZREVRANGE", key))
+	if err != nil {
+		return "", fmt.Errorf("could not ZREVRANGE key %s: %w", key, err)
+	}
+	return element, nil
 }
 
 // ConvertErrorToErrorResponse converts an error returned by Redis to an ErrorResponse

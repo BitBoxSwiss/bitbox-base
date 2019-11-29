@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -39,6 +40,24 @@ func (mc *MockClient) GetBool(key BaseRedisKey) (val bool, err error) {
 	s := mc.mockRedisMap[string(key)]
 	valAsInt, err := strconv.Atoi(s)
 	return valAsInt == 1, err
+}
+
+// AddToSortedSet is a dummy that does nothing but printing the arguments.
+func (mc *MockClient) AddToSortedSet(key BaseRedisKey, score int, element string) error {
+	log.Printf("AddToSortedSet dummy: key %q, score %q, element %q", key, score, element)
+	return nil
+}
+
+// RemoveFromSortedSet is a dummy that does nothing but printing the arguments.
+func (mc *MockClient) RemoveFromSortedSet(key BaseRedisKey, element string) error {
+	log.Printf("RemoveFromSortedSet dummy: key %q, element %q", key, element)
+	return nil
+}
+
+// GetTopFromSortedSet is a dummy that does nothing but printing the arguments.
+func (mc *MockClient) GetTopFromSortedSet(key BaseRedisKey) (string, error) {
+	log.Printf("GetTopFromSortedSet dummy: key %q", key)
+	return "dummy mock", nil
 }
 
 // GetString gets an string for a given key.
