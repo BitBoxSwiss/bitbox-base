@@ -20,4 +20,6 @@ const (
 	BaseSetupDone         BaseRedisKey = "base:setup"
 	BaseSSHDPasswordLogin BaseRedisKey = "base:sshd:passwordlogin"
 	BitcoindIDB           BaseRedisKey = "bitcoind:ibd"
+	BaseStateCode         BaseRedisKey = "base:stateCode"
+	BaseDescriptionCode   BaseRedisKey = "base:descriptionCode"
 )
