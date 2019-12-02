@@ -13,16 +13,12 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/digitalbitbox/bitbox-base v0.0.0-20191129152738-f894e6d1448b h1:yvOauf24YluPjFr/wkE1i0FiKLlVYdRYDYPfBrMV+o4=
-github.com/digitalbitbox/bitbox-base v0.0.0-20191129152738-f894e6d1448b/go.mod h1:jq+2yJ8K/nFF3gEZ5WtDGoYxDPCPfdWcA4814tRMXks=
-github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191129102523-d2d75f06f7fc h1:TYnnS/cf+xegbAIRSVwJrePIX+SVLsk8VL7v1qC6A3E=
-github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191129102523-d2d75f06f7fc/go.mod h1:+qEnqiUVBktYlKPKtca6n5oZjg2mV70G+OU/8R7UbyQ=
 github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191129152738-f894e6d1448b h1:cUU1Lsvbsgb9rO3zf8hVnGPNeyUuMCFZvqybWo029O8=
 github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191129152738-f894e6d1448b/go.mod h1:+qEnqiUVBktYlKPKtca6n5oZjg2mV70G+OU/8R7UbyQ=
-github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191122093321-5bacb3c08094/go.mod h1:yMwrh5lnSF+UDy+PLdCySxWHZubd2Tk/t2EQ1++4mgA=
 github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6/go.mod h1:1i71OnUq3iUe1ma7Lr6yG6/rjvM3emb6yoL7xLFzcVQ=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
+github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/gomodule/redigo v2.0.0+incompatible h1:K/R+8tc58AaqLkqG2Ol3Qk+DR/TlNuhuh457pBFPtt0=
 github.com/gomodule/redigo v2.0.0+incompatible/go.mod h1:B4C85qUVwatsJoIUNIfCRsp7qO0iAmpGFZ4EELWSbC4=
