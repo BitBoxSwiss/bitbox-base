@@ -8,6 +8,7 @@ import (
 	"log"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -178,19 +179,47 @@ func (middleware *Middleware) updateCheckLoop() {
 	}
 }
 
-// hsmHeartbeatLoop
 func (middleware *Middleware) hsmHeartbeatLoop() {
 	for {
-		// TODO(@0xB10C) fetch the `stateCode` and `descriptionCode` from redis keys set byt the supervisor
-		err := middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_IDLE, messages.BitBoxBaseHeartbeatRequest_EMPTY)
+		err := middleware.hsmHeartbeat()
 		if err != nil {
-			log.Printf("Received an error from the HSM: %s\n", err)
+			log.Printf("Warning while sending a HSM heartbeat: %s\n", err)
 			time.Sleep(time.Second)
 			continue
 		}
 		// Send a heartbeat every 5 seconds. The HSM watchdog's timeout is 60 seconds
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func (middleware *Middleware) hsmHeartbeat() error {
+	stateCode, err := middleware.redisClient.GetInt(redis.BaseStateCode)
+	if err != nil {
+		err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_ERROR, messages.BitBoxBaseHeartbeatRequest_REDIS_ERROR)
+		if err != nil {
+			return fmt.Errorf("could not get the stateCode from Redis: %s", err)
+		}
+	}
+
+	descriptionCodeString, err := middleware.redisClient.GetTopFromSortedSet(redis.BaseDescriptionCode)
+	if err != nil {
+		err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_ERROR, messages.BitBoxBaseHeartbeatRequest_REDIS_ERROR)
+		if err != nil {
+			return fmt.Errorf("could not get the hightest priority descriptionCode from Redis: %s", err)
+		}
+	}
+
+	descriptionCode, err := strconv.Atoi(descriptionCodeString)
+	if err != nil {
+		return fmt.Errorf("could not convert the descriptionCode from Redis %q to a string: %s", descriptionCodeString, err)
+	}
+
+	err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_StateCode(stateCode), messages.BitBoxBaseHeartbeatRequest_DescriptionCode(descriptionCode))
+	if err != nil {
+		return fmt.Errorf("received an error from the HSM: %w", err)
+	}
+
+	return nil
 }
 
 // Start gives a trigger for the handler to start the rpc event loop
