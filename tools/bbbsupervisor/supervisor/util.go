@@ -3,10 +3,14 @@ package supervisor
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
+	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/systemstate"
+	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 )
 
 // unsetClearnetIDB unsets (0 - download blocks over Tor) the ibdClearnetRedisKey if set.
@@ -81,6 +85,66 @@ func (s *Supervisor) disableBaseIBDState() (err error) {
 	err = s.setBBBConfigValue("bitcoin_ibd", "false")
 	if err != nil {
 		return fmt.Errorf("could not execute a 'bbb-config.sh set': %s", err.Error())
+	}
+
+	return nil
+}
+
+func (s *Supervisor) activateBaseSubsystemState(descCode messages.BitBoxBaseHeartbeatRequest_DescriptionCode) error {
+	err := s.redis.AddToSortedSet(redis.BaseDescriptionCode, systemstate.MapDescriptionCodePriority[descCode], strconv.Itoa(int(descCode)))
+	if err != nil {
+		return fmt.Errorf("could not activate the Base subsystem state %q: %w", descCode.String(), err)
+	}
+
+	top, err := s.redis.GetTopFromSortedSet(redis.BaseDescriptionCode)
+	if err != nil {
+		return fmt.Errorf("could not get the top element from %q: %w", redis.BaseDescriptionCode, err)
+	}
+
+	err = s.redis.SetString(redis.BaseStateCode, top)
+	if err != nil {
+		return fmt.Errorf("could not set the Base State code to %q: %w", top, err)
+	}
+
+	return nil
+}
+
+func (s *Supervisor) deactivateBaseSubsystemState(descCode messages.BitBoxBaseHeartbeatRequest_DescriptionCode) error {
+	err := s.redis.RemoveFromSortedSet(redis.BaseDescriptionCode, strconv.Itoa(int(descCode)))
+	if err != nil {
+		return fmt.Errorf("could not deactivate the Base subsystem state %q: %w", descCode.String(), err)
+	}
+
+	top, err := s.redis.GetTopFromSortedSet(redis.BaseDescriptionCode)
+	if err != nil {
+		return fmt.Errorf("could not get the top element from %q: %w", redis.BaseDescriptionCode, err)
+	}
+
+	err = s.redis.SetString(redis.BaseStateCode, top)
+	if err != nil {
+		return fmt.Errorf("could not set the Base State code to %q: %w", top, err)
+	}
+
+	return nil
+}
+
+func (s *Supervisor) notifyMiddlewareSubsystemStateChanged() error {
+	pipe, err := os.OpenFile("/tmp/middleware-notification.pipe", os.O_RDWR, 0600)
+	if err != nil {
+		return fmt.Errorf("could not notify middleware that the system state changed: %w", err)
+	}
+
+	const notification string = "{\"version\": 1, \"topic\": \"systemstate-changed\", \"payload\": {}}\n"
+
+	_, err = pipe.WriteString(notification)
+	if err != nil {
+		return fmt.Errorf("could not notify middleware that the system state changed: %w", err)
+	}
+
+	// close lets the pipe.WriteString fail and the goroutine exits
+	err = pipe.Close()
+	if err != nil {
+		return fmt.Errorf("could not close pipe: %w", err)
 	}
 
 	return nil

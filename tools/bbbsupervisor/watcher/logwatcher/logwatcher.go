@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/digitalbitbox/bitbox-base/middleware/src/logtags"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/watcher"
 	"github.com/digitalbitbox/bitbox-base/tools/bbbsupervisor/watcher/trigger"
 )
@@ -89,6 +90,16 @@ func (ew EventWriter) parseEvent(line string, unit string) *watcher.Event {
 	// bbbmiddleware unable to connect bitcoind
 	case strings.Contains(line, "GetBlockChainInfo rpc call failed"):
 		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareNoBitcoindConnectivity}
+	case strings.Contains(line, logtags.LogTagMWUpdateStart):
+		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareBaseImageUpdateStart}
+	case strings.Contains(line, logtags.LogTagMWUpdateSuccess):
+		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareBaseImageUpdateSuccess}
+	case strings.Contains(line, logtags.LogTagMWUpdateFailure):
+		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareBaseImageUpdateFailure}
+	case strings.Contains(line, logtags.LogTagMWReboot):
+		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareRPCReboot}
+	case strings.Contains(line, logtags.LogTagMWShutdown):
+		return &watcher.Event{Unit: unit, Trigger: trigger.MiddlewareRPCShutdown}
 	}
 	return nil
 }

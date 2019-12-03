@@ -15,6 +15,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/logtags"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -713,6 +714,8 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWShutdown)
 		time.Sleep(delay)
 		cmd := exec.Command("shutdown", "now")
 		err = cmd.Start()
@@ -747,6 +750,8 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWReboot)
 		time.Sleep(delay)
 		cmd := exec.Command("reboot")
 		err = cmd.Start()

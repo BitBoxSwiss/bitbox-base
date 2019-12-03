@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/logtags"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -303,6 +304,15 @@ func parseBaseUpdateStdout(outputLine string) (containsUpdateProgressInfo bool, 
 }
 
 func (middleware *Middleware) setBaseUpdateStateAndNotify(state rpcmessages.BaseUpdateState) {
+	if state == rpcmessages.UpdateFailed {
+		// This log tag lets the Supervisor know that the update process failed.
+		log.Println(logtags.LogTagMWUpdateFailure)
+	} else if state == rpcmessages.UpdateDownloading {
+		// This log tag lets the Supervisor know that the Middleware has started the
+		// update process.
+		log.Println(logtags.LogTagMWUpdateStart)
+	} // The reboot-logtag is logged in the the middleware.RebootBase() method
+
 	middleware.baseUpdateProgress.State = state
 	middleware.events <- handlers.Event{
 		Identifier:      []byte(rpcmessages.OpBaseUpdateProgressChanged),
