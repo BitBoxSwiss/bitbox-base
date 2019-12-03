@@ -15,6 +15,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/logtags"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -246,11 +247,15 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 			if success, ok := ipcnotification.ParseMenderUpdatePayload(notification.Payload); ok {
 				switch success {
 				case true:
+					// This logtag notifies the supervisor that the update was successful.
+					log.Println(logtags.LogTagMWUpdateSuccess)
 					middleware.events <- handlers.Event{
 						Identifier:      []byte(rpcmessages.OpBaseUpdateSuccess),
 						QueueIfNoClient: true,
 					}
 				case false:
+					// This logtag notifies the supervisor that the update failed.
+					log.Println(logtags.LogTagMWUpdateFailure)
 					middleware.events <- handlers.Event{
 						Identifier:      []byte(rpcmessages.OpBaseUpdateFailure),
 						QueueIfNoClient: true,
@@ -713,6 +718,8 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWShutdown)
 		time.Sleep(delay)
 		cmd := exec.Command("shutdown", "now")
 		err = cmd.Start()
@@ -747,6 +754,8 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWReboot)
 		time.Sleep(delay)
 		cmd := exec.Command("reboot")
 		err = cmd.Start()
