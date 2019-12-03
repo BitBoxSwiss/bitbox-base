@@ -517,9 +517,8 @@ apt install -y  libsodium-dev autoconf automake build-essential git libtool libg
 rm -rf /usr/local/src/lightning
 
 cd /usr/local/src/
-git clone https://github.com/ElementsProject/lightning.git
+git clone --depth=1 -b v${LIGHTNING_VERSION} https://github.com/ElementsProject/lightning.git
 cd lightning
-git checkout v${LIGHTNING_VERSION}
 ./configure
 make -j 4
 make install
