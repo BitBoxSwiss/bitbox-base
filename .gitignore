@@ -7,6 +7,7 @@
 
 # Ignore the local configuration overrides for Armbian build.
 /armbian/base/build-local.conf
+/armbian/base/config/authorized_keys
 
 # Ignore the generated file holding current git commit for Armbian build.
 /armbian/base/config/latest_commit
