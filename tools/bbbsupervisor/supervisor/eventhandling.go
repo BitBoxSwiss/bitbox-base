@@ -268,12 +268,28 @@ func (s *Supervisor) handleBitcoindIBD(event watcher.Event) error {
 		if isActive == 1 {
 			err := s.setBBBConfigValue("bitcoin_ibd", "true")
 			if err != nil {
-				return fmt.Errorf("Handling trigger %s: Initial set. Setting BBB config value to `true` failed: %v", t.String(), err)
+				return fmt.Errorf("Handling trigger %q: Initial set. Setting BBB config value to `true` failed: %s", t.String(), err)
+			}
+			err = s.activateBaseSubsystemState(messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC)
+			if err != nil {
+				return fmt.Errorf("Handling trigger %q: Initial set. Could not activate subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
+			}
+			err = s.notifyMiddlewareSubsystemStateChanged()
+			if err != nil {
+				return fmt.Errorf("Handling trigger %q: Initial set. Could not notify middleware about activated subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
 			}
 		} else {
 			err := s.disableBaseIBDState()
 			if err != nil {
-				return fmt.Errorf("Handling trigger %s: Initial state set. %s", t.String(), err.Error())
+				return fmt.Errorf("Handling trigger %q: Initial state set. %s", t.String(), err.Error())
+			}
+			err = s.deactivateBaseSubsystemState(messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC)
+			if err != nil {
+				return fmt.Errorf("Handling trigger %q: Initial set. Could not deactivate subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
+			}
+			err = s.notifyMiddlewareSubsystemStateChanged()
+			if err != nil {
+				return fmt.Errorf("Handling trigger %q: Initial set. Could not notify middleware about deactivated subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
 			}
 		}
 		s.state.PrometheusLastStateIBD = isActive // set the initial value for the state
@@ -281,17 +297,33 @@ func (s *Supervisor) handleBitcoindIBD(event watcher.Event) error {
 	}
 
 	if wasActive == 1 && isActive == 0 { // IBD finished
-		log.Println("Setting bitcoin_ibd since the IBD finished.")
+		log.Println("IBD finished: unsetting bitcoind_idb.")
 		err := s.disableBaseIBDState()
 		if err != nil {
-			return fmt.Errorf("Handling trigger %s: %s", t.String(), err.Error())
+			return fmt.Errorf("Handling trigger %q: %s", t.String(), err.Error())
+		}
+		err = s.deactivateBaseSubsystemState(messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC)
+		if err != nil {
+			return fmt.Errorf("Handling trigger %q: Could not deactivate subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
+		}
+		err = s.notifyMiddlewareSubsystemStateChanged()
+		if err != nil {
+			return fmt.Errorf("Handling trigger %q: Could not notify middleware about deactivated subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
 		}
 		s.state.PrometheusLastStateIBD = isActive
 	} else if wasActive == 0 && isActive == 1 { // IBD (re)started
 		log.Println("Setting bitcoin_ibd since the IBD (re)started.")
 		err := s.setBBBConfigValue("bitcoin_ibd", "true")
 		if err != nil {
-			return fmt.Errorf("Handling trigger %s: setting BBB config value to `true` failed: %v", t.String(), err)
+			return fmt.Errorf("Handling trigger %q: setting BBB config value to `true` failed: %s", t.String(), err)
+		}
+		err = s.activateBaseSubsystemState(messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC)
+		if err != nil {
+			return fmt.Errorf("Handling trigger %q: Could not activate subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
+		}
+		err = s.notifyMiddlewareSubsystemStateChanged()
+		if err != nil {
+			return fmt.Errorf("Handling trigger %q: Could not notify middleware about activated subsystem state %q: %s", t.String(), messages.BitBoxBaseHeartbeatRequest_INITIAL_BLOCK_SYNC.String(), err)
 		}
 		s.state.PrometheusLastStateIBD = isActive
 	}
