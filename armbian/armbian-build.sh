@@ -40,7 +40,8 @@ case ${ACTION} in
 		git log --pretty=format:'%h' -n 1 > ./base/config/latest_commit
 
 		if [ ! -d "armbian-build" ]; then
-			git clone https://github.com/armbian/build armbian-build
+			# TODO(Stadicus): pin specific tag instead of master branch
+			git clone --depth=1 -b master https://github.com/armbian/build armbian-build
 
 			# prevent Armbian scripts to revert to master, allows usage of custom tags/releases
 			touch armbian-build/.ignore_changes
@@ -51,8 +52,6 @@ case ${ACTION} in
 		cp -a  base/customize-image.sh armbian-build/userpatches/		# copy customize script to standard Armbian build hook
 		cp -aR base/* armbian-build/userpatches/overlay/					# copy scripts and configuration items to overlay
 		cp -aR ../bin/go/* armbian-build/userpatches/overlay/bin/go			# copy additional software binaries to overlay
-
-		# TODO(Stadicus): pin specific tag
 
 		BOARD=${BOARD:-rockpro64}
 		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=legacy WIREGUARD=no PROGRESS_LOG_TO_FILE=yes"

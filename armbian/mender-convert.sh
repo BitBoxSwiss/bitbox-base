@@ -31,7 +31,8 @@ case ${ACTION} in
 	build)
 		# initialize conversion environment
 		if [ ! -d "mender-convert" ]; then
-			git clone https://github.com/mendersoftware/mender-convert
+			# TODO(Stadicus): pin specific commit instead of master branch
+			git clone -b master --depth=1 https://github.com/mendersoftware/mender-convert
 			cd mender-convert
 			./docker-build arm64
 			mkdir -p input
