@@ -264,13 +264,11 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 
 	for {
 		notification := <-notifications
-
 		if notification.Version != supportedNotificationVersion {
-			log.Printf("Dropping IPC notification with unsupported version: %s\n", notification.String())
+			log.Printf("Dropping an IPC notification with unsupported version: %s\n", notification.String())
 		}
 
-		log.Printf("Received notification with topic '%s': %v\n", notification.Topic, notification.Payload)
-
+		log.Printf("Received an IPC notification with topic '%s': %v\n", notification.Topic, notification.Payload)
 		switch notification.Topic {
 		case "mender-update":
 			if success, ok := ipcnotification.ParseMenderUpdatePayload(notification.Payload); ok {
@@ -289,8 +287,18 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 			} else {
 				log.Printf("Could not parse %s notification payload: %v\n", notification.Topic, notification.Payload)
 			}
+		case "systemstate-changed":
+			if middleware.hsmFirmware == nil {
+				log.Println("Received an IPC notification that the system state changed, but there is no HSM recognized. Not sending an extra HSM heartbeat.")
+				break
+			}
+			log.Println("Received an IPC notification that the system state changed. Sending an extra HSM heartbeat.")
+			err := middleware.hsmHeartbeat()
+			if err != nil {
+				log.Printf("Warning: error while sending a extra HSM heartbeat because the systemstate changed: %s\n", err)
+			}
 		default:
-			log.Printf("Dropping IPC notification with unknown topic: %s\n", notification.String())
+			log.Printf("Dropping an IPC notification with unknown topic: %s\n", notification.String())
 		}
 	}
 }
