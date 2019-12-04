@@ -2,7 +2,37 @@
 // values to the Middleware.
 package configuration
 
+// Args has the same fields as the `Configuration` struct, but the fields in
+// `Args` are public. The struct is used as parameter to the `NewConfiguration()`
+// factory function. The struct needs public fields to be settable the `main`
+// package. However the `Configuration` can't have public fields, because the
+// fields should be **READ ONLY** while the Middleware is running. Fields should
+// only be accessible via defined Getter functions.
+//
+// Note: Go does not support named arguments for functions. While passing the
+// arguments to a function would work, it would be rather easy to mistakenly
+// switch e.g. two string parameters ending up with an invalid middleware
+// configuration. Using the `Args` helps, because a Go struct can be initialized
+// with named fields.
+type Args struct {
+	BBBCmdScript              string
+	BBBConfigScript           string
+	BBBSystemctlScript        string
+	ElectrsRPCPort            string
+	ImageUpdateInfoURL        string
+	MiddlewarePort            string
+	MiddlewareVersion         string
+	Network                   string
+	NotificationNamedPipePath string
+	PrometheusURL             string
+	RedisMock                 bool
+	RedisPort                 string
+}
+
 // Configuration holds the configuration options for the Middleware.
+//
+// Note: adding / removing a field in this struct requires an update to the
+// `Args` struct as well.
 type Configuration struct {
 	bbbCmdScript              string
 	bbbConfigScript           string
@@ -19,25 +49,23 @@ type Configuration struct {
 }
 
 // NewConfiguration returns a new Configuration instance.
-func NewConfiguration(
-	bbbCmdScript string, bbbConfigScript string, bbbSystemctlScript string,
-	electrsRPCPort string, imageUpdateInfoURL string, middlewarePort string,
-	middlewareVersion string, network string, notificationNamedPipePath string,
-	prometheusURL string, redisMock bool, redisPort string,
-) Configuration {
+//
+// Note: The `Args` struct supports named fields. Go functions don't support
+// named parameters. The struct helps avoiding switched parameters.
+func NewConfiguration(args Args) Configuration {
 	config := Configuration{
-		bbbCmdScript:              bbbCmdScript,
-		bbbConfigScript:           bbbConfigScript,
-		bbbSystemctlScript:        bbbSystemctlScript,
-		electrsRPCPort:            electrsRPCPort,
-		imageUpdateInfoURL:        imageUpdateInfoURL,
-		middlewarePort:            middlewarePort,
-		middlewareVersion:         middlewareVersion,
-		network:                   network,
-		notificationNamedPipePath: notificationNamedPipePath,
-		prometheusURL:             prometheusURL,
-		redisMock:                 redisMock,
-		redisPort:                 redisPort,
+		bbbCmdScript:              args.BBBCmdScript,
+		bbbConfigScript:           args.BBBConfigScript,
+		bbbSystemctlScript:        args.BBBSystemctlScript,
+		electrsRPCPort:            args.ElectrsRPCPort,
+		imageUpdateInfoURL:        args.ImageUpdateInfoURL,
+		middlewarePort:            args.MiddlewarePort,
+		middlewareVersion:         args.MiddlewareVersion,
+		network:                   args.Network,
+		notificationNamedPipePath: args.NotificationNamedPipePath,
+		prometheusURL:             args.PrometheusURL,
+		redisMock:                 args.RedisMock,
+		redisPort:                 args.RedisPort,
 	}
 	return config
 }

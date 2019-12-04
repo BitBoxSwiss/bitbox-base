@@ -26,9 +26,20 @@ func TestConfiguration(t *testing.T) {
 	)
 
 	config := configuration.NewConfiguration(
-		bbbCmdScript, bbbConfigScript, bbbSystemctlScript, electrsRPCPort,
-		imageUpdateInfoURL, middlewarePort, middlewareVersion, network,
-		notificationNamedPipePath, prometheusURL, redisMock, redisPort,
+		configuration.Args{
+			BBBCmdScript:              bbbCmdScript,
+			BBBConfigScript:           bbbConfigScript,
+			BBBSystemctlScript:        bbbSystemctlScript,
+			ElectrsRPCPort:            electrsRPCPort,
+			ImageUpdateInfoURL:        imageUpdateInfoURL,
+			MiddlewarePort:            middlewarePort,
+			MiddlewareVersion:         middlewareVersion,
+			Network:                   network,
+			NotificationNamedPipePath: notificationNamedPipePath,
+			PrometheusURL:             prometheusURL,
+			RedisMock:                 redisMock,
+			RedisPort:                 redisPort,
+		},
 	)
 
 	require.Equal(t, bbbCmdScript, config.GetBBBCmdScript())

@@ -42,9 +42,20 @@ func main() {
 	}
 
 	config := configuration.NewConfiguration(
-		*bbbCmdScript, *bbbConfigScript, *bbbSystemctlScript, *electrsRPCPort,
-		*imageUpdateInfoURL, *middlewarePort, version, *network,
-		*notificationNamedPipePath, *prometheusURL, *redisMock, *redisPort,
+		configuration.Args{
+			BBBCmdScript:              *bbbCmdScript,
+			BBBConfigScript:           *bbbConfigScript,
+			BBBSystemctlScript:        *bbbSystemctlScript,
+			ElectrsRPCPort:            *electrsRPCPort,
+			ImageUpdateInfoURL:        *imageUpdateInfoURL,
+			MiddlewarePort:            *middlewarePort,
+			MiddlewareVersion:         version,
+			Network:                   *network,
+			NotificationNamedPipePath: *notificationNamedPipePath,
+			PrometheusURL:             *prometheusURL,
+			RedisMock:                 *redisMock,
+			RedisPort:                 *redisPort,
+		},
 	)
 
 	logBeforeExit := func() {
