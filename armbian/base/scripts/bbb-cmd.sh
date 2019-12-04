@@ -493,7 +493,11 @@ case "${MODULE}" in
             AUTH)
                 redis_set "base:setup" 0
                 redis_set "middleware:passwordSetup" 0
-
+                if ! systemctl restart bbbmiddleware.service; then
+                    echo "ERR: could not restart bbbmiddleware.service"
+                    errorExit SYSTEMD_SERVICESTART_FAILED
+                fi
+                echo "INFO: bbbmiddleware.service restarted"
                 echo "OK: middleware authentication reset, setup wizard can be run again."
                 ;;
 
