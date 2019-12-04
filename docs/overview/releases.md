@@ -56,3 +56,24 @@ BitBoxBase-v0.X.X-RockPro64.base: OK
 BitBoxBase-v0.X.X-RockPro64.tar.gz: OK
 sha256sum: WARNING: 19 lines are improperly formatted
 ```
+
+### Write to eMMC
+
+To use the full disk image with your RockPro64, you need to write it to the eMMC chip with a USB adapter (see the ["Do it yourself!" section](diy.html)).
+
+First, extract the `tar.gz` archive with the tool of your choice, e.g. [7-Zip](https://www.7-zip.org) on Windows or simply `tar` on Linux.
+
+To write it to eMMC, you can use
+* a program like [Etcher](https://www.balena.io/etcher/)
+* or do it directly from the Linux command line.
+
+On the Linux command line use `dd`: once the eMMC chip is connected to your computer using the USB adapter, get the device name (e.g. `/dev/sdb`).
+Check it carefully, all data on this device will be lost!
+
+```bash
+lsblk
+sudo dd if=BitBoxBase-v0.1.0-RockPro64.img of=/dev/sdb bs=64K conv=sync status=progress
+sync
+```
+
+With the eMMC chip connected on the RockPro64 board, the BitBoxBase will boot right up.
