@@ -43,7 +43,7 @@ func main() {
 
 	config := configuration.NewConfiguration(
 		*bbbCmdScript, *bbbConfigScript, *bbbSystemctlScript, *electrsRPCPort,
-		*middlewarePort, *imageUpdateInfoURL, version, *network,
+		*imageUpdateInfoURL, *middlewarePort, version, *network,
 		*notificationNamedPipePath, *prometheusURL, *redisMock, *redisPort,
 	)
 
