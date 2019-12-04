@@ -224,10 +224,14 @@ fi
 
 # Add trusted SSH keys for login
 mkdir -p /home/base/.ssh/
-if [[ "${BASE_ADD_SSH_KEYS}" == "true" ]] && [ -f /opt/shift/config/ssh/authorized_keys ]; then
-  cp /opt/shift/config/ssh/authorized_keys /home/base/.ssh/
+if [[ "${BASE_ADD_SSH_KEYS}" == "true" ]] && [ -f /opt/shift/config/authorized_keys ]; then
+  cp /opt/shift/config/authorized_keys /home/base/.ssh/
+  echo "INFO: included the following SSH keys:"
+  echo "--------------------------------------------------------------------------------"
+  cat /home/base/.ssh/authorized_keys
+  echo "--------------------------------------------------------------------------------"
 else
-  echo "Option BASE_ADD_SSH_KEYS not set to 'true' or no SSH keys file found (base/authorized_keys): password login only."
+  echo "Option BASE_ADD_SSH_KEYS not set to 'true' or no SSH keys file found (base/config/authorized_keys): password login only."
 fi
 chown -R base:bitcoin /home/base/
 chmod -R u+rw,g-rwx,o-rwx /home/base/.ssh
