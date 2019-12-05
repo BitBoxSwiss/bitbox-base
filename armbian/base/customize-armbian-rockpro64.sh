@@ -756,6 +756,13 @@ if [[ "${BASE_OVERLAYROOT}" == "true" ]]; then
   fi
 fi
 
+## move build resources to separate folder
+mkdir -p /opt/shift/build-resources
+mv /opt/shift/build*.conf     /opt/shift/build-resources || true
+mv /opt/shift/customize*.sh   /opt/shift/build-resources || true
+mv /opt/shift/bin             /opt/shift/build-resources || true
+mv /opt/shift/rootfs          /opt/shift/build-resources || true
+
 set +x
 
 if [[ "${BASE_BUILDMODE}" == "ondevice" ]]; then
