@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191122093321-5bacb3c08094
+	github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191204135529-eb28ed7e9cbd
 	github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorilla/mux v1.7.3
