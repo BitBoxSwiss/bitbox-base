@@ -27,6 +27,7 @@ BASE_SYSTEMD_ELECTRS = Gauge("base_systemd_electrs", "Systemd unit status for El
 BASE_SYSTEMD_LIGHTNINGD = Gauge("base_systemd_lightningd", "Systemd unit status for c-lightning")
 BASE_SYSTEMD_PROMETHEUS = Gauge("base_systemd_prometheus", "Systemd unit status for Prometheus")
 BASE_SYSTEMD_GRAFANA = Gauge("base_systemd_grafana", "Systemd unit status for Grafana")
+BASE_INTERNET_CONNECTIVITY = Gauge("base_internet_connectivity", "Connectivity to public internet")
 
 r = redis.Redis(
     host='127.0.0.1',
@@ -80,6 +81,27 @@ def getSystemdStatus(unit):
         print(unit, e.returncode, e.output)
         return e.returncode
 
+def getInternetConnectivity():
+    torEnabled = int(r.get('tor:base:enabled').decode("utf-8"))
+
+    try:
+        if torEnabled == 1:
+            print("Tor ok")
+            subprocess.check_output(["curl", "--socks5-hostname", "localhost:9050", "1.1.1.1"], shell=False, timeout=5, stderr=subprocess.STDOUT)
+        else:
+            print("Tor not ok")
+            subprocess.check_output(["ping", "-c", "1", "1.1.1.1"], shell=False, timeout=5, stderr=subprocess.STDOUT)
+
+        return 0
+
+    except subprocess.TimeoutExpired as e:
+        print("getInternetConnectivity(): subprocess.TimeoutExpired; torEnabled", torEnabled)
+        return 1
+
+    except subprocess.CalledProcessError as e:
+        print("getInternetConnectivity(): subprocess.CalledProcessError (", e.returncode, "); torEnabled", torEnabled, e.output)
+        return e.returncode
+
 def main():
     # Start up the server to expose the metrics.
     start_http_server(8400)
@@ -91,6 +113,7 @@ def main():
         BASE_SYSTEMD_LIGHTNINGD.set(int(getSystemdStatus("lightningd")))
         BASE_SYSTEMD_PROMETHEUS.set(int(getSystemdStatus("prometheus")))
         BASE_SYSTEMD_GRAFANA.set(int(getSystemdStatus("grafana-server")))
+        BASE_INTERNET_CONNECTIVITY.set(int(getInternetConnectivity()))
 
         try:
             BASE_CPU_TEMP.set(readFile("/sys/class/thermal/thermal_zone0/temp"))
