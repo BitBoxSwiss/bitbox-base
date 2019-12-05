@@ -37,6 +37,8 @@ LIGHTNING_VERSION="0.7.3"
 ELECTRS_VERSION="0.7.0"
 BIN_DEPS_TAG='0.0.5'
 
+HSM_VERSION='4.3.0'
+
 PROMETHEUS_VERSION="2.11.1"
 PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
 NODE_EXPORTER_VERSION="0.18.1"
@@ -475,6 +477,12 @@ ln -sf /opt/shift/scripts/bbb-cmd.sh       /usr/local/sbin/bbb-cmd.sh
 ln -sf /opt/shift/scripts/bbb-systemctl.sh /usr/local/sbin/bbb-systemctl.sh
 
 
+# HSM FIRMWARE -----------------------------------------------------------------
+mkdir -p /opt/shift/hsm
+curl --retry 5 -SLo "/opt/shift/hsm/firmware-bitboxbase.signed.bin" \
+  "https://github.com/digitalbitbox/bitbox02-firmware/releases/download/firmware-bitboxbase%2Fv${HSM_VERSION}/firmware-bitboxbase.v${HSM_VERSION}.signed.bin"
+
+
 # TOR --------------------------------------------------------------------------
 curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
@@ -488,7 +496,6 @@ generateConfig "torrc.template" # --> /etc/tor/torrc
 
 ## allow user 'bitcoin' to access Tor proxy socket
 usermod -a -G debian-tor bitcoin
-
 
 
 # BITCOIN ----------------------------------------------------------------------
