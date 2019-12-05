@@ -42,15 +42,25 @@ func setupTestMiddleware(t *testing.T) *middleware.Middleware {
 		network                   string = "testnet"
 		notificationNamedPipePath string = "/tmp/middleware-notification.pipe"
 		prometheusURL             string = "http://localhost:9090"
-		// Important: mock redis in the unit tests
-		redisMock bool   = true
-		redisPort string = "6379"
+		redisMock                 bool   = true // Important: mock redis in the unit tests
+		redisPort                 string = "6379"
 	)
 
 	config := configuration.NewConfiguration(
-		bbbCmdScript, bbbConfigScript, bbbSystemctlScript, electrsRPCPort,
-		imageUpdateInfoURL, middlewarePort, middlewareVersion, network,
-		notificationNamedPipePath, prometheusURL, redisMock, redisPort,
+		configuration.Args{
+			BBBCmdScript:              bbbCmdScript,
+			BBBConfigScript:           bbbConfigScript,
+			BBBSystemctlScript:        bbbSystemctlScript,
+			ElectrsRPCPort:            electrsRPCPort,
+			ImageUpdateInfoURL:        imageUpdateInfoURL,
+			MiddlewarePort:            middlewarePort,
+			MiddlewareVersion:         middlewareVersion,
+			Network:                   network,
+			NotificationNamedPipePath: notificationNamedPipePath,
+			PrometheusURL:             prometheusURL,
+			RedisMock:                 redisMock,
+			RedisPort:                 redisPort,
+		},
 	)
 
 	testMiddleware, err := middleware.NewMiddleware(config, nil)
