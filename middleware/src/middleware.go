@@ -200,6 +200,11 @@ func (middleware *Middleware) Start() <-chan handlers.Event {
 
 	go middleware.rpcLoop()
 
+	err := middleware.setHSMConfig()
+	if err != nil {
+		log.Printf("Error: could not set the HSM config: %s", err)
+	}
+
 	// before the updateCheckLoop is started the Middleware needes the Base version
 	baseVersion, err := middleware.redisClient.GetString(redis.BaseVersion)
 	if err != nil {
@@ -598,6 +603,10 @@ func (middleware *Middleware) SetHostname(args rpcmessages.SetHostnameArgs) rpcm
 				Message: strings.Join(out, "\n"),
 				Code:    errorCode,
 			}
+		}
+		err = middleware.setHSMConfig()
+		if err != nil {
+			log.Printf("Error: could not set the HSM config: %s", err)
 		}
 		return rpcmessages.ErrorResponse{Success: true}
 	}
