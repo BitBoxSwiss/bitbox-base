@@ -1151,7 +1151,6 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 
 // GetServiceInfo returns the most recent information about services running on the Base such as for example bitcoind, electrs or lightningd.
 func (middleware *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
-	log.Println("Returning the lastest Service info", middleware.serviceInfo)
 	return middleware.serviceInfo
 }
 

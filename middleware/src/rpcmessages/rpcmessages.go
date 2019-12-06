@@ -179,7 +179,7 @@ type ErrorResponse struct {
 //		Message: <message>
 func (err *ErrorResponse) Error() string {
 	if err.Success {
-		return fmt.Sprintf("ErrorResponse: Success: %t \n", err.Success)
+		return fmt.Sprintf("ErrorResponse:{Success: %t}", err.Success)
 	}
-	return fmt.Sprintf("ErrorResponse:\n\tSuccess: %t \n\tCode: %s \n\tMessage: %s\n", err.Success, err.Code, err.Message)
+	return fmt.Sprintf("ErrorResponse:{\n\tSuccess: %t \n\tCode: %s \n\tMessage: %s\n}", err.Success, err.Code, err.Message)
 }
