@@ -69,7 +69,9 @@ func NewTestingRPCServer() TestingRPCServer {
 	testingRPCServer.serverWriteChan = testingRPCServer.rpcServer.RPCConnection.WriteChan()
 	testingRPCServer.serverReadChan = testingRPCServer.rpcServer.RPCConnection.ReadChan()
 
-	go testingRPCServer.rpcServer.Serve()
+	go func() {
+		_ = testingRPCServer.rpcServer.Serve(true /* dummy arg 1 */, nil /* dummy pointer */)
+	}()
 
 	testingRPCServer.client = rpc.NewClient(&rpcConn{readChan: testingRPCServer.clientReadChan, writeChan: testingRPCServer.clientWriteChan})
 
