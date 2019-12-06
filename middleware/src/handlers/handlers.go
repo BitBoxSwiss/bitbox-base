@@ -176,7 +176,9 @@ func (handlers *Handlers) wsHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.nClients++
 	handlers.mu.Unlock()
 
-	go server.Serve()
+	go func() {
+		_ = server.Serve(true /* dummy arg 1 */, nil /* dummy pointer */)
+	}()
 
 	handlers.mu.Lock()
 	for _, event := range handlers.eventQueue {

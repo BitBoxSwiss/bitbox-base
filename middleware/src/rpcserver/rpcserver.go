@@ -106,9 +106,15 @@ func NewRPCServer(middleware Middleware) *RPCServer {
 	return server
 }
 
-// Serve starts a gob rpc server
-func (server *RPCServer) Serve() {
+// Serve starts a GOB RPC Server
+//
+// Note: the `rpc` package requires a schematically like
+//  func (t *T) MethodName(argType T1, replyType *T2) error
+// or prints a confusing warning. The arguments and the returned error are only
+// dummies.
+func (server *RPCServer) Serve(dummyArg bool, dummyPointer *bool) error {
 	rpc.ServeConn(server.RPCConnection)
+	return nil
 }
 
 func (server *RPCServer) formulateJWTError(name string) rpcmessages.ErrorResponse {
