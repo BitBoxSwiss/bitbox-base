@@ -196,7 +196,7 @@ func (middleware *Middleware) didServiceInfoChange() (changed bool) {
 	// reflect.DeepEqual() checks if the values at the pointer addresses are equal.
 	if !reflect.DeepEqual(upToDateServiceInfo, middleware.serviceInfo) {
 		middleware.serviceInfo = upToDateServiceInfo
-		log.Println("new serviceInfo", middleware.serviceInfo)
+		log.Printf("new serviceInfo is available: %+v", middleware.serviceInfo)
 		return true
 	}
 	return false

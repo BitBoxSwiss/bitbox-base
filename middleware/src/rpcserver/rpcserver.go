@@ -123,7 +123,7 @@ func (server *RPCServer) formulateJWTError(name string) rpcmessages.ErrorRespons
 // GetSetupStatus send the middleware's setup status as a SetupStatusResponse over rpc.
 func (server *RPCServer) GetSetupStatus(dummyArg bool, reply *rpcmessages.SetupStatusResponse) error {
 	*reply = server.middleware.SetupStatus()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetSetupStatus", reply)
 	return nil
 }
 
@@ -139,7 +139,7 @@ func (server *RPCServer) GetSystemEnv(args rpcmessages.AuthGenericRequest, reply
 	}
 
 	*reply = server.middleware.SystemEnv()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetSystemEnv", reply)
 	return nil
 }
 
@@ -152,7 +152,7 @@ func (server *RPCServer) ReindexBitcoin(args rpcmessages.AuthGenericRequest, rep
 	}
 
 	*reply = server.middleware.ReindexBitcoin()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "ReindexBitcoin", reply)
 	return nil
 }
 
@@ -165,7 +165,7 @@ func (server *RPCServer) ResyncBitcoin(args rpcmessages.AuthGenericRequest, repl
 	}
 
 	*reply = server.middleware.ResyncBitcoin()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "ResyncBitcoin", reply)
 	return nil
 }
 
@@ -178,7 +178,7 @@ func (server *RPCServer) BackupSysconfig(args rpcmessages.AuthGenericRequest, re
 	}
 
 	*reply = server.middleware.BackupSysconfig()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "BackupSysconfig", reply)
 	return nil
 }
 
@@ -191,7 +191,7 @@ func (server *RPCServer) BackupHSMSecret(args rpcmessages.AuthGenericRequest, re
 	}
 
 	*reply = server.middleware.BackupHSMSecret()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "BackupHSMSecret", reply)
 	return nil
 }
 
@@ -204,7 +204,7 @@ func (server *RPCServer) RestoreSysconfig(args rpcmessages.AuthGenericRequest, r
 	}
 
 	*reply = server.middleware.RestoreSysconfig()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "RestoreSysconfig", reply)
 	return nil
 }
 
@@ -217,7 +217,7 @@ func (server *RPCServer) RestoreHSMSecret(args rpcmessages.AuthGenericRequest, r
 	}
 
 	*reply = server.middleware.RestoreHSMSecret()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "RestoreHSMSecret", reply)
 	return nil
 }
 
@@ -225,7 +225,7 @@ func (server *RPCServer) RestoreHSMSecret(args rpcmessages.AuthGenericRequest, r
 // Args given specify the username and the password
 func (server *RPCServer) UserAuthenticate(args *rpcmessages.UserAuthenticateArgs, reply *rpcmessages.UserAuthenticateResponse) error {
 	*reply = server.middleware.UserAuthenticate(*args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "UserAuthenticate", reply)
 	return nil
 }
 
@@ -239,7 +239,7 @@ func (server *RPCServer) UserChangePassword(args *rpcmessages.UserChangePassword
 	}
 
 	*reply = server.middleware.UserChangePassword(*args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "UserChangePassword", reply)
 	return nil
 }
 
@@ -253,7 +253,7 @@ func (server *RPCServer) SetHostname(args *rpcmessages.SetHostnameArgs, reply *r
 	}
 
 	*reply = server.middleware.SetHostname(*args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "SetHostname", reply)
 	return nil
 }
 
@@ -268,7 +268,7 @@ func (server *RPCServer) EnableTor(args rpcmessages.ToggleSettingArgs, reply *rp
 	}
 
 	*reply = server.middleware.EnableTor(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableTor", reply)
 	return nil
 }
 
@@ -283,7 +283,7 @@ func (server *RPCServer) EnableTorMiddleware(args rpcmessages.ToggleSettingArgs,
 	}
 
 	*reply = server.middleware.EnableTorMiddleware(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableTorMiddleware", reply)
 	return nil
 }
 
@@ -298,7 +298,7 @@ func (server *RPCServer) EnableTorElectrs(args rpcmessages.ToggleSettingArgs, re
 	}
 
 	*reply = server.middleware.EnableTorElectrs(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableTorElectrs", reply)
 	return nil
 }
 
@@ -313,7 +313,7 @@ func (server *RPCServer) EnableTorSSH(args rpcmessages.ToggleSettingArgs, reply 
 	}
 
 	*reply = server.middleware.EnableTorSSH(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableTorSSH", reply)
 	return nil
 }
 
@@ -328,7 +328,7 @@ func (server *RPCServer) EnableClearnetIBD(args rpcmessages.ToggleSettingArgs, r
 	}
 
 	*reply = server.middleware.EnableClearnetIBD(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableClearnetIBD", reply)
 	return nil
 }
 
@@ -342,7 +342,7 @@ func (server *RPCServer) ShutdownBase(args rpcmessages.AuthGenericRequest, reply
 	}
 
 	*reply = server.middleware.ShutdownBase()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "ShutdownBase", reply)
 	return nil
 }
 
@@ -356,7 +356,7 @@ func (server *RPCServer) RebootBase(args rpcmessages.AuthGenericRequest, reply *
 	}
 
 	*reply = server.middleware.RebootBase()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "RebootBase", reply)
 	return nil
 }
 
@@ -371,7 +371,7 @@ func (server *RPCServer) EnableRootLogin(args rpcmessages.ToggleSettingArgs, rep
 	}
 
 	*reply = server.middleware.EnableRootLogin(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableRootLogin", reply)
 	return nil
 }
 
@@ -386,7 +386,7 @@ func (server *RPCServer) EnableSSHPasswordLogin(args rpcmessages.ToggleSettingAr
 	}
 
 	*reply = server.middleware.EnableSSHPasswordLogin(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "EnableSSHPasswordLogin", reply)
 	return nil
 }
 
@@ -402,7 +402,7 @@ func (server *RPCServer) SetLoginPassword(args rpcmessages.SetLoginPasswordArgs,
 	}
 
 	*reply = server.middleware.SetLoginPassword(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "SetLoginPassword", reply)
 	return nil
 }
 
@@ -417,7 +417,7 @@ func (server *RPCServer) GetBaseInfo(args rpcmessages.AuthGenericRequest, reply 
 	}
 
 	*reply = server.middleware.GetBaseInfo()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetBaseInfo", reply)
 	return nil
 }
 
@@ -432,7 +432,7 @@ func (server *RPCServer) GetServiceInfo(args rpcmessages.AuthGenericRequest, rep
 	}
 
 	*reply = server.middleware.GetServiceInfo()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetServiceInfo", reply)
 	return nil
 }
 
@@ -446,7 +446,7 @@ func (server *RPCServer) UpdateBase(args rpcmessages.UpdateBaseArgs, reply *rpcm
 	}
 
 	*reply = server.middleware.UpdateBase(args)
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "UpdateBase", reply)
 	return nil
 }
 
@@ -460,7 +460,7 @@ func (server *RPCServer) GetBaseUpdateProgress(args rpcmessages.AuthGenericReque
 	}
 
 	*reply = server.middleware.GetBaseUpdateProgress()
-	log.Printf("sent reply %v: ", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetBaseUpdateProgress", reply)
 	return nil
 }
 
@@ -474,7 +474,7 @@ func (server *RPCServer) IsBaseUpdateAvailable(args rpcmessages.AuthGenericReque
 	}
 
 	*reply = server.middleware.IsBaseUpdateAvailable()
-	log.Printf("IsBaseUpdateAvailable reply: %v\n", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "IsBaseUpdateAvailable", reply)
 	return nil
 }
 
@@ -488,7 +488,7 @@ func (server *RPCServer) FinalizeSetupWizard(args rpcmessages.AuthGenericRequest
 	}
 
 	*reply = server.middleware.FinalizeSetupWizard()
-	log.Printf("FinalizeSetupWizard reply: %v\n", reply)
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "FinalizeSetupWizard", reply)
 	return nil
 }
 
