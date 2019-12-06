@@ -26,6 +26,8 @@
 # Grafana, NGINX and an mDNS responder to broadcast to the local subnet.
 # ------------------------------------------------------------------------------
 
+# shellcheck disable=SC1091
+
 set -e
 
 # ------------------------------------------------------------------------------
@@ -52,6 +54,10 @@ echoArguments() {
 ================================================================================
 ==> $1
 ================================================================================
+
+PRODUCTION IMAGE:       ${BASE_PRODUCTION_IMAGE}
+
+================================================================================
 VERSIONS:
     BASE IMAGE          ${BASE_VERSION}
     BINARY DEPS         ${BIN_DEPS_TAG}
@@ -66,10 +72,8 @@ CONFIGURATION:
     USER / PASSWORD:    base / ${BASE_LOGINPW}
     HOSTNAME:           ${BASE_HOSTNAME}
     BITCOIN NETWORK:    ${BASE_BITCOIN_NETWORK}
-    WIFI SSID / PWD:    ${BASE_WIFI_SSID} ${BASE_WIFI_PW}
     WEB DASHBOARD:      ${BASE_DASHBOARD_WEB_ENABLED}
     HDMI DASHBOARD:     ${BASE_DASHBOARD_HDMI_ENABLED}
-    SSH ROOT LOGIN:     ${BASE_SSH_ROOT_LOGIN}
     SSH PASSWORD LOGIN: ${BASE_SSH_PASSWORD_LOGIN}
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
     BITCOIN SERVICES ENABLED:
@@ -82,6 +86,7 @@ BUILD OPTIONS:
     MINIMAL IMAGE:      ${BASE_MINIMAL}
     OVERLAYROOT:        ${BASE_OVERLAYROOT}
     HDMI OUTPUT:        ${BASE_HDMI_BUILD}
+
 ================================================================================
 "
 }
@@ -142,39 +147,45 @@ generateConfig() {
 
 # get Linux distribution and version
 # (works explicitly only on Armbian Debian Stretch, Buster and Ubuntu Bionic)
-cat /etc/os-release
-# shellcheck disable=SC1091
 source /etc/os-release
 BASE_DISTRIBUTION=${VERSION_CODENAME}
+BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 
-# Load build configuration, set defaults
-# shellcheck disable=SC1091
-source /opt/shift/build.conf || true
-# shellcheck disable=SC1091
-source /opt/shift/build-local.conf || true
 BASE_VERSION=$(head -n1 /opt/shift/config/version)
 BASE_BUILDMODE=${1:-"armbian-build"}
-BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
-BASE_MINIMAL=${BASE_MINIMAL:-"true"}
-BASE_HOSTNAME=${BASE_HOSTNAME:-"bitbox-base"}
-BASE_BITCOIN_NETWORK=${BASE_BITCOIN_NETWORK:-"mainnet"}
-BASE_AUTOSETUP_SSD=${BASE_AUTOSETUP_SSD:-"true"}
-BASE_ENABLE_BITCOIN_SERVICES=${BASE_ENABLE_BITCOIN_SERVICES:-"false"}
-BASE_WIFI_SSID=${BASE_WIFI_SSID:-""}
-BASE_WIFI_PW=${BASE_WIFI_PW:-""}
-BASE_ADD_SSH_KEYS=${BASE_ADD_SSH_KEYS:-"false"}
-BASE_SSH_ROOT_LOGIN=${BASE_SSH_ROOT_LOGIN:-"false"}
-BASE_SSH_PASSWORD_LOGIN=${BASE_SSH_PASSWORD_LOGIN:-"false"}
-BASE_DASHBOARD_WEB_ENABLED=${BASE_DASHBOARD_WEB_ENABLED:-"false"}
-BASE_HDMI_BUILD=${BASE_HDMI_BUILD:-"false"}
-BASE_OVERLAYROOT=${BASE_OVERLAYROOT:-"false"}
+
+# Source configuration to read BASE_PRODUCTION_IMAGE
+BASE_PRODUCTION_IMAGE="true"
+source /opt/shift/build.conf || true
+source /opt/shift/build-local.conf || true
+
+# Set build option defaults
+BASE_HOSTNAME="bitbox-base"
+BASE_BITCOIN_NETWORK="mainnet"
+BASE_AUTOSETUP_SSD="true"
+BASE_ENABLE_BITCOIN_SERVICES="false"
+BASE_WIFI_SSID=""
+BASE_WIFI_PW=""
+BASE_ADD_SSH_KEYS="false"
+BASE_LOGINPW=""
+BASE_SSH_PASSWORD_LOGIN="false"
+BASE_DASHBOARD_WEB_ENABLED="true"   # TODO(Stadicus): set "false" by default after beta testing
+BASE_DASHBOARD_HDMI_ENABLED="false"
+BASE_HDMI_BUILD="false"
+BASE_MINIMAL="true"
+BASE_OVERLAYROOT="true"
+
+# Overwrite defaults if BASE_PRODUCTION_IMAGE set to "false"
+if [[ ${BASE_PRODUCTION_IMAGE} == "false" ]]; then
+  source /opt/shift/build.conf || true
+  source /opt/shift/build-local.conf || true
+fi
 
 # HDMI dashboard only enabled if image is built to support it
-if [[ "${BASE_HDMI_BUILD}" != "true" ]]; then
+if [[ "${BASE_DASHBOARD_HDMI_ENABLED}" == "true" ]] && [[ "${BASE_HDMI_BUILD}" != "true" ]]; then
   echo "WARN: HDMI dashboard is disabled. It cannot be enabled without BASE_HDMI_BUILD option set to 'true'."
   BASE_DASHBOARD_HDMI_ENABLED="false"
 fi
-BASE_DASHBOARD_HDMI_ENABLED=${BASE_DASHBOARD_HDMI_ENABLED:-"false"}
 
 if [[ ${UID} -ne 0 ]]; then
   echo "${0}: needs to be run as superuser." >&2
