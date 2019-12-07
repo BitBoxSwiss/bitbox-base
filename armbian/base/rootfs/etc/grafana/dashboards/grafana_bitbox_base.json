@@ -17,7 +17,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1568818067203,
+  "iteration": 1575728381645,
   "links": [],
   "panels": [
     {
@@ -38,9 +38,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#76997f",
+        "#e63963",
         "#cc914e",
-        "#e63963"
+        "#76997f"
       ],
       "format": "none",
       "gauge": {
@@ -99,7 +99,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "1,2",
+      "thresholds": "0.5,1",
       "timeFrom": null,
       "timeShift": null,
       "title": "Bitcoin",
@@ -109,12 +109,12 @@
         {
           "op": "=",
           "text": "✓",
-          "value": "0"
+          "value": "1"
         },
         {
           "op": "=",
           "text": "down",
-          "value": "3"
+          "value": "0"
         }
       ],
       "valueName": "current"
@@ -124,9 +124,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#74997e",
+        "#e63963",
         "#cc914e",
-        "#e63963"
+        "#74997e"
       ],
       "format": "none",
       "gauge": {
@@ -185,7 +185,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "1,2",
+      "thresholds": "0.5,1",
       "timeFrom": null,
       "timeShift": null,
       "title": "Electrum",
@@ -195,12 +195,12 @@
         {
           "op": "=",
           "text": "✓",
-          "value": "0"
+          "value": "1"
         },
         {
           "op": "=",
           "text": "down",
-          "value": "3"
+          "value": "0"
         }
       ],
       "valueName": "current"
@@ -210,9 +210,9 @@
       "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#74997e",
+        "#e63963",
         "#cc914e",
-        "#e63963"
+        "#74997e"
       ],
       "format": "none",
       "gauge": {
@@ -271,7 +271,7 @@
           "refId": "A"
         }
       ],
-      "thresholds": "1,2",
+      "thresholds": "0.5,1",
       "timeFrom": null,
       "timeShift": null,
       "title": "Lightning",
@@ -281,12 +281,12 @@
         {
           "op": "=",
           "text": "✓",
-          "value": "0"
+          "value": "1"
         },
         {
           "op": "=",
           "text": "down",
-          "value": "3"
+          "value": "0"
         }
       ],
       "valueName": "current"
@@ -1356,6 +1356,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "description": "",
           "fill": 2,
           "gridPos": {
             "h": 8,
@@ -1364,6 +1365,7 @@
             "y": 14
           },
           "id": 52,
+          "interval": "",
           "legend": {
             "avg": false,
             "current": false,
@@ -1387,27 +1389,20 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"} - node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"}",
+              "expr": "node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype!=\"tmpfs\"}-node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype!=\"tmpfs\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
               "intervalFactor": 4,
               "legendFormat": "{{mountpoint}}",
               "refId": "A"
-            },
-            {
-              "expr": "node_filesystem_free_bytes",
-              "format": "time_series",
-              "hide": true,
-              "intervalFactor": 1,
-              "refId": "B"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Size RAM-based TMPFS",
+          "title": "Diskspace used",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1449,14 +1444,16 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "fill": 2,
+          "description": "",
+          "fill": 0,
           "gridPos": {
             "h": 8,
-            "w": 11,
+            "w": 10,
             "x": 13,
             "y": 14
           },
-          "id": 97,
+          "id": 101,
+          "interval": "",
           "legend": {
             "avg": false,
             "current": false,
@@ -1474,41 +1471,26 @@
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "/.*Read.*/",
-              "color": "#73BF69"
-            },
-            {
-              "alias": "/.*Write.*/",
-              "color": "#FF9830",
-              "transform": "negative-Y"
-            }
-          ],
+          "seriesOverrides": [],
           "spaceLength": 10,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])",
+              "expr": "1 - (node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype!=\"tmpfs\"}) / node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype!=\"tmpfs\"}",
               "format": "time_series",
+              "hide": false,
+              "interval": "",
               "intervalFactor": 4,
-              "legendFormat": "{{device}} - Reads completed",
+              "legendFormat": "{{mountpoint}}",
               "refId": "A"
-            },
-            {
-              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])  ",
-              "format": "time_series",
-              "intervalFactor": 4,
-              "legendFormat": "{{device}} - Writes completed",
-              "refId": "B"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Disk IOps",
+          "title": "Diskspace used %",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1524,11 +1506,11 @@
           },
           "yaxes": [
             {
-              "format": "iops",
+              "format": "percentunit",
               "label": "IO write (-) / read (+)",
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1537,7 +1519,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ],
           "yaxis": {
@@ -1713,56 +1695,24 @@
           }
         },
         {
-          "aliasColors": {
-            "Recv_bytes_eth2": "#7EB26D",
-            "Recv_bytes_lo": "#0A50A1",
-            "Recv_drop_eth2": "#6ED0E0",
-            "Recv_drop_lo": "#E0F9D7",
-            "Recv_errs_eth2": "#BF1B00",
-            "Recv_errs_lo": "#CCA300",
-            "Trans_bytes_eth2": "#7EB26D",
-            "Trans_bytes_lo": "#0A50A1",
-            "Trans_drop_eth2": "#6ED0E0",
-            "Trans_drop_lo": "#E0F9D7",
-            "Trans_errs_eth2": "#BF1B00",
-            "Trans_errs_lo": "#CCA300",
-            "recv_bytes_lo": "#0A50A1",
-            "recv_drop_eth0": "#99440A",
-            "recv_drop_lo": "#967302",
-            "recv_errs_eth0": "#BF1B00",
-            "recv_errs_lo": "#890F02",
-            "trans_bytes_eth0": "#7EB26D",
-            "trans_bytes_lo": "#0A50A1",
-            "trans_drop_eth0": "#99440A",
-            "trans_drop_lo": "#967302",
-            "trans_errs_eth0": "#BF1B00",
-            "trans_errs_lo": "#890F02"
-          },
+          "aliasColors": {},
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
-          "description": "",
-          "fill": 4,
+          "fill": 2,
           "gridPos": {
             "h": 8,
-            "w": 11,
+            "w": 10,
             "x": 13,
             "y": 22
           },
-          "id": 32,
+          "id": 100,
           "legend": {
-            "alignAsTable": false,
             "avg": false,
             "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
             "max": false,
             "min": false,
-            "rightSide": false,
             "show": true,
-            "sort": "current",
-            "sortDesc": true,
             "total": false,
             "values": false
           },
@@ -1771,47 +1721,36 @@
           "links": [],
           "nullPointMode": "null",
           "percentage": false,
-          "pointradius": 5,
+          "pointradius": 2,
           "points": false,
           "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "/.*send.*/",
-              "color": "#cc914e",
-              "transform": "negative-Y"
-            },
-            {
-              "alias": "/.*recv.*/",
-              "color": "#74997e"
-            }
-          ],
+          "seriesOverrides": [],
           "spaceLength": 10,
-          "stack": false,
+          "stack": true,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(node_network_receive_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "expr": "node_filesystem_size_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"} - node_filesystem_avail_bytes{instance=~\"$node:$port\",job=~\"$job\",fstype=\"tmpfs\"}",
               "format": "time_series",
-              "intervalFactor": 2,
-              "legendFormat": "recv {{device}}",
-              "refId": "A",
-              "step": 240
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 4,
+              "legendFormat": "{{mountpoint}}",
+              "refId": "A"
             },
             {
-              "expr": "rate(node_network_transmit_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "expr": "node_filesystem_free_bytes",
               "format": "time_series",
-              "interval": "",
-              "intervalFactor": 2,
-              "legendFormat": "send {{device}} ",
-              "refId": "B",
-              "step": 240
+              "hide": true,
+              "intervalFactor": 1,
+              "refId": "B"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Network Traffic",
+          "title": "Size RAM-based TMPFS",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1828,19 +1767,19 @@
           "yaxes": [
             {
               "format": "bytes",
-              "label": "send (-) / receive (+)",
+              "label": "IO write (-) / read (+)",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
               "logBase": 1,
               "max": null,
               "min": null,
               "show": true
-            },
-            {
-              "format": "pps",
-              "label": "",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
             }
           ],
           "yaxis": {
@@ -1978,6 +1917,243 @@
               "max": null,
               "min": null,
               "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 2,
+          "gridPos": {
+            "h": 8,
+            "w": 11,
+            "x": 13,
+            "y": 30
+          },
+          "id": 97,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "/.*Read.*/",
+              "color": "#73BF69"
+            },
+            {
+              "alias": "/.*Write.*/",
+              "color": "#FF9830",
+              "transform": "negative-Y"
+            }
+          ],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "irate(node_disk_reads_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])",
+              "format": "time_series",
+              "intervalFactor": 4,
+              "legendFormat": "{{device}} - Reads completed",
+              "refId": "A"
+            },
+            {
+              "expr": "irate(node_disk_writes_completed_total{instance=~\"$node:$port\",job=~\"$job\",device=~\"mmcblk1|nvme.*|sda.*\"}[5m])  ",
+              "format": "time_series",
+              "intervalFactor": 4,
+              "legendFormat": "{{device}} - Writes completed",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Disk IOps",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "iops",
+              "label": "IO write (-) / read (+)",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {
+            "Recv_bytes_eth2": "#7EB26D",
+            "Recv_bytes_lo": "#0A50A1",
+            "Recv_drop_eth2": "#6ED0E0",
+            "Recv_drop_lo": "#E0F9D7",
+            "Recv_errs_eth2": "#BF1B00",
+            "Recv_errs_lo": "#CCA300",
+            "Trans_bytes_eth2": "#7EB26D",
+            "Trans_bytes_lo": "#0A50A1",
+            "Trans_drop_eth2": "#6ED0E0",
+            "Trans_drop_lo": "#E0F9D7",
+            "Trans_errs_eth2": "#BF1B00",
+            "Trans_errs_lo": "#CCA300",
+            "recv_bytes_lo": "#0A50A1",
+            "recv_drop_eth0": "#99440A",
+            "recv_drop_lo": "#967302",
+            "recv_errs_eth0": "#BF1B00",
+            "recv_errs_lo": "#890F02",
+            "trans_bytes_eth0": "#7EB26D",
+            "trans_bytes_lo": "#0A50A1",
+            "trans_drop_eth0": "#99440A",
+            "trans_drop_lo": "#967302",
+            "trans_errs_eth0": "#BF1B00",
+            "trans_errs_lo": "#890F02"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "Prometheus",
+          "description": "",
+          "fill": 4,
+          "gridPos": {
+            "h": 8,
+            "w": 11,
+            "x": 3,
+            "y": 38
+          },
+          "id": 32,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "/.*send.*/",
+              "color": "#cc914e",
+              "transform": "negative-Y"
+            },
+            {
+              "alias": "/.*recv.*/",
+              "color": "#74997e"
+            }
+          ],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "rate(node_network_receive_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "format": "time_series",
+              "intervalFactor": 2,
+              "legendFormat": "recv {{device}}",
+              "refId": "A",
+              "step": 240
+            },
+            {
+              "expr": "rate(node_network_transmit_bytes_total{instance=~\"$node:$port\",job=~\"$job\",device!=\"lo\"}[5m])",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "send {{device}} ",
+              "refId": "B",
+              "step": 240
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Network Traffic",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": "send (-) / receive (+)",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "pps",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
             }
           ],
           "yaxis": {
@@ -4217,8 +4393,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "ORANGESCAN",
-          "value": "ORANGESCAN"
+          "text": "SLIMYCALENDAR",
+          "value": "SLIMYCALENDAR"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, alias)",
@@ -4242,8 +4418,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "03cf3fe6592961579e5408a80290b22682b8d8915e7f58705d151b72134f9d507b",
-          "value": "03cf3fe6592961579e5408a80290b22682b8d8915e7f58705d151b72134f9d507b"
+          "text": "03517e54ba17e663be6bfc3476411afb7ab8e502f70c55c3003fdf6b8787ec348f",
+          "value": "03517e54ba17e663be6bfc3476411afb7ab8e502f70c55c3003fdf6b8787ec348f"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, id)",
@@ -4292,8 +4468,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "v0.7.2.1",
-          "value": "v0.7.2.1"
+          "text": "v0.7.3",
+          "value": "v0.7.3"
         },
         "datasource": "Prometheus",
         "definition": "label_values(lightning_node_info, version)",
@@ -4317,8 +4493,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "cleopatra",
-          "value": "cleopatra"
+          "text": "bitbox-base",
+          "value": "bitbox-base"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, base_hostname)",
@@ -4342,8 +4518,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "2019-09-08",
-          "value": "2019-09-08"
+          "text": "2019-12-05",
+          "value": "2019-12-05"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_date)",
@@ -4367,8 +4543,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "13:02",
-          "value": "13:02"
+          "text": "09:19",
+          "value": "09:19"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_time)",
@@ -4392,8 +4568,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "de28372",
-          "value": "de28372"
+          "text": "93b0917",
+          "value": "93b0917"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, build_commit)",
@@ -4417,8 +4593,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "0.0.3",
-          "value": "0.0.3"
+          "text": "0.1.0",
+          "value": "0.1.0"
         },
         "datasource": "Prometheus",
         "definition": "label_values(base_system_info, base_version)",
@@ -4469,5 +4645,5 @@
   "timezone": "",
   "title": "BitBoxBase",
   "uid": "BitBoxBase",
-  "version": 25
+  "version": 26
 }
