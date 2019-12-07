@@ -76,31 +76,28 @@ def getSystemInfo():
 def getSystemdStatus(unit):
     try:
         subprocess.check_output(["systemctl", "is-active", unit])
-        return 0
+        return 1
     except subprocess.CalledProcessError as e:
         print(unit, e.returncode, e.output)
-        return e.returncode
+        return 0
 
 def getInternetConnectivity():
     torEnabled = int(r.get('tor:base:enabled').decode("utf-8"))
-
     try:
         if torEnabled == 1:
-            print("Tor ok")
             subprocess.check_output(["curl", "--socks5-hostname", "localhost:9050", "1.1.1.1"], shell=False, timeout=5, stderr=subprocess.STDOUT)
         else:
-            print("Tor not ok")
             subprocess.check_output(["ping", "-c", "1", "1.1.1.1"], shell=False, timeout=5, stderr=subprocess.STDOUT)
 
-        return 0
+        return 1
 
     except subprocess.TimeoutExpired as e:
         print("getInternetConnectivity(): subprocess.TimeoutExpired; torEnabled", torEnabled)
-        return 1
+        return 0
 
     except subprocess.CalledProcessError as e:
         print("getInternetConnectivity(): subprocess.CalledProcessError (", e.returncode, "); torEnabled", torEnabled, e.output)
-        return e.returncode
+        return 0
 
 def main():
     # Start up the server to expose the metrics.
