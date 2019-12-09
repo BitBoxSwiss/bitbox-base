@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -16,6 +17,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
+	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 )
 
 // The util.go file includes utility functions for the Middleware.
@@ -376,4 +378,36 @@ func getBaseUpdateInfo(url string) (updateInfo rpcmessages.UpdateInfo, err error
 	}
 
 	return updateInfo, nil
+}
+
+// setHSMConfig calls the BitBoxBaseSetConfig() method on the HSM API to set user configuration, IP and hostname
+func (middleware *Middleware) setHSMConfig() error {
+	if middleware.hsmFirmware == nil {
+		return nil
+	}
+
+	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
+	if err != nil {
+		return err
+	}
+
+	ip, err := middleware.prometheusClient.GetMetricString(prometheus.BaseSystemInfo, "base_ipaddress")
+	if err != nil {
+		return err
+	}
+
+	// Convert ip from string to [4]uint8 array
+	var ipBytes [4]uint8
+	copy(ipBytes[:], net.ParseIP(ip).To4()[:4])
+
+	// TODO: Call BitBoxBaseSetConfig with default LED_ALWAYS and SCREEN_ALWAYS until we have
+	// user config in Redis to fetch the real values from
+	err = middleware.hsmFirmware.BitBoxBaseSetConfig(
+		messages.BitBoxBaseSetConfigRequest_LED_ALWAYS,
+		messages.BitBoxBaseSetConfigRequest_SCREEN_ALWAYS,
+		&ipBytes, hostname)
+	if err != nil {
+		return err
+	}
+	return nil
 }
