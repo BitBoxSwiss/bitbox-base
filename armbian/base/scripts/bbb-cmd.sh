@@ -408,8 +408,9 @@ case "${MODULE}" in
                     errorExit MENDER_UPDATE_NO_VERSION
                 fi
 
-                # parse input: 'flashdrive' or valid version number
-                regex='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+                # parse input: 'flashdrive' or valid semantic version number
+                # expected syntax: xx.xx.xx, with optional -RCx suffix, e.g. 0.1.5 or 11.3.12-RC7
+                regex='^([0-9]{1,2})+[.]+([0-9]{1,2})+[.]+([0-9]{1,2})(-RC[0-9]{1})?$'
 
                 if [[ ${ARG} == "flashdrive" ]]; then
                     UPDATE_URI='/mnt/backup/update.base'
