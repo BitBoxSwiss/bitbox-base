@@ -21,12 +21,17 @@ BASE_SYSTEM_INFO = Info("base_system", "System information")
 BASE_CPU_TEMP = Gauge("base_cpu_temp", "CPU temperature")
 BASE_FAN_SPEED = Gauge("base_fan_speed", "Fan speed in %")
 
-## systemd status: 0 = running / 3 = inactive
+## systemd status: 1 = running / 0 = inactive
 BASE_SYSTEMD_BITCOIND = Gauge("base_systemd_bitcoind", "Systemd unit status for Bitcoin Core")
 BASE_SYSTEMD_ELECTRS = Gauge("base_systemd_electrs", "Systemd unit status for Electrs")
 BASE_SYSTEMD_LIGHTNINGD = Gauge("base_systemd_lightningd", "Systemd unit status for c-lightning")
 BASE_SYSTEMD_PROMETHEUS = Gauge("base_systemd_prometheus", "Systemd unit status for Prometheus")
 BASE_SYSTEMD_GRAFANA = Gauge("base_systemd_grafana", "Systemd unit status for Grafana")
+BASE_SYSTEMD_REDIS = Gauge("base_systemd_redis", "Systemd unit status for Redis")
+BASE_SYSTEMD_NGINX = Gauge("base_systemd_nginx", "Systemd unit status for NGINX")
+BASE_SYSTEMD_BBBMIDDLEWARE = Gauge("base_systemd_bbbmiddleware", "Systemd unit status for bbbmiddleware")
+BASE_SYSTEMD_BBBSUPERVISOR = Gauge("base_systemd_bbbsupervisor", "Systemd unit status for bbbsupervisor")
+BASE_SYSTEMD_BBBFANCONTROL = Gauge("base_systemd_bbbfancontrol", "Systemd unit status for bbbfancontrol")
 BASE_INTERNET_CONNECTIVITY = Gauge("base_internet_connectivity", "Connectivity to public internet")
 
 r = redis.Redis(
@@ -110,6 +115,11 @@ def main():
         BASE_SYSTEMD_LIGHTNINGD.set(int(getSystemdStatus("lightningd")))
         BASE_SYSTEMD_PROMETHEUS.set(int(getSystemdStatus("prometheus")))
         BASE_SYSTEMD_GRAFANA.set(int(getSystemdStatus("grafana-server")))
+        BASE_SYSTEMD_REDIS.set(int(getSystemdStatus("redis")))
+        BASE_SYSTEMD_NGINX.set(int(getSystemdStatus("nginx")))
+        BASE_SYSTEMD_BBBMIDDLEWARE.set(int(getSystemdStatus("bbbmiddleware")))
+        BASE_SYSTEMD_BBBSUPERVISOR.set(int(getSystemdStatus("bbbsupervisor")))
+        BASE_SYSTEMD_BBBFANCONTROL.set(int(getSystemdStatus("bbbfancontrol")))
         BASE_INTERNET_CONNECTIVITY.set(int(getInternetConnectivity()))
 
         try:
