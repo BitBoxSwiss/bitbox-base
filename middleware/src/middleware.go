@@ -1030,12 +1030,14 @@ func (middleware *Middleware) FinalizeSetupWizard() rpcmessages.ErrorResponse {
 func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
 	if err != nil {
+		log.Printf("Error getting hostname information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	middlewareIP, err := middleware.prometheusClient.GetMetricString(prometheus.BaseSystemInfo, "base_ipaddress")
 	if err != nil {
+		log.Printf("Error getting middlewareIP information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
@@ -1044,6 +1046,7 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 
 	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
 	if err != nil {
+		log.Printf("Error getting isTorEnabled information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
@@ -1052,6 +1055,7 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 	if isTorEnabled {
 		middlewareTorOnion, err = middleware.redisClient.GetString(redis.MiddlewareOnion)
 		if err != nil {
+			log.Printf("Error getting middlewareTorOnion information. Error: %s", err.Error())
 			errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 			return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 		}
@@ -1060,6 +1064,7 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 	var isSSHPasswordLoginEnabled bool
 	isSSHPasswordLoginEnabledSetting, err := middleware.redisClient.GetString(redis.BaseSSHDPasswordLogin)
 	if err != nil {
+		log.Printf("Error getting isSSHPasswordLoginEnabled information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
@@ -1067,42 +1072,49 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 
 	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
 	if err != nil {
+		log.Printf("Error getting isBitcoindListening information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	freeDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseFreeDiskspace)
 	if err != nil {
+		log.Printf("Error getting freeDiskspace information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	totalDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseTotalDiskspace)
 	if err != nil {
+		log.Printf("Error getting totalDiskspace information. Error: %s", err.Error())
 		errResponse := middleware.prometheusClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	baseVersion, err := middleware.redisClient.GetString(redis.BaseVersion)
 	if err != nil {
+		log.Printf("Error getting baseVersion information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	bitcoindVersion, err := middleware.redisClient.GetString(redis.BitcoindVersion)
 	if err != nil {
+		log.Printf("Error getting bitcoindVersion information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	lightningdVersion, err := middleware.redisClient.GetString(redis.LightningdVersion)
 	if err != nil {
+		log.Printf("Error getting lightningdVersion information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 
 	electrsVersion, err := middleware.redisClient.GetString(redis.ElectrsVersion)
 	if err != nil {
+		log.Printf("Error getting electrsVersion information. Error: %s", err.Error())
 		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
