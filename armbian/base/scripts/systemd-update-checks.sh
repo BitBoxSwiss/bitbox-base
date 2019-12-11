@@ -135,6 +135,10 @@ else
         echo "OK: updated to BitBoxBase version $(redis_get 'base:version')"
         redis_set "base:updating" 0
 
+        # SSH login and system password are reset and need to be enabled via BitBoxApp again
+        redis_set "base:sshd:passwordlogin" 0
+        redis_set "base:sshd:rootlogin" no
+
         # send update notification to Middleware (best effort)
         timeout 5 echo '{"version": 1, "topic": "mender-update", "payload": {"success": true}}' >> /tmp/middleware-notification.pipe || true
     fi
