@@ -34,12 +34,14 @@ set -e
 # CONFIG
 # ------------------------------------------------------------------------------
 
+# BitBoxBase and HSM version are set here:
+#   armbian/base/config/version_bbb
+#   armbian/base/config/version_hsm
+
 BITCOIN_VERSION="0.18.1"
 LIGHTNING_VERSION="0.7.3"
 ELECTRS_VERSION="0.7.0"
 BIN_DEPS_TAG='0.0.5'
-
-HSM_VERSION='4.3.0'
 
 PROMETHEUS_VERSION="2.11.1"
 PROMETHEUS_CHKSUM="33b4763032e7934870721ca3155a8ae0be6ed590af5e91bf4d2d4133a79e4548"
@@ -60,6 +62,7 @@ PRODUCTION IMAGE:       ${BASE_PRODUCTION_IMAGE}
 ================================================================================
 VERSIONS:
     BASE IMAGE          ${BASE_VERSION}
+    HSM                 ${HSM_VERSION}
     BINARY DEPS         ${BIN_DEPS_TAG}
     BITCOIN             ${BITCOIN_VERSION}
     LIGHTNING           ${LIGHTNING_VERSION}
@@ -151,7 +154,9 @@ source /etc/os-release
 BASE_DISTRIBUTION=${VERSION_CODENAME}
 BASE_DISTRIBUTION=${BASE_DISTRIBUTION:-"bionic"}
 
-BASE_VERSION=$(head -n1 /opt/shift/config/version)
+BASE_VERSION=$(head -n1 /opt/shift/config/version_bbb)
+HSM_VERSION=$(head -n1 /opt/shift/config/version_hsm)
+
 BASE_BUILDMODE=${1:-"armbian-build"}
 
 # Source configuration to read BASE_PRODUCTION_IMAGE
@@ -370,6 +375,7 @@ fi
 
 < /opt/shift/config/redis/factorysettings.txt sh /opt/shift/scripts/redis-pipe.sh | redis-cli --pipe
 redis-cli SET base:version "${BASE_VERSION}"
+redis-cli SET hsm:firmware:version "${HSM_VERSION}"
 redis-cli SET build:date "$(date +%Y-%m-%d)"
 redis-cli SET build:time "$(date +%H:%M)"
 redis-cli SET build:commit "$(cat /opt/shift/config/latest_commit)"
