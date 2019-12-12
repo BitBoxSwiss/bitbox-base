@@ -18,7 +18,7 @@ fi
 
 ACTION=${1:-"build"}
 SOURCE_NAME="BitBoxBase_Armbian_RockPro64"
-VERSION="$(head -n1 base/config/version)"
+VERSION="$(head -n1 base/config/version_bbb)"
 TEMP_NAME="BitBoxBase"
 TARGET_NAME="BitBoxBase-v${VERSION}-RockPro64"
 

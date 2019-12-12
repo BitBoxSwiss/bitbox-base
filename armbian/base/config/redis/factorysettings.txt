@@ -16,6 +16,8 @@ SET base:setup 0
 ZADD base:descriptionCode 0 0
 SET base:stateCode 0
 
+SET hsm:firmware:version xxx
+
 SET middleware:passwordSetup 0
 SET middleware:datadir /data/bbbmiddleware
 SET middleware:hsmserialport /dev/ttyS2

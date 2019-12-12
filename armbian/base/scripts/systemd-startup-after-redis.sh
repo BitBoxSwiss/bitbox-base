@@ -31,8 +31,11 @@ source /opt/shift/scripts/include/updateTorOnions.sh.inc
 redis_require
 
 # update hardcoded Base image version
-VERSION=$(head -n1 /opt/shift/config/version)
-redis_set "base:version" "${VERSION}"
+VERSION_BBB=$(head -n1 /opt/shift/config/version_bbb)
+redis_set "base:version" "${VERSION_BBB}"
+
+VERSION_HSM=$(head -n1 /opt/shift/config/version_hsm)
+redis_set "base:version" "${VERSION_HSM}"
 
 
 # check for reset triggers on flashdrive
