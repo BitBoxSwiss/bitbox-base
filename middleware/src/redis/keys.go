@@ -20,4 +20,5 @@ const (
 	BaseSetupDone         BaseRedisKey = "base:setup"
 	BaseSSHDPasswordLogin BaseRedisKey = "base:sshd:passwordlogin"
 	BitcoindIBDClearnet   BaseRedisKey = "bitcoind:ibd-clearnet"
+	AvailableHSMVersion   BaseRedisKey = "hsm:firmware:version"
 )

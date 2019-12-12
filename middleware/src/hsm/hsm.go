@@ -5,6 +5,7 @@ package hsm
 
 import (
 	"io"
+	"io/ioutil"
 	"time"
 
 	bb02bootloader "github.com/digitalbitbox/bitbox02-api-go/api/bootloader"
@@ -201,5 +202,20 @@ func (hsm *HSM) InteractWithBootloader(f func(*bb02bootloader.Device)) error {
 	defer device.Close()
 
 	f(device)
+	return nil
+}
+
+// UpdateFirmware reboots into Bootloader and executes the firmware update
+func (hsm *HSM) UpdateFirmware(hsmFirmwareFile string) error {
+	hsmFirmwareBinary, err := ioutil.ReadFile(hsmFirmwareFile)
+	if err != nil {
+		return err
+	}
+	err = hsm.InteractWithBootloader(func(bootloader *bb02bootloader.Device) {
+		err = bootloader.UpgradeFirmware(hsmFirmwareBinary)
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

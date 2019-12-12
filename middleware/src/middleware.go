@@ -14,6 +14,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/hsm"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
@@ -1170,4 +1171,33 @@ func (middleware *Middleware) VerifyAppMiddlewarePairing(channelHash []byte) (bo
 		return false, err
 	}
 	return true, nil
+}
+
+// HSMUpdateAvailable checks the AvailableHSMVersion Redis and compares it to the running FW version
+func (middleware *Middleware) HSMUpdateAvailable(hsm *hsm.HSM) (bool, error) {
+	availableHSMVersion, err := middleware.redisClient.GetString(redis.AvailableHSMVersion)
+	if err != nil {
+		return false, err
+	}
+	availableSemver, err := semver.NewSemVerFromString(availableHSMVersion)
+	if err != nil {
+		return false, err
+	}
+	currentVersion := middleware.hsmFirmware.Version()
+	if !currentVersion.AtLeast(availableSemver) {
+		log.Printf("BitBoxBase HSM update available from version: %s to version: %s", currentVersion, availableHSMVersion)
+		return true, nil
+	}
+	log.Printf("BitBoxBase HSM is up to date: %s", currentVersion)
+	return false, nil
+}
+
+// BootHSMFirmware boots into the HSM firmware, e.g., after a firmware udpate
+func (middleware *Middleware) BootHSMFirmware(hsm *hsm.HSM) error {
+	var err error
+	middleware.hsmFirmware, err = hsm.WaitForFirmware()
+	if err != nil {
+		return err
+	}
+	return nil
 }
