@@ -80,6 +80,11 @@ case ${ACTION} in
 		mv "${TARGET_NAME}"* "../../../bin/img-mender/${VERSION}/"
 		cd ..
 
+		# set owner to regular user calling script with sudo (instead of root)
+		if [ "${SUDO_USER}" ]; then
+			chown "${SUDO_USER}" "../../bin/img-mender/${VERSION}/"*
+		fi
+
 		echo "Mender files ready for provisioning:"
 		ls -lh "../../bin/img-mender/${VERSION}/${TARGET_NAME}"*
 		echo
