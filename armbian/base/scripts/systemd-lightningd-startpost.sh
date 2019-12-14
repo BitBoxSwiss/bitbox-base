@@ -17,12 +17,12 @@ source /opt/shift/scripts/include/redis.sh.inc
 BITCOIN_NETWORK=$(redis_get "bitcoind:network")
 
 # wait for c-lightning to warm up
-sleep 10
+sleep 5
 
 # make available lightningd socket to group "bitcoin"
-if [[ "${BITCOIN_NETWORK}" == "mainnet" ]] && [ -f /mnt/ssd/bitcoin/.lightning/lightning-rpc ]; then
+if [[ "${BITCOIN_NETWORK}" == "mainnet" ]] && [ -S /mnt/ssd/bitcoin/.lightning/lightning-rpc ]; then
     chmod g+rwx /mnt/ssd/bitcoin/.lightning/lightning-rpc
-elif [ -f /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc ]; then
+elif [ -S /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc ]; then
     chmod g+rwx /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc
 else
     echo "Failed to set permissions to lightning-rpc socket."
