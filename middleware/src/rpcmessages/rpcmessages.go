@@ -122,9 +122,9 @@ const (
 // RPC which returns GetBaseUpdateProgressResponse.
 type GetBaseUpdateProgressResponse struct {
 	ErrorResponse         *ErrorResponse
-	State                 BaseUpdateState
-	ProgressPercentage    int
-	ProgressDownloadedKiB int
+	State                 BaseUpdateState `json:"updateState"`
+	ProgressPercentage    int             `json:"updatePercentage"`
+	ProgressDownloadedKiB int             `json:"updateKBDownloaded"`
 }
 
 // GetBaseInfoResponse is the struct that gets sent by the RPC server during a GetBaseInfo RPC call
@@ -137,7 +137,7 @@ type GetBaseInfoResponse struct {
 	MiddlewareTorOnion        string `json:"middlewareTorOnion"`
 	IsTorEnabled              bool   `json:"isTorEnabled"`
 	IsBitcoindListening       bool   `json:"isBitcoindListening"`
-	IsSSHPasswordLoginEnabled bool   `json:"IsSSHPasswordLoginEnabled"`
+	IsSSHPasswordLoginEnabled bool   `json:"isSSHPasswordLoginEnabled"`
 	FreeDiskspace             int64  `json:"freeDiskspace"`  // in Byte
 	TotalDiskspace            int64  `json:"totalDiskspace"` // in Byte
 	BaseVersion               string `json:"baseVersion"`
