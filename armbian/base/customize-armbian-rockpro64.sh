@@ -81,6 +81,7 @@ CONFIGURATION:
     AUTOSETUP SSD:      ${BASE_AUTOSETUP_SSD}
     BITCOIN SERVICES ENABLED:
                         ${BASE_ENABLE_BITCOIN_SERVICES}
+    MAINTENANCE MENU:   ${BASE_MAINTENANCEMENU}
 
 ================================================================================
 BUILD OPTIONS:
@@ -179,6 +180,7 @@ BASE_DASHBOARD_HDMI_ENABLED="false"
 BASE_HDMI_BUILD="false"
 BASE_MINIMAL="true"
 BASE_OVERLAYROOT="true"
+BASE_MAINTENANCEMENU="false"        # TODO(Stadicus): set "true" by default after further review
 
 # Overwrite defaults if BASE_PRODUCTION_IMAGE set to "false"
 if [[ ${BASE_PRODUCTION_IMAGE} == "false" ]]; then
@@ -471,7 +473,10 @@ systemctl enable update-checks.service
 
 ## maintenance menu
 importFile /etc/systemd/system/startup-maintenance.service
-systemctl enable startup-maintenance.service
+
+if [[ "${BASE_MAINTENANCEMENU}" == "true" ]]; then
+  systemctl enable startup-maintenance.service
+fi
 
 ## disable ssh login messages
 echo "MOTD_DISABLE='header tips updates armbian-config'" >> /etc/default/armbian-motd

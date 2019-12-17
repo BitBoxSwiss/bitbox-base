@@ -16,7 +16,7 @@ possible commands:
   flashdrive    <check|mount|unmount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
-  reset         <auth|config|image|ssd>
+  reset         <auth|config>
   mender-update <install|commit>
   presync       <create|restore>
 
