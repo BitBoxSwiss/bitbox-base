@@ -10,6 +10,8 @@ SSH access is disabled by default.
 Once enabled, you should always log in with the user `base` that has sudo privileges.
 The user password corresponds to the one set in the BitBoxApp setup wizard.
 
+### Enabling SSH
+
 There are multiple ways to gain access, some usable for production, others only suitable to be used for development:
 
 * **SSH keys**: if SSH keys are present in `/home/base/.ssh/authorized_keys`, SSH login is possible over regular IP address, the mDNS domain (e.g. `ssh base@bitbox-base.local`) or even a Tor hidden service (if enabled).
@@ -28,3 +30,24 @@ There are multiple ways to gain access, some usable for production, others only 
   On the BitBoxBase, logged in with user `base`, run `sudo bbb-config.sh enable rootlogin`.
 
 If you build the BitBoxBase image yourself, you can configure the options `BASE_LOGINPW` (initial login password, overwritten by the Setup Wizard) and `BASE_SSH_PASSWORD_LOGIN` in [build.conf](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/build.conf).
+
+### Working on the command line
+
+If logging in as user `base`, you might find the following `alias` helpful that are defined in `.bashrc-custom` and maintained as a [template](https://github.com/digitalbitbox/bitbox-base/blob/master/armbian/base/config/templates/bashrc-custom.template):
+
+#### Bitcoin Core
+
+* `bcli`: shortcut for `bitcoin-cli` with the necessary credentials and arguments
+* `blog`: follow the Bitcoin Core log output in the system journal
+
+#### c-lightning
+
+* `lcli`: shortcut for `lightning-cli` with the necessary credentials and arguments
+* `llog`: follow the c-lightning log output in the system journal
+
+#### Various logs
+
+* `j`: follow the system journal
+* `elog`: follow the Electrs log
+* `slog`: follow the Supervisor log
+* `mlog`: follow the Middleware log
