@@ -205,8 +205,8 @@ func (hsm *HSM) InteractWithBootloader(f func(*bb02bootloader.Device)) error {
 	return nil
 }
 
-// UpdateFirmware reboots into Bootloader and executes the firmware update
-func (hsm *HSM) UpdateFirmware(hsmFirmwareFile string) error {
+// UpgradeFirmware reboots into Bootloader and executes the firmware upgrade
+func (hsm *HSM) UpgradeFirmware(hsmFirmwareFile string) error {
 	hsmFirmwareBinary, err := ioutil.ReadFile(hsmFirmwareFile)
 	if err != nil {
 		return err
@@ -214,8 +214,5 @@ func (hsm *HSM) UpdateFirmware(hsmFirmwareFile string) error {
 	err = hsm.InteractWithBootloader(func(bootloader *bb02bootloader.Device) {
 		err = bootloader.UpgradeFirmware(hsmFirmwareBinary)
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

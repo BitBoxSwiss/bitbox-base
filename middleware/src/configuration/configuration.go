@@ -27,6 +27,7 @@ type Args struct {
 	PrometheusURL             string
 	RedisMock                 bool
 	RedisPort                 string
+	HsmFirmwareFile           string
 }
 
 // Configuration holds the configuration options for the Middleware.
@@ -46,6 +47,7 @@ type Configuration struct {
 	prometheusURL             string
 	redisMock                 bool
 	redisPort                 string
+	hsmFirmwareFile           string
 }
 
 // NewConfiguration returns a new Configuration instance.
@@ -66,6 +68,7 @@ func NewConfiguration(args Args) Configuration {
 		prometheusURL:             args.PrometheusURL,
 		redisMock:                 args.RedisMock,
 		redisPort:                 args.RedisPort,
+		hsmFirmwareFile:           args.HsmFirmwareFile,
 	}
 	return config
 }
@@ -129,4 +132,9 @@ func (config *Configuration) GetNetwork() string {
 // GetElectrsRPCPort is a getter for the electrs RPC port.
 func (config *Configuration) GetElectrsRPCPort() string {
 	return config.electrsRPCPort
+}
+
+// GetHsmFirmwareFile is a getter for the location of the HSM firmware file.
+func (config *Configuration) GetHsmFirmwareFile() string {
+	return config.hsmFirmwareFile
 }

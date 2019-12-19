@@ -49,6 +49,7 @@ type Middleware struct {
 	isMiddlewarePasswordSet bool
 	isBaseSetupDone         bool
 
+	hsm         *hsm.HSM
 	hsmFirmware *firmware.Device
 }
 
@@ -61,7 +62,7 @@ func (middleware *Middleware) GetMiddlewareVersion() string {
 //
 // hsmFirmware let's you talk to the HSM. NOTE: it the HSM could not be connected, this is nil. The
 // middleware must be able to run and serve RPC calls without the HSM present.
-func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Device) (*Middleware, error) {
+func NewMiddleware(config configuration.Configuration, hsm *hsm.HSM) (*Middleware, error) {
 	middleware := &Middleware{
 		config: config,
 		//TODO(TheCharlatan) find a better way to increase the channel size
@@ -78,7 +79,7 @@ func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Dev
 			UpdateAvailable: false,
 		},
 		baseVersion: semver.NewSemVer(0, 0, 0),
-		hsmFirmware: hsmFirmware,
+		hsm:         hsm,
 	}
 
 	middleware.prometheusClient = prometheus.NewClient(middleware.config.GetPrometheusURL())
@@ -87,6 +88,11 @@ func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Dev
 		middleware.redisClient = redis.NewClient(middleware.config.GetRedisPort())
 	} else {
 		middleware.redisClient = redis.NewMockClient("")
+	}
+
+	// Initialize the HSM firmware connection and install firmware upgrade if available
+	if hsm != nil {
+		middleware.initHSM()
 	}
 
 	err := middleware.checkMiddlewareSetup()
@@ -1171,33 +1177,4 @@ func (middleware *Middleware) VerifyAppMiddlewarePairing(channelHash []byte) (bo
 		return false, err
 	}
 	return true, nil
-}
-
-// HSMUpdateAvailable checks the AvailableHSMVersion Redis and compares it to the running FW version
-func (middleware *Middleware) HSMUpdateAvailable(hsm *hsm.HSM) (bool, error) {
-	availableHSMVersion, err := middleware.redisClient.GetString(redis.AvailableHSMVersion)
-	if err != nil {
-		return false, err
-	}
-	availableSemver, err := semver.NewSemVerFromString(availableHSMVersion)
-	if err != nil {
-		return false, err
-	}
-	currentVersion := middleware.hsmFirmware.Version()
-	if !currentVersion.AtLeast(availableSemver) {
-		log.Printf("BitBoxBase HSM update available from version: %s to version: %s", currentVersion, availableHSMVersion)
-		return true, nil
-	}
-	log.Printf("BitBoxBase HSM is up to date: %s", currentVersion)
-	return false, nil
-}
-
-// BootHSMFirmware boots into the HSM firmware, e.g., after a firmware udpate
-func (middleware *Middleware) BootHSMFirmware(hsm *hsm.HSM) error {
-	var err error
-	middleware.hsmFirmware, err = hsm.WaitForFirmware()
-	if err != nil {
-		return err
-	}
-	return nil
 }

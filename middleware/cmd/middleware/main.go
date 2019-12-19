@@ -31,23 +31,18 @@ func main() {
 	imageUpdateInfoURL := flag.String("updateinfourl", "https://shiftcrypto.ch/updates/base.json", "URL to query information about Base image updates from")
 	notificationNamedPipePath := flag.String("notificationNamedPipePath", "/tmp/middleware-notification.pipe", "Path where the Middleware creates a named pipe to receive notifications from other processes on the BitBoxBase")
 	hsmSerialPort := flag.String("hsmserialport", "/dev/ttyS0", "Serial port used to communicate with the HSM")
+	// hsmFirmwareFile and upgradeHSMFirmware options are to be used only for manually installing the hsm firmare
+	// Otherwise firmare is upgraded automatically on boot when new version is specified in Redis hsm:firmware:version
 	hsmFirmwareFile := flag.String("hsmfirmwarefile", "/opt/shift/hsm/firmware-bitboxbase.signed.bin", "Location of the signed HSM firmware binary")
-	updateHSMFirmware := flag.Bool("updatehsmfirmware", false, "Set to true to force HSM firmware update")
+	upgradeHSMFirmware := flag.Bool("upgradehsmfirmware", false, "Set to true to force HSM firmware upgrade")
 	flag.Parse()
 
 	hsm := hsm.NewHSM(*hsmSerialPort)
-	if *updateHSMFirmware {
-		err := hsm.UpdateFirmware(*hsmFirmwareFile)
+	if *upgradeHSMFirmware {
+		err := hsm.UpgradeFirmware(*hsmFirmwareFile)
 		if err != nil {
-			log.Printf("Failed to update HSM firmware: %s", err)
+			log.Printf("Failed to upgrade HSM firmware: %s", err)
 		}
-	}
-
-	hsmFirmware, err := hsm.WaitForFirmware()
-	if err != nil {
-		log.Printf("Failed to connect to the HSM firmware: %v. Continuing without HSM.", err)
-	} else {
-		log.Printf("HSM serial port connected.")
 	}
 
 	config := configuration.NewConfiguration(
@@ -64,6 +59,7 @@ func main() {
 			PrometheusURL:             *prometheusURL,
 			RedisMock:                 *redisMock,
 			RedisPort:                 *redisPort,
+			HsmFirmwareFile:           *hsmFirmwareFile,
 		},
 	)
 
@@ -77,30 +73,11 @@ func main() {
 	}
 	defer logBeforeExit()
 
-	middleware, err := middleware.NewMiddleware(config, hsmFirmware)
+	middleware, err := middleware.NewMiddleware(config, hsm)
 	if err != nil {
 		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
 	}
 	log.Println("--------------- Started middleware --------------")
-
-	// Check for available hsm firmware update on middleware boot and update if available
-	if hsmFirmware != nil {
-		updateAvailable, err := middleware.HSMUpdateAvailable(hsm)
-		if err != nil {
-			log.Printf("Failed to fetch HSM version/update information: %s. Proceeding normally", err)
-		}
-		if updateAvailable {
-			err = hsm.UpdateFirmware(*hsmFirmwareFile)
-			if err != nil {
-				log.Printf("Failed to update HSM firmware: %s", err)
-			} else {
-				err = middleware.BootHSMFirmware(hsm)
-				if err != nil {
-					log.Printf("Error: Failed to reboot back into HSM firmware. Base restart may be required: %s", err)
-				}
-			}
-		}
-	}
 
 	handlers := handlers.NewHandlers(middleware, *dataDir)
 	log.Printf("Binding middleware api to port %s\n", *middlewarePort)
