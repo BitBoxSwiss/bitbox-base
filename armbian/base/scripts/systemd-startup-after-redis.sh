@@ -35,7 +35,7 @@ VERSION_BBB=$(head -n1 /opt/shift/config/version_bbb)
 redis_set "base:version" "${VERSION_BBB}"
 
 VERSION_HSM=$(head -n1 /opt/shift/config/version_hsm)
-redis_set "base:version" "${VERSION_HSM}"
+redis_set "hsm:firmware:version" "${VERSION_HSM}"
 
 
 # check for reset triggers on flashdrive
