@@ -39,7 +39,7 @@ set -e
 #   armbian/base/config/version_hsm
 
 BITCOIN_VERSION="0.18.1"
-LIGHTNING_VERSION="0.7.3"
+LIGHTNING_VERSION="0.8.0"
 ELECTRS_VERSION="0.7.0"
 BIN_DEPS_TAG='0.0.5'
 
