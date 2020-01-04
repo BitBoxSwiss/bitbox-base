@@ -57,7 +57,6 @@ if ! grep -q '/mnt/ssd ' /etc/fstab ; then
 
 else
     echo "/mnt/ssd is already specified in /etc/fstab, no action required"
-
 fi
 
 sudo mount -a
@@ -81,16 +80,10 @@ chmod -R u+rw,g+r,g-w,o-rwx /mnt/ssd/bitcoin/
 setfacl -d -m g::rx /mnt/ssd/bitcoin/.bitcoin/
 setfacl -d -m o::- /mnt/ssd/bitcoin/.bitcoin/
 
-## lightningd socket
+## lightningd data storage
 mkdir -p /mnt/ssd/bitcoin/.lightning
-chmod u+rw,g+rx,g-w,o-rwx /mnt/ssd/bitcoin/.lightning
-chmod 700 /mnt/ssd/bitcoin/.lightning/* || true
-chmod 770 /mnt/ssd/bitcoin/.lightning/lightning-rpc || true
-
-mkdir -p /mnt/ssd/bitcoin/.lightning-testnet
-chmod u+rw,g+rx,g-w,o-rwx /mnt/ssd/bitcoin/.lightning-testnet
-chmod 700 /mnt/ssd/bitcoin/.lightning-testnet/* || true
-chmod 770 /mnt/ssd/bitcoin/.lightning-testnet/lightning-rpc || true
+chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/.lightning
+chmod -R u+rw,g+rx,g-w,o-rwx /mnt/ssd/bitcoin/.lightning
 
 ## electrs data storage
 mkdir -p /mnt/ssd/electrs/

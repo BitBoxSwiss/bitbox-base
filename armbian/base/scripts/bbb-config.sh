@@ -373,7 +373,7 @@ case "${COMMAND}" in
                         redis_set "bitcoind:network" "testnet"
                         redis_set "bitcoind:testnet" "1"
                         redis_set "bitcoind:mainnet" "0"
-                        redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning-testnet"
+                        redis_set "lightningd:lightning-dir" "/mnt/ssd/bitcoin/.lightning"
                         ;;
 
                     *)
