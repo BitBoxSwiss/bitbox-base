@@ -60,6 +60,7 @@ SET bitcoind:reindex-chainstate 0
 SET lightningd:version xxx
 SET lightningd:bitcoin-cli /usr/bin/bitcoin-cli
 SET lightningd:lightning-dir /mnt/ssd/bitcoin/.lightning
+SET lightningd:statictorblob xxx
 SET lightningd:bind-addr 127.0.0.1:9735
 SET lightningd:proxy 127.0.0.1:9050
 SET lightningd:log-level debug

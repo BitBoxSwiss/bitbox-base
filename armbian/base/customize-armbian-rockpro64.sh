@@ -310,7 +310,7 @@ fi
 
 ## install required software packages
 apt install -y --no-install-recommends \
-  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-utils fail2ban acl rsync smartmontools curl libfontconfig
+  git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-utils fail2ban acl rsync smartmontools curl libfontconfig jq
 apt install -y --no-install-recommends ifmetric
 apt install -y iptables-persistent
 
