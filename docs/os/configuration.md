@@ -51,7 +51,7 @@ usage: bbb-cmd.sh [--version] [--help] <command>
 possible commands:
   setup         <datadir>
   bitcoind      <reindex|resync|refresh_rpcauth>
-  flashdrive    <check|mount|umount>
+  flashdrive    <check|mount|unmount>
   backup        <sysconfig|hsm_secret>
   restore       <sysconfig|hsm_secret>
   reset         <auth|config|image|ssd>
