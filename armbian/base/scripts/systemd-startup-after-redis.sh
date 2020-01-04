@@ -98,10 +98,8 @@ if [[ -f /etc/mender/mender.conf ]] && ! grep -q '/shift/' /etc/mender/mender.co
     generateConfig mender.conf.template # -->  /etc/mender/mender.conf
 fi
 
-
 # update onion addresses in Redis
 updateTorOnions
-
 
 # check if rpcauth credentials exist, or create new ones
 RPCAUTH="$(redis_get 'bitcoind:rpcauth')"
@@ -114,6 +112,12 @@ if [ ${#RPCAUTH} -lt 90 ] || [ "${REFRESH_RPCAUTH}" -eq 1 ] || [ "${REFRESH_RPCA
     /opt/shift/scripts/bbb-cmd.sh bitcoind refresh_rpcauth
 else
     echo "INFO: found bitcoind rpc credentials, no action taken"
+fi
+
+# generate unique c-lightning 'statictor' blob for persistant Tor address if necessary
+if [[ "$(redis_get lightningd:statictorblob)" == "xxx" ]]; then
+    redis_set "lightningd:statictorblob" "$(< /dev/urandom tr -dc A-Z-a-z-0-9 | head -c32)"
+    generateConfig "lightningd.conf.template" # --> /etc/lightningd/lightningd.conf
 fi
 
 # make sure Bitcoin-related services are enabled and started if setup is finished

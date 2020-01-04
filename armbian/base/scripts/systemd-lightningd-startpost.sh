@@ -15,7 +15,7 @@ source /opt/shift/scripts/include/redis.sh.inc
 # ------------------------------------------------------------------------------
 
 # wait for c-lightning to warm up
-sleep 5
+sleep 20
 
 # make available lightningd socket to group "bitcoin"
 chown -R bitcoin:bitcoin /mnt/ssd/bitcoin/.lightning
