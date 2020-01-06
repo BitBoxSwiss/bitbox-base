@@ -139,6 +139,10 @@ else
         redis_set "base:sshd:passwordlogin" 0
         redis_set "base:sshd:rootlogin" no
 
+        # re-run startup tasks
+        /opt/shift/scripts/systemd-startup-checks.sh
+        /opt/shift/scripts/systemd-startup-after-redis.sh
+
         # send update notification to Middleware (best effort)
         timeout 5 echo '{"version": 1, "topic": "mender-update", "payload": {"success": true}}' >> /tmp/middleware-notification.pipe || true
     fi
