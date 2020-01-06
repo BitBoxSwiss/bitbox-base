@@ -81,7 +81,7 @@ case ${ACTION} in
 		cd ..
 
 		# set owner to regular user calling script with sudo (instead of root)
-		if [ "${SUDO_USER}" ]; then
+		if [ "${SUDO_USER:-}" ]; then
 			chown "${SUDO_USER}" "../../bin/img-mender/${VERSION}/"*
 		fi
 
