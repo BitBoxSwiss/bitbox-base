@@ -68,7 +68,7 @@ case ${ACTION} in
 			mv -v armbian-build/output/images/Armbian_*.img ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
 
 			# set owner to regular user calling script with sudo (instead of root)
-			if [ "${SUDO_USER}" ]; then
+			if [ "${SUDO_USER:-}" ]; then
 				chown "${SUDO_USER}" ../bin/img-armbian/BitBoxBase_Armbian_RockPro64.img
 			fi
 
