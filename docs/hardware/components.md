@@ -25,7 +25,7 @@ A **medium heatsink with integrated fan**, controlled by our Base Supervisor tak
 
 ### Storage
 
-For speed, resilience and silent operations the BitBoxBase uses an **SSD M.2 drive** that can be mounted on a PCIe adapter which connects directly to the PCIe slog on the board.
+For speed, resilience and silent operations the BitBoxBase uses an **SSD M.2 drive** that can be mounted on a PCIe adapter which connects directly to the PCIe slot on the board.
 As no adapter was available that minimizes the height once mounted, we produced our own SSD adapter to not waste any space.
 Standard adapter work as well.
 
