@@ -420,7 +420,8 @@ fi
 if [[ "$BASE_OVERLAYROOT" == "true" ]]; then
   # allow missing files if build-ondevice (e.g. not Armbian distro)
   if [[ -f /etc/default/armbian-ramlog ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
-    sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
+    -f /etc/default/armbian-ramlog && \
+      sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-ramlog
     sed -i 's/log.hdd/log/g' /etc/logrotate.conf
     importFile /etc/logrotate.d/rsyslog
   fi
@@ -448,7 +449,8 @@ generateConfig mender.conf.template # -->  /etc/mender/mender.conf
 
 ## configure swap file (disable Armbian zram, configure custom swapfile on ssd)
 if [[ -f /etc/default/armbian-zram-config ]] || [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
-  sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
+  -f /etc/default/armbian-zram-config && \
+    sed -i '/ENABLED=/Ic\ENABLED=false' /etc/default/armbian-zram-config
 fi
 sed -i '/vm.swappiness=/Ic\vm.swappiness=10' /etc/sysctl.conf
 
