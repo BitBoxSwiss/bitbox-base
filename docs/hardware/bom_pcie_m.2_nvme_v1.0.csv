@@ -1,0 +1,6 @@
+﻿Shift Cryptosecurity,,,PCB:   PCIe_M.2_NVMe  V1.00,,16.04.2019
+,,,,,
+Pos.,Quantity,Designator,Comment,Footprint,"Description (Mouser.Nr,)"
+1,1,PCB,PCIe_M.2_NVMe  V1.00,95mm x 34mm  special,"2-Layer , thickness: 1.6mm"
+2,1,P1,MDT420M03001,M.2_MDT,523-MDT420M03001
+3,2,"C1, C2",10u / 6V3       X7R      thick <= 1.25mm,805,80-C0805X106K9RAUTO
