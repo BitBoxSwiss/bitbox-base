@@ -500,6 +500,22 @@ curl --retry 5 -SLo "/opt/shift/hsm/firmware-bitboxbase.signed.bin" \
   "https://github.com/digitalbitbox/bitbox02-firmware/releases/download/firmware-bitboxbase%2Fv${HSM_VERSION}/firmware-bitboxbase.v${HSM_VERSION}.signed.bin"
 
 
+# AYUFAN KERNEL ---------------------------------------------------------------
+mkdir -p /usr/local/src/ayufan
+cd /usr/local/src/ayufan
+
+AYUFAN_KERNEL_VERSION="4.4.202-1237-rockchip-ayufan"
+AYUFAN_KERNEL_ID="gfd4492386213"
+
+curl --retry 5 -SLO "https://github.com/ayufan-rock64/linux-kernel/releases/download/${AYUFAN_KERNEL_VERSION}/linux-firmware-image-${AYUFAN_KERNEL_VERSION}-${AYUFAN_KERNEL_ID}_${AYUFAN_KERNEL_VERSION}_arm64.deb"
+curl --retry 5 -SLO "https://github.com/ayufan-rock64/linux-kernel/releases/download/${AYUFAN_KERNEL_VERSION}/linux-image-${AYUFAN_KERNEL_VERSION}-${AYUFAN_KERNEL_ID}_${AYUFAN_KERNEL_VERSION}_arm64.deb"
+
+dpkg --install linux-firmware-image-${AYUFAN_KERNEL_VERSION}-${AYUFAN_KERNEL_ID}_${AYUFAN_KERNEL_VERSION}_arm64.deb
+dpkg --install linux-image-${AYUFAN_KERNEL_VERSION}-${AYUFAN_KERNEL_ID}_${AYUFAN_KERNEL_VERSION}_arm64.deb
+
+ln -sf /boot/vmlinuz-${AYUFAN_KERNEL_VERSION}-${AYUFAN_KERNEL_VERSION} /boot/Image
+
+
 # TOR --------------------------------------------------------------------------
 curl --retry 5 https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
