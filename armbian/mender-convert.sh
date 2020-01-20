@@ -22,6 +22,8 @@ VERSION="$(head -n1 base/config/version_bbb)"
 TEMP_NAME="BitBoxBase"
 TARGET_NAME="BitBoxBase-v${VERSION}-RockPro64"
 
+MENDER_TAG="1.2.2"
+
 if ! [[ "${ACTION}" =~ ^(envinit|build)$ ]]; then
 	usage
 	exit 1
@@ -31,8 +33,7 @@ case ${ACTION} in
 	build)
 		# initialize conversion environment
 		if [ ! -d "mender-convert" ]; then
-			# TODO(Stadicus): pin specific commit instead of master branch
-			git clone -b master --depth=1 https://github.com/mendersoftware/mender-convert
+			git clone -b "${MENDER_TAG}" --depth=1 https://github.com/mendersoftware/mender-convert
 			cd mender-convert
 			./docker-build arm64
 			mkdir -p input
