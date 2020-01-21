@@ -130,13 +130,9 @@ type GetBaseUpdateProgressResponse struct {
 // GetBaseInfoResponse is the struct that gets sent by the RPC server during a GetBaseInfo RPC call
 type GetBaseInfoResponse struct {
 	ErrorResponse             *ErrorResponse
-	Status                    string `json:"status"`
-	Hostname                  string `json:"hostname"`
 	MiddlewareLocalIP         string `json:"middlewareLocalIP"`
 	MiddlewarePort            string `json:"middlewarePort"`
 	MiddlewareTorOnion        string `json:"middlewareTorOnion"`
-	IsTorEnabled              bool   `json:"isTorEnabled"`
-	IsBitcoindListening       bool   `json:"isBitcoindListening"`
 	IsSSHPasswordLoginEnabled bool   `json:"isSSHPasswordLoginEnabled"`
 	FreeDiskspace             int64  `json:"freeDiskspace"`  // in Byte
 	TotalDiskspace            int64  `json:"totalDiskspace"` // in Byte
@@ -157,6 +153,17 @@ type GetServiceInfoResponse struct {
 	LightningdBlocks             int64          `json:"lightningdBlocks"`
 	LightningActiveChannels      int64          `json:"lightningActiveChannels"`
 	ElectrsBlocks                int64          `json:"electrsBlocks"`
+}
+
+// GetServiceStatusResponse is the struct that gets sent by the RPC server during a GetServiceStatus RPC call
+type GetServiceStatusResponse struct {
+	ErrorResponse    *ErrorResponse `json:"errorResponse"`
+	Hostname         string         `json:"hostname"`
+	Status           string         `json:"status"`
+	IsTorEnabled     bool           `json:"isTorEnabled"`
+	BitcoindStatus   bool           `json:"isBitcoindListening"`
+	LightningdStatus bool           `json:"lightningdStatus"`
+	ElectrsStatus    bool           `json:"electrsStatus"`
 }
 
 // ErrorResponse is a generic RPC response indicating if a RPC call was successful or not.

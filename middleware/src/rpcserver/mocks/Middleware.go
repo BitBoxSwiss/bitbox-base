@@ -194,6 +194,20 @@ func (_m *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
 	return r0
 }
 
+// GetServiceStatus provides a mock function with given fields:
+func (_m *Middleware) GetServiceStatus() rpcmessages.GetServiceStatusResponse {
+	ret := _m.Called()
+
+	var r0 rpcmessages.GetServiceStatusResponse
+	if rf, ok := ret.Get(0).(func() rpcmessages.GetServiceStatusResponse); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(rpcmessages.GetServiceStatusResponse)
+	}
+
+	return r0
+}
+
 // IsBaseUpdateAvailable provides a mock function with given fields:
 func (_m *Middleware) IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse {
 	ret := _m.Called()

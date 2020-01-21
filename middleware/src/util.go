@@ -108,6 +108,11 @@ func (middleware *Middleware) runBBBSystemctlScript(args []string) (outputLines 
 	return
 }
 
+func (middleware *Middleware) checkSystemdServiceStatus(serviceName string) (bool, error) {
+	active, err := runCommand("systemctl", []string{"is-active", serviceName})
+	return active[0] == "active", err
+}
+
 // runBBBCmdScript runs the bbb-cmd.sh script.
 // The script executes commands like for example mounting a USB drive, doing a backup and copying files.
 func (middleware *Middleware) runBBBCmdScript(args []string) (outputLines []string, err error) {

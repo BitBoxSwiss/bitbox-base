@@ -66,6 +66,7 @@ type Middleware interface {
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
+	GetServiceStatus() rpcmessages.GetServiceStatusResponse
 	IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse
 	RebootBase() rpcmessages.ErrorResponse
 	ReindexBitcoin() rpcmessages.ErrorResponse
@@ -441,6 +442,14 @@ func (server *RPCServer) GetServiceInfo(args rpcmessages.AuthGenericRequest, rep
 
 	*reply = server.middleware.GetServiceInfo()
 	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetServiceInfo", reply)
+	return nil
+}
+
+// GetServiceStatus sends the middleware's GetServiceStatusResponse over rpc.
+// Warning: This endpoint is not authenticated.
+func (server *RPCServer) GetServiceStatus(dummyArg bool, reply *rpcmessages.GetServiceStatusResponse) error {
+	*reply = server.middleware.GetServiceStatus()
+	log.Printf("RPCServer sent reply for the %q RPC: %+v\n", "GetServiceStatus", reply)
 	return nil
 }
 

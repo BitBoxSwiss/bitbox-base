@@ -1037,13 +1037,6 @@ func (middleware *Middleware) FinalizeSetupWizard() rpcmessages.ErrorResponse {
 
 // GetBaseInfo returns information about the Base in a GetBaseInfoResponse
 func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
-	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
-	if err != nil {
-		log.Printf("Error getting hostname information. Error: %s", err.Error())
-		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
-	}
-
 	middlewareIP, err := middleware.prometheusClient.GetMetricString(prometheus.BaseSystemInfo, "base_ipaddress")
 	if err != nil {
 		log.Printf("Error getting middlewareIP information. Error: %s", err.Error())
@@ -1078,13 +1071,6 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
 	}
 	isSSHPasswordLoginEnabled = isSSHPasswordLoginEnabledSetting == "yes"
-
-	isBitcoindListening, err := middleware.redisClient.GetBool(redis.BitcoindListen)
-	if err != nil {
-		log.Printf("Error getting isBitcoindListening information. Error: %s", err.Error())
-		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
-		return rpcmessages.GetBaseInfoResponse{ErrorResponse: &errResponse}
-	}
 
 	freeDiskspace, err := middleware.prometheusClient.GetInt(prometheus.BaseFreeDiskspace)
 	if err != nil {
@@ -1132,13 +1118,9 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 		ErrorResponse: &rpcmessages.ErrorResponse{
 			Success: true,
 		},
-		Status:                    "-PLACEHOLDER-", // FIXME: This is a placeholder.
-		Hostname:                  hostname,
 		MiddlewareLocalIP:         middlewareIP,
 		MiddlewarePort:            middlewarePort,
 		MiddlewareTorOnion:        middlewareTorOnion,
-		IsTorEnabled:              isTorEnabled,
-		IsBitcoindListening:       isBitcoindListening,
 		IsSSHPasswordLoginEnabled: isSSHPasswordLoginEnabled,
 		FreeDiskspace:             freeDiskspace,
 		TotalDiskspace:            totalDiskspace,
@@ -1152,6 +1134,49 @@ func (middleware *Middleware) GetBaseInfo() rpcmessages.GetBaseInfoResponse {
 // GetServiceInfo returns the most recent information about services running on the Base such as for example bitcoind, electrs or lightningd.
 func (middleware *Middleware) GetServiceInfo() rpcmessages.GetServiceInfoResponse {
 	return middleware.serviceInfo
+}
+
+// GetServiceStatus returns the most recent status information of the base and a few of its services
+func (middleware *Middleware) GetServiceStatus() rpcmessages.GetServiceStatusResponse {
+	hostname, err := middleware.redisClient.GetString(redis.BaseHostname)
+	if err != nil {
+		log.Printf("Error getting hostname information. Error: %s", err.Error())
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceStatusResponse{ErrorResponse: &errResponse}
+	}
+	isTorEnabled, err := middleware.redisClient.GetBool(redis.TorEnabled)
+	if err != nil {
+		log.Printf("Error getting isTorEnabled information. Error: %s", err.Error())
+		errResponse := middleware.redisClient.ConvertErrorToErrorResponse(err)
+		return rpcmessages.GetServiceStatusResponse{ErrorResponse: &errResponse}
+	}
+	bitcoindActive, err := middleware.checkSystemdServiceStatus("bitcoind")
+	if err != nil {
+		//only log, since information can still be relayed
+		log.Printf("Error getting lightingd active information from systemctl. Error: %s", err.Error())
+	}
+	lightningdActive, err := middleware.checkSystemdServiceStatus("lightningd")
+	if err != nil {
+		// only log, since information can still be relayed
+		log.Printf("Error getting lightingd active information from systemctl. Error: %s", err.Error())
+	}
+	electrsActive, err := middleware.checkSystemdServiceStatus("electrs")
+	if err != nil {
+		// only log, since information can still be relayed
+		log.Printf("Error getting electrs active information from systemctl. Error: %s", err.Error())
+	}
+
+	return rpcmessages.GetServiceStatusResponse{
+		ErrorResponse: &rpcmessages.ErrorResponse{
+			Success: true,
+		},
+		Hostname:         hostname,
+		Status:           "-PLACEHOLDER-", // FIXME: This is a placeholder.
+		IsTorEnabled:     isTorEnabled,
+		BitcoindStatus:   bitcoindActive,
+		LightningdStatus: lightningdActive,
+		ElectrsStatus:    electrsActive,
+	}
 }
 
 // VerifyAppMiddlewarePairing is a blocking call to confirm the noise pairing
