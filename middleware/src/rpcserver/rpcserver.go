@@ -52,35 +52,37 @@ func (conn *rpcConn) Close() error {
 
 // Middleware provides an interface to the middleware package.
 type Middleware interface {
-	SystemEnv() rpcmessages.GetEnvResponse
-	ResyncBitcoin() rpcmessages.ErrorResponse
-	ReindexBitcoin() rpcmessages.ErrorResponse
-	BackupSysconfig() rpcmessages.ErrorResponse
+	/* --- RPCs --- */
 	BackupHSMSecret() rpcmessages.ErrorResponse
-	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
-	RestoreSysconfig() rpcmessages.ErrorResponse
-	RestoreHSMSecret() rpcmessages.ErrorResponse
-	EnableTor(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	EnableTorMiddleware(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	EnableTorElectrs(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	EnableTorSSH(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	BackupSysconfig() rpcmessages.ErrorResponse
 	EnableClearnetIBD(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	ShutdownBase() rpcmessages.ErrorResponse
-	RebootBase() rpcmessages.ErrorResponse
 	EnableRootLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
 	EnableSSHPasswordLogin(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
-	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
-	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
-	IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse
+	EnableTor(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorElectrs(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorMiddleware(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	EnableTorSSH(rpcmessages.ToggleSettingArgs) rpcmessages.ErrorResponse
+	FinalizeSetupWizard() rpcmessages.ErrorResponse
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
+	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
+	IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse
+	RebootBase() rpcmessages.ErrorResponse
+	ReindexBitcoin() rpcmessages.ErrorResponse
+	RestoreHSMSecret() rpcmessages.ErrorResponse
+	RestoreSysconfig() rpcmessages.ErrorResponse
+	ResyncBitcoin() rpcmessages.ErrorResponse
+	SetHostname(rpcmessages.SetHostnameArgs) rpcmessages.ErrorResponse
 	SetLoginPassword(rpcmessages.SetLoginPasswordArgs) rpcmessages.ErrorResponse
+	SetupStatus() rpcmessages.SetupStatusResponse
+	ShutdownBase() rpcmessages.ErrorResponse
+	SystemEnv() rpcmessages.GetEnvResponse
+	UpdateBase(rpcmessages.UpdateBaseArgs) rpcmessages.ErrorResponse
 	UserAuthenticate(rpcmessages.UserAuthenticateArgs) rpcmessages.UserAuthenticateResponse
 	UserChangePassword(rpcmessages.UserChangePasswordArgs) rpcmessages.ErrorResponse
-	SetupStatus() rpcmessages.SetupStatusResponse
-	FinalizeSetupWizard() rpcmessages.ErrorResponse
+	/* --- RPCs end --- */
 
-	//Authentication:
+	/* --- Authentication --- */
 	ValidateToken(token string) error
 }
 
