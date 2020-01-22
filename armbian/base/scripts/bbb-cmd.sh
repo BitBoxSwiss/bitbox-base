@@ -102,7 +102,9 @@ case "${MODULE}" in
                             # if overlayroot enabled, create symlink to ssd within overlayroot-chroot,
                             # will only be ready after reboot
                             mkdir -p /mnt/ssd/data
-                            overlayroot-chroot /bin/bash -c "ln -sfn /mnt/ssd/data /"
+                            if ! overlayroot-chroot /bin/bash -c "ln -sfn /mnt/ssd/data /"; then
+                                echo "ERR: could not create data directory symlink in overlayrootfs"
+                            fi
 
                             # also create link in tmpfs until next reboot
                             ln -sfn /mnt/ssd/data /
