@@ -24,7 +24,10 @@ generateConfig() {
         if [ "${OVERLAYROOT_ENABLED}" -eq 1 ]; then
             echo "generateConfig() from ${FILE}, read-only partition of overlayroot"
             /usr/local/sbin/bbbconfgen --template "${FILE}"
-            overlayroot-chroot /bin/bash -c "/usr/local/sbin/bbbconfgen --template '${FILE}'"
+            if ! overlayroot-chroot /bin/bash -c "/usr/local/sbin/bbbconfgen --template '${FILE}'"; then
+                echo "ERR: could not run command in overlayrootfs"
+            fi
+
         else
             echo "generateConfig() from ${FILE}"
             /usr/local/sbin/bbbconfgen --template "${FILE}"

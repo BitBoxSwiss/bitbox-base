@@ -302,8 +302,11 @@ case "${COMMAND}" in
                     echo 'overlayroot="tmpfs:swap=1,recurse=0"' > /etc/overlayroot.local.conf
                     echo "Overlay root filesystem will be enabled on next boot."
                 else
-                    overlayroot-chroot /bin/bash -c "echo 'overlayroot=disabled' > /etc/overlayroot.local.conf"
-                    echo "Overlay root filesystem will be disabled on next boot."
+                    if ! overlayroot-chroot /bin/bash -c "echo 'overlayroot=disabled' > /etc/overlayroot.local.conf"; then
+                        echo "ERR: could not run command in overlayrootfs, is it already disabled?"
+                    else
+                        echo "Overlay root filesystem will be disabled on next boot."
+                    fi
                 fi
                 redis_set "base:overlayroot:enabled" "${ENABLE}"
                 ;;

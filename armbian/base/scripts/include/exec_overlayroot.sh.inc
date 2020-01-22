@@ -17,7 +17,9 @@ exec_overlayroot() {
 
     if [ "${OVERLAYROOT_ENABLED}" -eq 1 ]; then
         echo "executing in overlayroot-chroot: ${2}"
-        overlayroot-chroot /bin/bash -c "${2}"
+        if ! overlayroot-chroot /bin/bash -c "${2}"; then
+            echo "ERR: could not run command in overlayrootfs"
+        fi
     fi
 
     if [ "${OVERLAYROOT_ENABLED}" -ne 1 ] || [[ "${1}" == "all-layers" ]]; then
