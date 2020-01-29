@@ -302,7 +302,7 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
 
   for pkg in $pkgToRemove
   do
-    apt-get -y remove "$pkg" || true
+    apt-get -y purge "$pkg" || true
   done
 
   apt-get -y --fix-broken install
@@ -720,7 +720,7 @@ importFile "/etc/systemd/system/iptables-restore.service"
 
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
   ## Remove build-only packages
-  apt-get -y remove git
+  apt-get -y purge git
 
   ## Delete unnecessary local files
   rm -rf /usr/share/doc/*
