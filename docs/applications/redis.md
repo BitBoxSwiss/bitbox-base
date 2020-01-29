@@ -17,7 +17,7 @@ The default systemd unit is disabled in favor of a custom one optimized for this
 
 ```bash
 ## install Redis
-apt install -y --no-install-recommends redis
+apt-get install -y --no-install-recommends redis
 mkdir -p /data/redis/
 chown -R redis:redis /data/redis/
 

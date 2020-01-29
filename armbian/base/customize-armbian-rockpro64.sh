@@ -284,9 +284,9 @@ fi
 # SOFTWARE PACKAGE MGMT --------------------------------------------------------
 ## update system, force non-interactive commands
 
-apt -y update
-apt -y -q -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" upgrade
-apt -y --fix-broken install
+apt-get -y update
+apt-get -y -q -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" upgrade
+apt-get -y --fix-broken install
 
 ## remove unnecessary packages (only when building image, not ondevice)
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]]; then
@@ -302,30 +302,30 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]] && [[ "${BASE_MINIMAL}" == "true" ]];
 
   for pkg in $pkgToRemove
   do
-    apt -y remove "$pkg" || true
+    apt-get -y remove "$pkg" || true
   done
 
-  apt -y --fix-broken install
+  apt-get -y --fix-broken install
 fi
 
 ## install required software packages
-apt install -y --no-install-recommends \
+apt-get install -y --no-install-recommends \
   git openssl network-manager net-tools fio libnss-mdns avahi-daemon avahi-utils fail2ban acl rsync smartmontools curl libfontconfig jq
-apt install -y --no-install-recommends ifmetric
-apt install -y iptables-persistent
+apt-get install -y --no-install-recommends ifmetric
+apt-get install -y iptables-persistent
 
 ## install python dependencies
-apt install -y python3-pip python3-setuptools
+apt-get install -y python3-pip python3-setuptools
 pip3 install wheel
 pip3 install prometheus_client
 pip3 install redis
 pip3 install pylightning
 
 # debug
-apt install -y --no-install-recommends tmux unzip bash-completion
+apt-get install -y --no-install-recommends tmux unzip bash-completion
 
 if [[ "${BASE_DISTRIBUTION}" == "bionic" ]]; then
-    apt install -y --no-install-recommends overlayroot
+    apt-get install -y --no-install-recommends overlayroot
 fi
 
 # binariy Go dependencies, if not already present
@@ -349,7 +349,7 @@ ln -sfn /data_source /data
 touch /data/.datadir_set_up
 
 ## install Redis
-apt install -y --no-install-recommends redis
+apt-get install -y --no-install-recommends redis
 mkdir -p /data/redis/
 chown -R redis:redis /data/redis/
 
@@ -507,8 +507,8 @@ if ! grep -q "deb.torproject.org" /etc/apt/sources.list; then
   echo "deb https://deb.torproject.org/torproject.org ${BASE_DISTRIBUTION} main" >> /etc/apt/sources.list
 fi
 
-apt update
-apt -y install tor --no-install-recommends
+apt-get update
+apt-get -y install tor --no-install-recommends
 generateConfig "torrc.template" # --> /etc/tor/torrc
 
 ## allow user 'bitcoin' to access Tor proxy socket
@@ -538,7 +538,7 @@ redis-cli SET bitcoind:version "${BITCOIN_VERSION}"
 
 
 # LIGHTNING --------------------------------------------------------------------
-apt install -y  libsodium-dev autoconf automake build-essential git libtool libgmp-dev \
+apt-get install -y  libsodium-dev autoconf automake build-essential git libtool libgmp-dev \
                 libsqlite3-dev python python3 python3-mako net-tools \
                 zlib1g-dev asciidoc-base gettext
 
@@ -665,7 +665,7 @@ systemctl enable grafana-server.service
 
 
 # NGINX ------------------------------------------------------------------------
-apt install -y nginx
+apt-get install -y nginx
 rm -f /etc/nginx/sites-enabled/default
 
 importFile "/etc/nginx/nginx.conf"
@@ -720,7 +720,7 @@ importFile "/etc/systemd/system/iptables-restore.service"
 
 if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
   ## Remove build-only packages
-  apt -y remove git
+  apt-get -y remove git
 
   ## Delete unnecessary local files
   rm -rf /usr/share/doc/*
@@ -731,9 +731,9 @@ if [[ "${BASE_BUILDMODE}" != "ondevice" ]]; then
 fi
 
 ## Clean up
-apt install -f
-apt clean
-apt -y autoremove
+apt-get install -f
+apt-get clean
+apt-get -y autoremove
 rm -rf /usr/local/src/*
 
 ## Enable system services
