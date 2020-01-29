@@ -16,7 +16,7 @@ Together with the strict `iptables` firewall rules, all unknown communication pa
 NGINX is installed using the standard Armbian package and the configuration for the default web-server landing page is deleted.
 
 ```bash
-apt install -y nginx
+apt-get install -y nginx
 rm -f /etc/nginx/sites-enabled/default
 ```
 
