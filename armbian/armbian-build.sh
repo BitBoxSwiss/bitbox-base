@@ -40,21 +40,31 @@ case ${ACTION} in
 		git log --pretty=format:'%h' -n 1 > ./base/config/latest_commit
 
 		if [ ! -d "armbian-build" ]; then
-			# TODO(Stadicus): pin specific tag instead of master branch
+			# clone master branch
 			git clone --depth=1 -b master https://github.com/armbian/build armbian-build
+			cd armbian-build || exit
+
+			# pin git HEAD to specific commit
+			git checkout 7084a2d457e97d99636e46f3d91a14dfe51fe8ed
 
 			# prevent Armbian scripts to revert to master, allows usage of custom tags/releases
-			touch armbian-build/.ignore_changes
+			touch .ignore_changes
+
+			# patch debootstraps.sh to allow building Ayufan kernel
+			cp ../patches/patch_debootstrap.sh .
+			git apply patch_debootstrap.sh
+			cd ..
 		fi
 
 		mkdir -p armbian-build/output/
 		mkdir -p armbian-build/userpatches/overlay/bin/go
-		cp -a  base/customize-image.sh armbian-build/userpatches/		# copy customize script to standard Armbian build hook
+		cp -a  base/customize-image.sh armbian-build/userpatches/			# copy customize script to standard Armbian build hook
 		cp -aR base/* armbian-build/userpatches/overlay/					# copy scripts and configuration items to overlay
 		cp -aR ../bin/go/* armbian-build/userpatches/overlay/bin/go			# copy additional software binaries to overlay
+		cp -aR patches/* armbian-build/userpatches							# copy custom patches for Linux kernel build
 
 		BOARD=${BOARD:-rockpro64}
-		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=legacy WIREGUARD=no PROGRESS_LOG_TO_FILE=yes"
+		BUILD_ARGS="docker BOARD=${BOARD} KERNEL_ONLY=no KERNEL_CONFIGURE=no BUILD_MINIMAL=yes BUILD_DESKTOP=no RELEASE=bionic BRANCH=legacy WIREGUARD=no EXTRAWIFI=no PROGRESS_LOG_TO_FILE=yes"
 		if [ "${ACTION}" == "update" ]; then
 			BUILD_ARGS="${BUILD_ARGS} CLEAN_LEVEL=oldcache"
 		fi
