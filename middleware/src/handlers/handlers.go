@@ -34,6 +34,7 @@ type Middleware interface {
 	GetBaseInfo() rpcmessages.GetBaseInfoResponse
 	GetBaseUpdateProgress() rpcmessages.GetBaseUpdateProgressResponse
 	GetServiceInfo() rpcmessages.GetServiceInfoResponse
+	GetServiceStatus() rpcmessages.GetServiceStatusResponse
 	IsBaseUpdateAvailable() rpcmessages.IsBaseUpdateAvailableResponse
 	RebootBase() rpcmessages.ErrorResponse
 	ReindexBitcoin() rpcmessages.ErrorResponse
