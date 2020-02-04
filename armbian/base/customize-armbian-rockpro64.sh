@@ -700,6 +700,7 @@ fi
 
 # NETWORK ----------------------------------------------------------------------
 importFile "/etc/systemd/resolved.conf"
+importFile "/etc/network/interfaces"
 
 ## include Wifi credentials, if specified (experimental)
 if [[ -n "${BASE_WIFI_SSID}" ]]; then
