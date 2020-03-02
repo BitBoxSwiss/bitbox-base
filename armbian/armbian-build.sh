@@ -41,7 +41,7 @@ case ${ACTION} in
 
 		if [ ! -d "armbian-build" ]; then
 			# clone master branch
-			git clone --depth=1 -b master https://github.com/armbian/build armbian-build
+			git clone https://github.com/armbian/build armbian-build
 			cd armbian-build || exit
 
 			# pin git HEAD to specific commit
