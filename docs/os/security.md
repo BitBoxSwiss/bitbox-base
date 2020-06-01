@@ -42,4 +42,3 @@ A network appliance like the BitBoxBase, built on readily available components, 
 
 This list of security controls is non-exhaustive and meant to grow over time.
 If you think of additional controls, please let us know by opening a [GitHub issue](https://github.com/digitalbitbox/bitbox-base/issues).
-If you think you discovered a critical security issue, please contact us directly following the procedure of responisble disclosure outlined in our [bug bounty program](https://shiftcrypto.ch/bug-bounty-program/).

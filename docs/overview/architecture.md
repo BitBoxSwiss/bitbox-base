@@ -62,6 +62,6 @@ Connectivity from the Bitcoin wallet application to the node backend is a challe
 
 1. Local network: automatic detection using mDNS within the local network.
 2. Tor network: private connectivity without any router configuration, needs Tor installed on client device.
-3. Shift Connect: zero-knowledge Tor/Web proxy operated by Shift for use with any client device
+3. Shift Connect: zero-knowledge Tor/Web proxy for use with any client device
 
 Overall, we strive to make using our BitBox products as simple as possible.
