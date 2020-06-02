@@ -19,7 +19,7 @@ Although we use custom hardware to improve our commercial product and enable add
 
 * Case option A (internal storage)
   * Custom case (e.g. made of acrylic like [Digital Garage's hack0](https://github.com/dgarage/hack0-hardware))
-  * PCIe SSD adapter, either our own [minimal adapter](https://shop.shiftcrypto.ch/en/products/compact-m2-to-pcie-adapter-15/) or Pine64's [standard adapter](https://store.pine64.org/?product=rockpro64-pci-e-x4-to-m-2ngff-nvme-ssd-interface-card)
+  * PCIe SSD adapter, either a minimal adapter or Pine64's [standard adapter](https://store.pine64.org/?product=rockpro64-pci-e-x4-to-m-2ngff-nvme-ssd-interface-card)
   * 1 TB SSD (we had good experience with Cruzial P1)
   * [Mid Profile Heatsink](https://store.pine64.org/?product=rockpro64-20mm-mid-profile-heatsink)
   * [CPU Fan](https://store.pine64.org/?product=fan-for-rockpro64-20mm-mid-profile-heatsink)
@@ -50,7 +50,7 @@ Make sure you have the following prerequisites installed on your computer. At th
 
 **Compile Armbian and custom applications**
 
-The BitBoxBase runs a minimal Armbian operating system with additional custom applications written by Shift Cryptosecurity.
+The BitBoxBase runs a minimal Armbian operating system with additional custom applications.
 The main output is an Armbian image that contains the compiled custom applications and can be used to boot the BitBoxBase.
 
 We assume that running Docker requires `sudo`, therefore `sudo make` is needed. If your Docker installation allows execution for regular users, `sudo` is not necessary.

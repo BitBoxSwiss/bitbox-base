@@ -7,7 +7,7 @@ parent: Custom applications
 ## BitBoxBase Fancontrol
 
 Simple program to control fan speed on a single board computer according to current system temperature.
-It's written in Go and aimed for the ROCKPro64 SBC as part of the [BitBoxBase](https://github.com/digitalbitbox/bitbox-base) project by [Shift Cryptosecurity](https://shiftcrypto.ch).
+It's written in Go and aimed for the ROCKPro64 SBC as part of the [BitBoxBase](https://github.com/digitalbitbox/bitbox-base) project.
 
 The program reads the current system temperature from a single file, calculates the appropriate fan PWM value and writes it into a control file.
 The default values are set for the ROCKPro64 board running Armbian.
