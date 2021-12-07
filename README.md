@@ -10,7 +10,7 @@ This documentation is aimed at project members, contributors and intersted peopl
 
 ## Documentation
 
-Detailed documentation is available at <https://base.shiftcrypto.ch>.
+Detailed documentation is available at <https://digitalbitbox.github.io/bitbox-base>.
 
 ## Why run a Bitcoin node
 

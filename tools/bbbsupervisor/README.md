@@ -9,7 +9,7 @@ The **BitBoxBase Supervisor** `bbbsupervisor` is custom-built to monitor applica
 
 The Base Supervisor combines many small monitoring tasks. Contrary to the Middleware, its task is not about relaying application communication but to keep the running system in an operational state without user interaction.
 
-See the full documentation at <https://base.shiftcrypto.ch> for handled events.
+See the full documentation at <https://digitalbitbox.github.io/bitbox-base> for handled events.
 
 ## Installation
 
