@@ -3,4 +3,4 @@
 This directory holds the Mender-enabled disk images of the BitBoxBase project.
 See the main documentation for more information:
 
-* <https://base.shiftcrypto.ch/update>
+* <https://digitalbitbox.github.io/bitbox-base/update>

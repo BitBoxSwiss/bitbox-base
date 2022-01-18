@@ -1,5 +1,5 @@
 ### BitBoxBase documentation is available at
 
-https://base.shiftcrypto.ch
+https://digitalbitbox.github.io/bitbox-base
 
 This repository contains all sources and is used for issue tracking.
