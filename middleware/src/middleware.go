@@ -14,6 +14,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/authentication"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/hsm"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
@@ -48,6 +49,7 @@ type Middleware struct {
 	isMiddlewarePasswordSet bool
 	isBaseSetupDone         bool
 
+	hsm         *hsm.HSM
 	hsmFirmware *firmware.Device
 }
 
@@ -60,7 +62,7 @@ func (middleware *Middleware) GetMiddlewareVersion() string {
 //
 // hsmFirmware let's you talk to the HSM. NOTE: it the HSM could not be connected, this is nil. The
 // middleware must be able to run and serve RPC calls without the HSM present.
-func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Device) (*Middleware, error) {
+func NewMiddleware(config configuration.Configuration, hsm *hsm.HSM) (*Middleware, error) {
 	middleware := &Middleware{
 		config: config,
 		//TODO(TheCharlatan) find a better way to increase the channel size
@@ -77,7 +79,7 @@ func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Dev
 			UpdateAvailable: false,
 		},
 		baseVersion: semver.NewSemVer(0, 0, 0),
-		hsmFirmware: hsmFirmware,
+		hsm:         hsm,
 	}
 
 	middleware.prometheusClient = prometheus.NewClient(middleware.config.GetPrometheusURL())
@@ -86,6 +88,11 @@ func NewMiddleware(config configuration.Configuration, hsmFirmware *firmware.Dev
 		middleware.redisClient = redis.NewClient(middleware.config.GetRedisPort())
 	} else {
 		middleware.redisClient = redis.NewMockClient("")
+	}
+
+	// Initialize the HSM firmware connection and install firmware upgrade if available
+	if hsm != nil {
+		middleware.initHSM()
 	}
 
 	err := middleware.checkMiddlewareSetup()

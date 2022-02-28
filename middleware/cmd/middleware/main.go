@@ -31,14 +31,18 @@ func main() {
 	imageUpdateInfoURL := flag.String("updateinfourl", "https://shiftcrypto.ch/updates/base.json", "URL to query information about Base image updates from")
 	notificationNamedPipePath := flag.String("notificationNamedPipePath", "/tmp/middleware-notification.pipe", "Path where the Middleware creates a named pipe to receive notifications from other processes on the BitBoxBase")
 	hsmSerialPort := flag.String("hsmserialport", "/dev/ttyS0", "Serial port used to communicate with the HSM")
+	// hsmFirmwareFile and upgradeHSMFirmware options are to be used only for manually installing the hsm firmare
+	// Otherwise firmare is upgraded automatically on boot when new version is specified in Redis hsm:firmware:version
+	hsmFirmwareFile := flag.String("hsmfirmwarefile", "/opt/shift/hsm/firmware-bitboxbase.signed.bin", "Location of the signed HSM firmware binary")
+	upgradeHSMFirmware := flag.Bool("upgradehsmfirmware", false, "Set to true to force HSM firmware upgrade")
 	flag.Parse()
 
 	hsm := hsm.NewHSM(*hsmSerialPort)
-	hsmFirmware, err := hsm.WaitForFirmware()
-	if err != nil {
-		log.Printf("Failed to connect to the HSM firmware: %v. Continuing without HSM.", err)
-	} else {
-		log.Printf("HSM serial port connected.")
+	if *upgradeHSMFirmware {
+		err := hsm.UpgradeFirmware(*hsmFirmwareFile)
+		if err != nil {
+			log.Printf("Failed to upgrade HSM firmware: %s", err)
+		}
 	}
 
 	config := configuration.NewConfiguration(
@@ -55,6 +59,7 @@ func main() {
 			PrometheusURL:             *prometheusURL,
 			RedisMock:                 *redisMock,
 			RedisPort:                 *redisPort,
+			HsmFirmwareFile:           *hsmFirmwareFile,
 		},
 	)
 
@@ -68,7 +73,7 @@ func main() {
 	}
 	defer logBeforeExit()
 
-	middleware, err := middleware.NewMiddleware(config, hsmFirmware)
+	middleware, err := middleware.NewMiddleware(config, hsm)
 	if err != nil {
 		log.Fatalf("error starting the middleware: %s . Is redis connected? \nIf you are running the middleware outside of the base consider setting the redis mock flag to true: '-redismock true' .", err.Error())
 	}

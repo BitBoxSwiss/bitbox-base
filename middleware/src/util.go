@@ -18,6 +18,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
+	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 )
 
 // The util.go file includes utility functions for the Middleware.
@@ -415,4 +416,67 @@ func (middleware *Middleware) setHSMConfig() error {
 		return err
 	}
 	return nil
+}
+
+// upgradeFirmware upgrades the HSM firmare from the middleware
+func (middleware *Middleware) upgradeFirmware() error {
+	err := middleware.hsm.UpgradeFirmware(middleware.config.GetHsmFirmwareFile())
+	if err != nil {
+		return err
+	}
+	middleware.hsmFirmware, err = middleware.hsm.WaitForFirmware()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// hsmUpgradeAvailable checks the AvailableHSMVersion Redis and compares it to the running FW version
+func (middleware *Middleware) hsmUpgradeAvailable() (bool, error) {
+	availableHSMVersion, err := middleware.redisClient.GetString(redis.AvailableHSMVersion)
+	if err != nil {
+		return false, err
+	}
+	availableSemver, err := semver.NewSemVerFromString(availableHSMVersion)
+	if err != nil {
+		return false, err
+	}
+	currentVersion := middleware.hsmFirmware.Version()
+	if !currentVersion.AtLeast(availableSemver) {
+		log.Printf("BitBoxBase HSM upgrade available from version: %s to version: %s", currentVersion, availableHSMVersion)
+		return true, nil
+	}
+	log.Printf("BitBoxBase HSM is up to date: %s", currentVersion)
+	return false, nil
+}
+
+// initHSM tries to connect to the HSM firmware. On success, it checks if a firmware upgrade is available
+// and tries to apply it.
+// On failing to connect to the firmware, it tries to connect to the bootloader and re-install the firmware.
+// If that also fails, we continue without the HSM
+func (middleware *Middleware) initHSM() {
+	var err error
+	middleware.hsmFirmware, err = middleware.hsm.WaitForFirmware()
+	if err != nil {
+		// Failing to connect to the firmware may mean a FW upgrade had failed and we are in the bootloader
+		// Try to re-do the upgrade via the bootloader before continuing without the HSM
+		err = middleware.upgradeFirmware()
+		if err != nil {
+			log.Printf("Failed to connect to the HSM: %v. Continuing without HSM.", err)
+		}
+	} else {
+		log.Printf("HSM serial port connected.")
+	}
+	if middleware.hsmFirmware != nil {
+		upgradeAvailable, err := middleware.hsmUpgradeAvailable()
+		if err != nil {
+			log.Printf("Failed to fetch HSM version/upgrade information: %s. Proceeding normally", err)
+		}
+		if upgradeAvailable {
+			err = middleware.upgradeFirmware()
+			if err != nil {
+				log.Printf("Failed to upgrade HSM firmware: %s", err)
+			}
+		}
+	}
 }
