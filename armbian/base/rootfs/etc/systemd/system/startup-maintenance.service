@@ -1,0 +1,14 @@
+[Unit]
+Description=BitBoxBase: Maintenance menu
+After=getty@tty2.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/shift/scripts/systemd-startup-maintenance.sh
+StandardInput=tty
+TTYPath=/dev/tty2
+TTYReset=yes
+TTYVHangup=yes
+
+[Install]
+WantedBy=default.target

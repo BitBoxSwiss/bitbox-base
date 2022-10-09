@@ -28,12 +28,15 @@ if ! grep -q '/mnt/ssd ' /etc/fstab ; then
     if lsblk | grep -q 'nvme0n1p1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep nvme0n1p1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
         exec_overlayroot all-layers "echo '/dev/nvme0n1p1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
-    elif lsblk | grep -q 'sda1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep sda1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
+    # ignore USB drives if NVMe SSD present
+    elif ! lsblk | grep -q 'nvme0n1' && lsblk | grep -q 'sda1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep sda1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
         exec_overlayroot all-layers "echo '/dev/sda1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
+
+    elif ! lsblk | grep -q 'nvme0n1' && lsblk | grep -q 'sdb1' && [[ $(lsblk -o NAME,SIZE -abrnp | grep sdb1 | cut -f 2 -d " ") -gt 400000000000 ]]; then
+        exec_overlayroot all-layers "echo '/dev/sdb1 /mnt/ssd ext4 rw,nosuid,dev,noexec,noatime,nodiratime,auto,nouser,async,nofail 0 2' >> /etc/fstab"
 
     else
         ## if no valid partition present, is image configured for autosetup of SSD?
-
         if ! mountpoint /mnt/ssd -q && [ -f /opt/shift/config/.autosetup-ssd ]; then
             # run ssd autosetup, and disable it afterwards on success
             if /opt/shift/scripts/autosetup-ssd.sh format auto --assume-yes
