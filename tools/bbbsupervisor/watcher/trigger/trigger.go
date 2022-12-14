@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Trigger is dispached by a watcher when something happens
+// Trigger is dispatched by a watcher when something happens
 type Trigger int
 
 // String returns a human readable value for a trigger
@@ -21,6 +21,11 @@ const (
 	ElectrsNoBitcoindConnectivity
 	MiddlewareNoBitcoindConnectivity
 	PrometheusBitcoindIBD
+	MiddlewareBaseImageUpdateStart
+	MiddlewareBaseImageUpdateSuccess
+	MiddlewareBaseImageUpdateFailure
+	MiddlewareRPCReboot
+	MiddlewareRPCShutdown
 )
 
 // Map of possible triggers. Mapped by their trigger to a trigger name
@@ -29,6 +34,11 @@ var triggerNames = map[Trigger]string{
 	ElectrsNoBitcoindConnectivity:    "electrsNoBitcoindConnectivity",
 	MiddlewareNoBitcoindConnectivity: "triggerMiddlewareNoBitcoindConnectivity",
 	PrometheusBitcoindIBD:            "prometheusBitcoindIBD",
+	MiddlewareBaseImageUpdateStart:   "middlewareBaseImageUpdateStart",
+	MiddlewareBaseImageUpdateSuccess: "middlewareBaseImageUpdateSuccess",
+	MiddlewareBaseImageUpdateFailure: "MiddlewareBaseImageUpdateFailure",
+	MiddlewareRPCReboot:              "middlewareRPCReboot",
+	MiddlewareRPCShutdown:            "middlewareRPCShutdown",
 }
 
 // IsFlooding checks if a trigger is flooding

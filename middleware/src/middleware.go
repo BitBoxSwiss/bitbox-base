@@ -8,6 +8,7 @@ import (
 	"log"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/digitalbitbox/bitbox-base/middleware/src/configuration"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/handlers"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/ipcnotification"
+	"github.com/digitalbitbox/bitbox-base/middleware/src/logtags"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/prometheus"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/redis"
 	"github.com/digitalbitbox/bitbox-base/middleware/src/rpcmessages"
@@ -177,19 +179,47 @@ func (middleware *Middleware) updateCheckLoop() {
 	}
 }
 
-// hsmHeartbeatLoop
 func (middleware *Middleware) hsmHeartbeatLoop() {
 	for {
-		// TODO(@0xB10C) fetch the `stateCode` and `descriptionCode` from redis keys set byt the supervisor
-		err := middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_IDLE, messages.BitBoxBaseHeartbeatRequest_EMPTY)
+		err := middleware.hsmHeartbeat()
 		if err != nil {
-			log.Printf("Received an error from the HSM: %s\n", err)
+			log.Printf("Warning while sending a HSM heartbeat: %s\n", err)
 			time.Sleep(time.Second)
 			continue
 		}
 		// Send a heartbeat every 5 seconds. The HSM watchdog's timeout is 60 seconds
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func (middleware *Middleware) hsmHeartbeat() error {
+	stateCode, err := middleware.redisClient.GetInt(redis.BaseStateCode)
+	if err != nil {
+		err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_ERROR, messages.BitBoxBaseHeartbeatRequest_REDIS_ERROR)
+		if err != nil {
+			return fmt.Errorf("could not get the stateCode from Redis: %s", err)
+		}
+	}
+
+	descriptionCodeString, err := middleware.redisClient.GetTopFromSortedSet(redis.BaseDescriptionCode)
+	if err != nil {
+		err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_ERROR, messages.BitBoxBaseHeartbeatRequest_REDIS_ERROR)
+		if err != nil {
+			return fmt.Errorf("could not get the hightest priority descriptionCode from Redis: %s", err)
+		}
+	}
+
+	descriptionCode, err := strconv.Atoi(descriptionCodeString)
+	if err != nil {
+		return fmt.Errorf("could not convert the descriptionCode from Redis %q to a string: %s", descriptionCodeString, err)
+	}
+
+	err = middleware.hsmFirmware.BitBoxBaseHeartbeat(messages.BitBoxBaseHeartbeatRequest_StateCode(stateCode), messages.BitBoxBaseHeartbeatRequest_DescriptionCode(descriptionCode))
+	if err != nil {
+		return fmt.Errorf("received an error from the HSM: %w", err)
+	}
+
+	return nil
 }
 
 // Start gives a trigger for the handler to start the rpc event loop
@@ -239,23 +269,25 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 
 	for {
 		notification := <-notifications
-
 		if notification.Version != supportedNotificationVersion {
-			log.Printf("Dropping IPC notification with unsupported version: %s\n", notification.String())
+			log.Printf("Dropping an IPC notification with unsupported version: %s\n", notification.String())
 		}
 
-		log.Printf("Received notification with topic '%s': %v\n", notification.Topic, notification.Payload)
-
+		log.Printf("Received an IPC notification with topic '%s': %v\n", notification.Topic, notification.Payload)
 		switch notification.Topic {
 		case "mender-update":
 			if success, ok := ipcnotification.ParseMenderUpdatePayload(notification.Payload); ok {
 				switch success {
 				case true:
+					// This logtag notifies the supervisor that the update was successful.
+					log.Println(logtags.LogTagMWUpdateSuccess)
 					middleware.events <- handlers.Event{
 						Identifier:      []byte(rpcmessages.OpBaseUpdateSuccess),
 						QueueIfNoClient: true,
 					}
 				case false:
+					// This logtag notifies the supervisor that the update failed.
+					log.Println(logtags.LogTagMWUpdateFailure)
 					middleware.events <- handlers.Event{
 						Identifier:      []byte(rpcmessages.OpBaseUpdateFailure),
 						QueueIfNoClient: true,
@@ -264,8 +296,18 @@ func (middleware *Middleware) ipcNotificationLoop(reader *ipcnotification.Reader
 			} else {
 				log.Printf("Could not parse %s notification payload: %v\n", notification.Topic, notification.Payload)
 			}
+		case "systemstate-changed":
+			if middleware.hsmFirmware == nil {
+				log.Println("Received an IPC notification that the system state changed, but there is no HSM recognized. Not sending an extra HSM heartbeat.")
+				break
+			}
+			log.Println("Received an IPC notification that the system state changed. Sending an extra HSM heartbeat.")
+			err := middleware.hsmHeartbeat()
+			if err != nil {
+				log.Printf("Warning: error while sending a extra HSM heartbeat because the systemstate changed: %s\n", err)
+			}
 		default:
-			log.Printf("Dropping IPC notification with unknown topic: %s\n", notification.String())
+			log.Printf("Dropping an IPC notification with unknown topic: %s\n", notification.String())
 		}
 	}
 }
@@ -722,6 +764,8 @@ func (middleware *Middleware) ShutdownBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWShutdown)
 		time.Sleep(delay)
 		cmd := exec.Command("shutdown", "now")
 		err = cmd.Start()
@@ -756,6 +800,8 @@ func (middleware *Middleware) RebootBase() rpcmessages.ErrorResponse {
 	}
 
 	go func(delay time.Duration) {
+		// This logtag lets the Supervisor know that the Middleware initiated a reboot
+		log.Println(logtags.LogTagMWReboot)
 		time.Sleep(delay)
 		cmd := exec.Command("reboot")
 		err = cmd.Start()

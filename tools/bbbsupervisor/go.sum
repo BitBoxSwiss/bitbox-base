@@ -13,8 +13,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191204153728-1128dd782517 h1:b34ka1KKniF6hzIW+5n7sDfBhEfzzAZAiE6srtmSnDM=
-github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191204153728-1128dd782517/go.mod h1:UidGto4vnuuvotQdGoNHY5ipVmDWHkbnkaAo3Q5qTPw=
+github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191205145921-34407f69e763 h1:03qjUjBcf5tLK61oDvY7as0wmkgulcIBfqBluVs3oC8=
+github.com/digitalbitbox/bitbox-base/middleware v0.0.0-20191205145921-34407f69e763/go.mod h1:UidGto4vnuuvotQdGoNHY5ipVmDWHkbnkaAo3Q5qTPw=
 github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191204135529-eb28ed7e9cbd h1:K29fNVgdarWFPuhnR05ZdZYuNeMe63Ym/18nJQohwsU=
 github.com/digitalbitbox/bitbox02-api-go v0.0.0-20191204135529-eb28ed7e9cbd/go.mod h1:yMwrh5lnSF+UDy+PLdCySxWHZubd2Tk/t2EQ1++4mgA=
 github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6/go.mod h1:1i71OnUq3iUe1ma7Lr6yG6/rjvM3emb6yoL7xLFzcVQ=
